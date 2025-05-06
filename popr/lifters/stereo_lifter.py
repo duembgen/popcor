@@ -314,7 +314,7 @@ class StereoLifter(StateLifter, ABC):
             self.y_ = self.simulate_y(noise=noise)
 
         Q = self.get_Q_from_y(self.y_, output_poly=output_poly, use_cliques=use_cliques)
-        return Q, self.y_
+        return Q
 
     def get_Q_from_y(self, y, output_poly=False, use_cliques=[]):
         """

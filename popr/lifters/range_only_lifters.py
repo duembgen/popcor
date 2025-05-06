@@ -190,7 +190,7 @@ class RangeOnlyLifter(StateLifter):
         cost3 = self.get_cost(self.theta, y)
         assert abs(cost1 - cost2) < 1e-10
         assert abs(cost1 - cost3) < 1e-10
-        return Q, y
+        return Q
 
     def get_J(self, t, y):
         import scipy.sparse as sp

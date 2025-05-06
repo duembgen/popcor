@@ -1,6 +1,7 @@
 import pickle
 
 import numpy as np
+
 from popr.lifters import StereoLifter
 from popr.utils.geometry import get_T, get_theta_from_T
 

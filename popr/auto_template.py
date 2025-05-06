@@ -10,20 +10,17 @@ from cert_tools.sdp_solvers import solve_feasibility_sdp
 from cert_tools.sdp_solvers import solve_lambda_cvxpy as solve_lambda
 from cert_tools.sdp_solvers import solve_sdp_cvxpy
 from poly_matrix import PolyMatrix
+
 from popr.lifters import StateLifter
 from popr.solvers.common import find_local_minimum
 from popr.solvers.sparse import bisection, brute_force
 from popr.utils.common import get_aggregate_sparsity, get_vec
-from popr.utils.constraint import Constraint, generate_poly_matrix, plot_poly_matrix
-from popr.utils.plotting_tools import (
-    add_colorbar,
-    add_rectangles,
-    import_plt,
-    initialize_discrete_cbar,
-    plot_basis,
-    plot_singular_values,
-    savefig,
-)
+from popr.utils.constraint import (Constraint, generate_poly_matrix,
+                                   plot_poly_matrix)
+from popr.utils.plotting_tools import (add_colorbar, add_rectangles,
+                                       import_plt, initialize_discrete_cbar,
+                                       plot_basis, plot_singular_values,
+                                       savefig)
 
 plt = import_plt()
 
@@ -421,7 +418,8 @@ class AutoTemplate(object):
         if n_inits is None:
             n_inits = self.N_INITS
         np.random.seed(NOISE_SEED)
-        Q, y = self.lifter.get_Q()
+        Q = self.lifter.get_Q()
+        y = self.lifter.y_
         qcqp_that, qcqp_cost, info = find_local_minimum(
             self.lifter, y=y, verbose=verbose, n_inits=n_inits, plot=plot
         )

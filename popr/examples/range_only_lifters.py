@@ -2,9 +2,10 @@ import matplotlib.pylab as plt
 import numpy as np
 import scipy.sparse as sp
 from poly_matrix.least_squares_problem import LeastSquaresProblem
+from scipy.optimize import minimize
+
 from popr.lifters import StateLifter
 from popr.utils.common import diag_indices, upper_triangular
-from scipy.optimize import minimize
 
 plt.ion()
 
@@ -356,7 +357,7 @@ class RangeOnlyLocLifter(StateLifter):
         cost1 = x.T @ Q @ x
         cost3 = self.get_cost(self.theta, self.y_)
         assert abs(cost1 - cost3) < 1e-10
-        return Q, self.y_
+        return Q
 
     def get_D(self, that):
         D = np.eye(1 + self.n_positions * self.d + self.size_z)

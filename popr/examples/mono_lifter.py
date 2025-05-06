@@ -3,6 +3,7 @@ from copy import deepcopy
 # import autograd.numpy as np
 import numpy as np
 from poly_matrix.poly_matrix import PolyMatrix
+
 from popr.lifters import RobustPoseLifter
 from popr.utils.geometry import get_C_r_from_theta
 from popr.utils.plotting_tools import plot_frame
@@ -172,7 +173,7 @@ class MonoLifter(RobustPoseLifter):
                 self.y_[i] = ui
 
         Q = self.get_Q_from_y(self.y_, output_poly=output_poly, use_cliques=use_cliques)
-        return Q, self.y_
+        return Q
 
     def get_Q_from_y(self, y, output_poly: bool = False, use_cliques: list = []):
         """

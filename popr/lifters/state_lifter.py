@@ -61,6 +61,54 @@ class StateLifter(BaseClass):
         self.generate_random_setup()
         super().__init__()
 
+    ###### MUST OVERWRITE THESE
+
+    @property
+    def var_dict(self):
+        raise ValueError("Inheriting class must implement this!")
+
+    @abstractmethod
+    def sample_theta(self) -> np.ndarray:
+        raise NotImplementedError("need to implement sample_theta")
+
+    ###### MUST OVERWRITE THESE FOR TIGHTNESS CHECKS
+
+    def get_Q(self, output_poly=False, noise=None):
+        """Construct the cost matrix Q.
+
+        :param noise: set the noise level, if appropriate.
+        :param output_poly: if True, return the matrix in PolyMatrix format.
+
+        :returns: the cost matrix as a sparse matrix or PolyMatrix.
+        """
+        raise NotImplementedError(
+            "Need to impelement get_Q in inheriting class if you want to use it."
+        )
+        return None
+
+    def get_A_known(self, var_dict=None, output_poly: bool = False) -> list:
+        """Construct the matrices defining the known equality constraints."""
+        return []
+
+    def get_B_known(self) -> list:
+        """Construct the matrices defining the known inequality constraints."""
+        return []
+
+    ###### MUST OVERWRITE THESE FOR ADDING PARAMETERS
+
+    def sample_parameters(self, theta=None) -> np.ndarray:
+        assert (
+            self.param_level == "no"
+        ), "Need to overwrite sample_parameters to use level different than 'no'"
+        return {self.HOM: 1.0}
+
+    @property
+    def param_dict(self):
+        assert (
+            self.param_level == "no"
+        ), "Need to overwrite param_dict to use level different than 'no'"
+        return {self.HOM: 1}
+
     def get_involved_param_dict(self, var_subset):
         keys = [self.HOM]
         for v in var_subset:
@@ -71,6 +119,8 @@ class StateLifter(BaseClass):
                 if key not in keys:
                     keys.append(key)
         return [k for k in keys if k in self.param_dict]
+
+    ###### BELOW ARE NOT USUALLY OVERWRITTEN
 
     def compute_Ai(self, templates, var_dict, param_dict):
         """
@@ -268,18 +318,6 @@ class StateLifter(BaseClass):
     def get_A_b_list(self, A_list, var_subset=None):
         return [(self.get_A0(var_subset), 1.0)] + [(A, 0.0) for A in A_list]
 
-    def get_A_known(self, var_dict=None, output_poly: bool = False) -> list:
-        return []
-
-    def get_B_known(self) -> list:
-        return []
-
-    def sample_parameters(self, theta=None) -> np.ndarray:
-        assert (
-            self.param_level == "no"
-        ), "Need to overwrite sample_parameters to use level different than 'no'"
-        return {self.HOM: 1.0}
-
     def sample_parameters_landmarks(self, landmarks):
         """Used by RobustPoseLifter, RangeOnlyLocLifter: the default way of adding landmarks to parameters."""
         if self.landmarks is None:
@@ -301,33 +339,20 @@ class StateLifter(BaseClass):
                 )
         return parameters
 
-    @abstractmethod
-    def sample_theta(self) -> np.ndarray:
-        raise NotImplementedError("need to implement sample_theta")
-
     def get_grad(self, t, y) -> np.ndarray:
         raise NotImplementedError("get_grad not implement yet")
 
-    def get_cost(self, theta, y) -> float:
+    def get_cost(self, theta, y=None) -> float:
         x = self.get_x(theta=theta)
-        Q, y = self.get_Q()
+        if Q is not None:
+            Q = self.get_Q_from_y(y)
+        else:
+            Q = self.get_Q()
         return x.T @ Q @ x
 
     def get_error(self, t) -> dict:
         err = np.linalg.norm(t - self.theta) ** 2 / self.theta.size
         return {"MSE": err, "error": err}
-
-    def get_level_dims(self, n=1):
-        assert (
-            self.level == "no"
-        ), "Need to overwrite get_level_dims to use level different than 'no'"
-        return {"no": 0}
-
-    def get_Q(self, output_poly=False):
-        raise NotImplementedError(
-            "Need to impelement get_Q in inheriting class if you want to use it."
-        )
-        return None, None
 
     def local_solver(self, t0, y=None, verbose=False):
         raise NotImplementedError(
@@ -342,17 +367,6 @@ class StateLifter(BaseClass):
             self.parameters = self.sample_parameters()
         if self.theta is None:
             self.theta = self.sample_theta()
-
-    @property
-    def var_dict(self):
-        raise ValueError("Inheriting class must implement this!")
-
-    @property
-    def param_dict(self):
-        assert (
-            self.param_level == "no"
-        ), "Need to overwrite param_dict to use level different than 'no'"
-        return {self.HOM: 1}
 
     @property
     def param_dict_landmarks(self):

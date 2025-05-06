@@ -38,7 +38,7 @@ class PolyLifter(StateLifter):
 
     def get_Q(self, noise=1e-3):
         Q = self.get_Q_mat()
-        return Q, None
+        return Q
 
     def get_cost(self, theta, *args, **kwargs):
         Q = self.get_Q_mat()

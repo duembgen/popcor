@@ -1,6 +1,7 @@
 import numpy as np
 from poly_matrix.least_squares_problem import LeastSquaresProblem
 from poly_matrix.poly_matrix import PolyMatrix
+
 from popr.lifters import StateLifter
 
 
@@ -82,11 +83,13 @@ class Stereo1DLifter(StateLifter):
         y = 1 / (self.theta - self.landmarks.flatten()) + np.random.normal(
             scale=noise, loc=0, size=self.n_landmarks
         )
+        if self.y_ is None:
+            self.y_ = y
 
         ls_problem = LeastSquaresProblem()
         for j in range(len(y)):
             ls_problem.add_residual({self.HOM: -y[j], f"z_{j}": 1})
-        return ls_problem.get_Q().get_matrix(self.var_dict), y
+        return ls_problem.get_Q().get_matrix(self.var_dict)
 
     def get_A_known(self, add_known_redundant=False):
 

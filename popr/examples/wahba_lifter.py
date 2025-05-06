@@ -1,5 +1,6 @@
 # import autograd.numpy as np
 import numpy as np
+
 from popr.lifters import RobustPoseLifter
 from popr.utils.geometry import get_C_r_from_theta
 from popr.utils.plotting_tools import plot_frame
@@ -126,7 +127,7 @@ class WahbaLifter(RobustPoseLifter):
                     raise ValueError("did not find a valid measurement.")
                 self.y_[i] = y_i
         Q = self.get_Q_from_y(self.y_, output_poly=output_poly, use_cliques=use_cliques)
-        return Q, self.y_
+        return Q
 
     def get_Q_from_y(self, y, output_poly: bool = False, use_cliques: list = []):
         """
@@ -148,7 +149,7 @@ class WahbaLifter(RobustPoseLifter):
         else:
             js = list(range(self.n_landmarks))
 
-        from poly_matrix.poly_matrix import PolyMatrix
+        from poly_matrix import PolyMatrix
 
         Q = PolyMatrix(symmetric=True)
         if NORMALIZE:
