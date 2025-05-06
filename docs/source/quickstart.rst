@@ -1,339 +1,144 @@
 Quick start guide
 =================
 
-The toolbox implements the **performance estimation approach**, pioneered by Drori and Teboulle [2].
-A gentle introduction to performance estimation problems is provided in this
-`blog post
-<https://francisbach.com/computer-aided-analyses/>`_.
+This toolbox includes methods to formulate and solve polynomial optimization problems in robotics. 
+The focus of this toolbox is on creating **tight** semidefinite relaxations, which means that we can
+replace difficult (often NP-hard) optimization problems by easier-to-solve convex problems, which
+in many cases can actually provide the globally optimal solution of the original problem. 
 
-The PEPit implementation is in line with the framework as exposed in [3,4]
-and follow-up works (for which proper references are provided in the `example files
-<https://pepit.readthedocs.io/en/latest/examples.html#>`_).
-A gentle introduction to the toolbox is provided in [1].
+The toolbox allows to run the *AutoTight* and *AutoTemplate* algorithms on problems of your choice. 
+These algorithms are described in detail in `this paper <https://arxiv.org/abs/2308.05783/>`_ [1].
 
-When to use PEPit?
--------------------
 
-The general purpose of the toolbox is to help the researchers producing worst-case guarantees
-for their favorite first-order methods.
+Background
+----------
 
-This toolbox is presented under the form of a Python package.
-For people who are more comfortable with Matlab, we report to
-`PESTO
-<https://github.com/AdrienTaylor/Performance-Estimation-Toolbox>`_.
+We start with an optimization problem written in (QCQP) form:
 
-How tu use PEPit?
-------------------
+.. math::
 
-Installation
+  \begin{align} q^\star =&\min_{x} x^\top Q x  \\ 
+  & \text{s.t. } (\forall i): x^\top A_i x = b_i
+  \end{align} 
+
+with cost matrix :math:`Q`, known constraint matrices :math:`A_i`, and :math:`b_0=1`, :math:`b_{i}=0, i>0`. Many maximum-a-posteriori or maximum-likelihood estimation problems can be written as such, for example `range-only localization <https://arxiv.org/abs/2209.04266/>`_ and `range-aided SLAM <https://arxiv.org/abs/2302.11614/>`_, (`matrix-weighted <https://arxiv.org/abs/2308.07275>`_) `SLAM <https://arxiv.org/abs/1612.07386/>`_, and `outlier-robust estimation <https://ieeexplore.ieee.org/abstract/document/9785843/>`_. The same is true for many control and planning problems, for example the `inverted pendulum <https://arxiv.org/abs/2406.05846>`_ and other classical dynamical systems, and even contact-rich problems such as `slider-pusher planning problems <https://arxiv.org/abs/2402.10312>`_. 
+
+Algorithms
+----------
+
+The main tools that this toolbox provides are the following two classes, implemented in `this paper <https://arxiv.org/abs/2308.05783/>`_.
+
+AutoTight
+^^^^^^^^^
+
+*AutoTight* finds all possible additional constraints matrices :math:`A_r` which are also automatically satisfied by solutions of (QCQP), called **redundant constraints** and checks if the SDP (rank-)relaxation of the QCQP is cost and/or rank-tight after adding them. The rank relaxation is given by:
+
+.. math::
+  \begin{align} p^\star = &\min_{X} \langle Q, X \rangle  \\ 
+  & \text{s.t. } (\forall i): \langle A_i, X \rangle = b_i \\
+  & \text{s.t. } (\forall r): \langle A_r, X \rangle = 0 
+  \end{align} 
+
+In this context, cost-tight means that strong duality holds (:math:`p^\star = q^\star`) while rank-tight means that we even have :math:`\text{rank}(X)=1`.
+If successful, the output is a set of constraints that leads to a tight SDP relaxation of the original problem, which can be used to solve the problem to global optimality (if we have rank tightness) or certify given solutions (if we have cost tightness). 
+
+More information on how to use AutoTight can be found :ref:`here <AutoTight>`.
+
+AutoTemplate
 ^^^^^^^^^^^^
 
-PEPit is available on PyPI, hence can be installed very simply by running the command line:
+*AutoTemplate* follows the same principle as *AutoTight*, but its output are templates rather than constraints. These templates can be seen as "parametrized" versions of the constraints matrices, and can be applied to new problem instances of any size without having to learn the constraints again from scratch. 
 
-``pip install pepit``
+More information on how to use AutoTemplate can be found :ref:`here <AutoTemplate>`.
 
-Now you are all set!
-You should be able to run
+Installation
+------------
 
-.. code-block::
+The tool can be installed by running from a terminal:
 
-    import PEPit
+.. code-block:: bash
 
-in an Python interpreter.
+  git clone --recurse-submodules git@github.com:utiasASRL/popr
+  cd popr
+  conda env create -f environment.yml
 
+Basic Usage
+-----------
 
-Basic usage: getting worst-case guarantees
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+For the standard usage, the user first needs to define a custom **Lifter** class.
+This class should inherit from :ref:`StateLifter`. A basic skeleton of such a 
+Lifter class is provided in :ref:`ExampleLifter`. The main purpose of this class is 
+that it provides all basic operations related to the problem formulation, such as:
+- to sample feasible states (:meth:`popr.lifters.StateLifter.sample_theta`),
+- to get the lifted vector (:meth:`popr.lifters.StateLifter.get_x`),
 
-The main object is called a **PEP**.
-It stores the problem you will describe to **PEPit**.
+For most functionality you also need to define functions to
+- to get the cost matrix (:py:meth:`popr.lifters.StateLifter.get_Q`), 
+- to get known constraint matrices (:meth:`popr.lifters.StateLifter.get_A_known`, :meth:`popr.lifters.StateLifter.get_B_known`).
 
-First create a `**PEP**
-<https://pepit.readthedocs.io/en/latest/api/main_modules.html#PEPit.PEP>`_ object.
+Many example lifters are provided, you can find them under :ref:`Examples`.
 
-.. code-block::
+Some basic sanity checks
+~~~~~~~~~~~~~~~~~~~~~~~~
+The following code snippet shows some basic operations (and useful sanity checks) for the example
+lifter function :class:`popr.lifters.examples.Poly4Lifter`.
 
-    from PEPit import PEP
+.. testcode::
 
+    from popr.examples import Poly4Lifter
 
-.. code-block::
+    lifter = Poly4Lifter()
 
-    problem = PEP()
+    Q = lifter.get_Q()
 
+    # theta corresponds to the ground truth; in this case, the global minimum. 
+    x = lifter.get_x(lifter.theta)
+    cost_optimum = float(x.T @ Q @ x)
 
-From now, you can declare `functions
-<https://pepit.readthedocs.io/en/latest/api/functions_and_operators.html>`_ thanks to the `declare_function
-<https://pepit.readthedocs.io/en/latest/api/main_modules.html#PEPit.PEP.declare_function>`_ method.
+    # the cost at any other randomly sampled point has to be larger. 
+    for i in range(10):
+        theta_random = lifter.sample_theta()
+        x_random = lifter.get_x(theta_random)
+        assert float(x_random.T @ Q @ x_random) > cost_optimum
 
-.. code-block::
 
-    from PEPit.functions import SmoothConvexFunction
+Solving simple SDPs
+~~~~~~~~~~~~~~~~~~~
 
-.. code-block::
+The following code snippet shows how you can already use this simple lifter to find the global
+optimum of this polynomial, by solving an SDP.
 
-    func = problem.declare_function(SmoothConvexFunction, L=1)
+.. testcode::
 
-.. warning::
-    To enforce the same subgradient to be returned each time one is required,
-    we introduced the attribute `reuse_gradient` in the `Function
-    <https://pepit.readthedocs.io/en/0.3.2/api/main_modules.html#function>`_ class.
-    Some classes of functions contain only differentiable functions (e.g. smooth convex functions).
-    In those, the `reuse_gradient` attribute is set to True by default.
+    from cert_tools.sdp_solvers import solve_sdp
+    from cert_tools.linalg_tools import rank_project
+    from popr.examples import Poly4Lifter
 
-    When the same subgradient is used several times in the same code and when it is difficult to
-    to keep track of it (through proximal calls for instance), it may be useful to set this parameter
-    to True even if the function is not differentiable. This helps reducing the number of constraints,
-    and improve the accuracy of the underlying semidefinite program. See for instance the code for
-    `improved interior method 
-    <https://pepit.readthedocs.io/en/latest/examples/b.html#improved-interior-method>`_ or
-    `no Lips in Bregman divergence
-    <https://pepit.readthedocs.io/en/latest/examples/b.html#no-lips-in-bregman-divergence>`_.
+    lifter = Poly4Lifter()
 
-You can also define a new `point
-<https://pepit.readthedocs.io/en/0.3.2/api/main_modules.html#point>`_ with
+    # the cost matrix
+    Q = lifter.get_Q()
 
-.. code-block::
+    # the equality constraints
+    A_known = lifter.get_A_known()
 
-    x0 = problem.set_initial_point()
+    # the homogenization constraint
+    A_0 = lifter.get_A0()
 
+    X, info = solve_sdp(Q, [(A_0, 1.0)] + [(A_i, 0.0) for A_i in A_known])
 
-and store the value of `func` on `x0`
+    # if X is rank one, the global optimum can be found in element X_10 of the matrix.
+    theta_pick = X[1, 0] 
+    assert abs(theta_pick - lifter.theta) < 1e-5
 
-.. code-block::
+    # We can also first extract the rank-1 estimate (X=xx') and then extract theta.
+    x, info_rank = rank_project(X, p=1)
+    theta_round = x[1]
 
-    f0 = func(x0)
+    assert abs(theta_round - lifter.theta) < 1e-5
 
-or
-
-.. code-block::
-
-    f0 = func.value(x0)
-
-
-as well as the (sub)gradient of `func` on `x0`
-
-.. code-block::
-
-    g0 = func.gradient(x0)
-
-or
-
-.. code-block::
-
-    g0 = func.subgradient(x0)
-
-
-There is a more compact way to do it using the `oracle
-<https://pepit.readthedocs.io/en/0.3.2/api/main_modules.html#PEPit.Function.oracle>`_ method.
-
-.. code-block::
-
-    g0, f0 = func.oracle(x0)
-
-You can declare a stationary point of `func`, defined as a point which gradient on `func` is zero, as follow:
-
-.. code-block::
-
-    xs = func.stationary_point()
-
-Then you can define the associated function value using:
-
-.. code-block::
-
-    fs = func(xs)
-
-Alternatively, you can use an option of the `stationary_point
-<https://pepit.readthedocs.io/en/0.3.2/api/main_modules.html#PEPit.Function.stationary_point>`_ method to get the stationary point and properties of func on the latter.
-
-.. code-block::
-
-    xs, gs, fs = func.stationary_point(return_gradient_and_function_value=True)
-
-
-You can combine points and gradients naturally
-
-.. code-block::
-
-    x = x0
-    for _ in range(n):
-        x = x - gamma * func.gradient(x)
-
-You must declare some initial conditions like
-
-.. code-block::
-
-    problem.set_initial_condition((x0 - xs) ** 2 <= 1)
-
-
-as well as performance metrics like
-
-.. code-block::
-
-    problem.set_performance_metric(func(x) - fs)
-
-
-Finally, you can ask PEPit to solve the system for you and return the worst-case guarantee of your method.
-
-.. code-block::
-
-    pepit_tau = problem.solve()
-
-.. warning::
-    Performance estimation problems consist in reformulating the problem of finding a worst-case scenario as a semidefinite
-    program (SDP). The dimension of the corresponding SDP is directly related to the number of function and gradient evaluations
-    in a given code.
-    
-    We encourage the users to perform as few function and subgradient evaluations as possible, as the size of the
-    corresponding SDP grows with the number of subgradient/function evaluations at different points.
-
-
-Derive proofs and adversarial objectives
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-When one calls the `solve
-<https://pepit.readthedocs.io/en/0.3.2/api/main_modules.html#PEPit.PEP.solve>`_ method,
-**PEPit** does much more that just finding the worst-case value.
-
-In particular, it stores possible values of each points, gradients and function values that achieve this worst-case guarantee,
-as well as the dual variable values associated with each constraint.
-
-Values and dual variables values
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Let's consider the above example.
-After solving the **PEP**, you can ask **PEPit**
-
-.. code-block::
-
-    print(x.eval())
-
-which returns one possible value of the output of the described algorithm at optimum.
-
-You can also ask for gradients and function values
-
-.. code-block::
-
-    print(func.gradient(x).eval())
-    print(func(x).eval())
-
-Recovering the values of all the points,
-gradients and function values at optimum allows you
-to reconstruct the function that achieves the worst-case complexity of your method.
-
-You can also get the dual variables values of constraints at optimum,
-which essentially allows you to write the proof of the worst-case guarantee you just obtained.
-
-Let's consider again the previous example, but this time,
-let's store a constraint before using it.
-
-.. code-block::
-
-    constraint = (x0 - xs) ** 2 <= 1
-    problem.set_initial_condition(constraint)
-
-Then, after solving the system, you can require its associated dual variable value with
-
-.. code-block::
-
-    constraint.eval_dual()
-
-Naming PEPit objects
-~~~~~~~~~~~~~~~~~~~~
-
-In order to ease the proof reconstruction, PEPit now allows to associate names to the created objects.
-This is particularly useful on `constraints
-<https://pepit.readthedocs.io/en/0.3.2/api/main_modules.html#constraint>`_ in order to associate the found dual values to some recognisable constraints.
-
-As an example, if a user creates several constraints in a row as
-
-.. code-block::
-
-    for _ in range(n):
-        constraint = ...
-        constraint.set_name(name)
-        problem.add_constraint(constraint)
-
-the latter can easily list their names in front of their dual values with
-
-.. code-block::
-
-    for constraint in problem.list_of_constraints:
-        print("the constraint {} comes with the dual values {}.".format(constraint.get_name(), constraint.eval_dual()))
-
-Functions generally contain several "interpolation constraints".
-If a user sets a name to a function as well as to all the points the oracle has been called on,
-then, its interpolation constraints will be attributed a name accordingly.
-Then, using the method `get_class_constraints_duals
-<https://pepit.readthedocs.io/en/0.3.2/api/main_modules.html#PEPit.Function.get_class_constraints_duals>`_,
-the user has access to the tables of dual values related to its interpolation constraints.
-
-Output pdf
-~~~~~~~~~~
-
-In a later release, we will provide an option to output a pdf file summarizing all those pieces of information.
-
-Simpler worst-case scenarios
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Sometimes, there are several solutions to the PEP problem.
-For obtaining simpler worst-case scenarios, one would prefer a low dimension solutions to the SDP.
-To this end, we provide **heuristics** based on the trace norm or log det minimization for reducing
-the dimension of the numerical solution to the SDP.
-
-You can use the trace heuristic by specifying
-
-.. code-block::
-
-    problem.solve(dimension_reduction_heuristic="trace")
-    
-You can use n iterations of the log det heuristic by specifying "logdet{n}". For example, for
-using 5 iterations of the logdet heuristic:
-
-.. code-block::
-
-    problem.solve(dimension_reduction_heuristic="logdet5")
-
-
-Finding Lyapunov
-^^^^^^^^^^^^^^^^
-
-In a later release, we will provide tools to help finding good Lyapunov functions to study a given method.
-
-This tool will be based on the method described in [7].
 
 References
 ----------
 
-[1] B. Goujaud, C. Moucer, F. Glineur, J. Hendrickx, A. Taylor, A. Dieuleveut.
-`PEPit: computer-assisted worst-case analyses of first-order optimization methods in Python.
-<https://arxiv.org/pdf/2201.04040.pdf>`_
-
-[2] Drori, Yoel, and Marc Teboulle.
-`Performance of first-order methods for smooth convex minimization: a novel approach.
-<https://arxiv.org/pdf/1206.3209.pdf>`_
-Mathematical Programming 145.1-2 (2014): 451-482
-
-[3] Taylor, Adrien B., Julien M. Hendrickx, and François Glineur.
-`Smooth strongly convex interpolation and exact worst-case performance of first-order methods.
-<https://arxiv.org/pdf/1502.05666.pdf>`_
-Mathematical Programming 161.1-2 (2017): 307-345.
-
-[4] Taylor, Adrien B., Julien M. Hendrickx, and François Glineur.
-`Exact worst-case performance of first-order methods for composite convex optimization.
-<https://arxiv.org/pdf/1512.07516.pdf>`_
-SIAM Journal on Optimization 27.3 (2017): 1283-1313.
-
-[5] Steven Diamond and Stephen Boyd.
-`CVXPY: A Python-embedded modeling language for convex optimization.
-<https://arxiv.org/pdf/1603.00943.pdf>`_
-Journal of Machine Learning Research (JMLR) 17.83.1--5 (2016).
-
-[6] Agrawal, Akshay and Verschueren, Robin and Diamond, Steven and Boyd, Stephen.
-`A rewriting system for convex optimization problems.
-<https://arxiv.org/pdf/1709.04494.pdf>`_
-Journal of Control and Decision (JCD) 5.1.42--60 (2018).
-
-[7] Adrien Taylor, Bryan Van Scoy, Laurent Lessard.
-`Lyapunov Functions for First-Order Methods: Tight Automated Convergence Guarantees.
-<https://arxiv.org/pdf/1803.06073.pdf>`_
-International Conference on Machine Learning (ICML).
+`[1] F. Dümbgen, C. Holmes, B. Agro and T. Barfoot, "Toward Globally Optimal State Estimation Using Automatically Tightened Semidefinite Relaxations," in IEEE Transactions on Robotics, vol. 40, pp. 4338-4358, 2024, doi: 10.1109/TRO.2024.3454570. <https://arxiv.org/abs/2308.05783>`_

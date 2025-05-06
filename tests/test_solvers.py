@@ -17,7 +17,8 @@ def test_hess_finite_diff():
         errors = []
         eps_list = np.logspace(-10, -5, 5)
         for eps in eps_list:
-            Q, y = lifter.get_Q(noise=NOISE)
+            Q = lifter.get_Q(noise=NOISE)
+            y = lifter.y_
             theta = lifter.get_vec_around_gt(delta=0)
 
             try:
@@ -63,7 +64,8 @@ def test_grad_finite_diff():
         errors = []
         eps_list = np.logspace(-10, -1, 11)
         for eps in eps_list:
-            Q, y = lifter.get_Q()
+            Q = lifter.get_Q()
+            y = lifter.y_
 
             theta = lifter.get_vec_around_gt(delta=0)
             cost = lifter.get_cost(theta, y)
@@ -115,7 +117,8 @@ def test_cost_noisy():
 def test_cost(noise=0.0):
     for lifter in all_lifters():
         # np.random.seed(1)
-        Q, y = lifter.get_Q(noise=noise)
+        Q = lifter.get_Q(noise=noise)
+        y = lifter.y_
         # np.random.seed(1)
         # Qold, yold = lifter.get_Q_old(noise=noise)
         # np.testing.assert_allclose(Q, Qold)
@@ -166,7 +169,8 @@ def test_solvers(n_seeds=1, noise=0.0):
             np.random.seed(j)
 
             # noisy setup
-            Q, y = lifter.get_Q(noise=noise)
+            Q = lifter.get_Q(noise=noise)
+            y = lifter.y_
             if Q is None:
                 continue
 
@@ -294,7 +298,8 @@ def compare_solvers():
         np.random.seed(0)
 
         # noisy setup
-        Q, y = lifter.get_Q(noise=noise)
+        Q = lifter.get_Q(noise=noise)
+        y = lifter.y_
         if Q is None:
             continue
 

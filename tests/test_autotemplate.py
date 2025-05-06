@@ -1,4 +1,5 @@
 import numpy as np
+
 from popr import AutoTemplate
 from popr.examples import RangeOnlyLocLifter, Stereo1DLifter
 

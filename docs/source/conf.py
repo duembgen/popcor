@@ -42,7 +42,9 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
     'sphinx.ext.autosummary',
+    'sphinx.ext.autosectionlabel',
     'myst_parser',
+    'sphinx_copybutton',
 ]
 
 napoleon_custom_sections = [('Returns', 'params_style'),
