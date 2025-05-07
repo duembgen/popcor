@@ -28,8 +28,8 @@ Algorithms
 
 The main tools that this toolbox provides are the following two classes, implemented in `this paper <https://arxiv.org/abs/2308.05783/>`_.
 
-AutoTight
-^^^^^^^^^
+AutoTight Method
+^^^^^^^^^^^^^^^^
 
 *AutoTight* finds all possible additional constraints matrices :math:`A_r` which are also automatically satisfied by solutions of (QCQP), called **redundant constraints** and checks if the SDP (rank-)relaxation of the QCQP is cost and/or rank-tight after adding them. The rank relaxation is given by:
 
@@ -42,10 +42,10 @@ AutoTight
 In this context, cost-tight means that strong duality holds (:math:`p^\star = q^\star`) while rank-tight means that we even have :math:`\text{rank}(X)=1`.
 If successful, the output is a set of constraints that leads to a tight SDP relaxation of the original problem, which can be used to solve the problem to global optimality (if we have rank tightness) or certify given solutions (if we have cost tightness). 
 
-More information on how to use AutoTight can be found :ref:`here <AutoTight>`.
+More information on how to use AutoTight can be found in :class:`popr.auto_tight.AutoTight`.
 
-AutoTemplate
-^^^^^^^^^^^^
+AutoTemplate Method
+^^^^^^^^^^^^^^^^^^^
 
 *AutoTemplate* follows the same principle as *AutoTight*, but its output are templates rather than constraints. These templates can be seen as "parametrized" versions of the constraints matrices, and can be applied to new problem instances of any size without having to learn the constraints again from scratch. 
 
@@ -81,7 +81,7 @@ Many example lifters are provided, you can find them under :ref:`Examples`.
 Some basic sanity checks
 ~~~~~~~~~~~~~~~~~~~~~~~~
 The following code snippet shows some basic operations (and useful sanity checks) for the example
-lifter function :class:`popr.lifters.examples.Poly4Lifter`.
+lifter class :class:`popr.examples.Poly4Lifter`.
 
 .. testcode::
 
