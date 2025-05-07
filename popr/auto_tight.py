@@ -55,25 +55,27 @@ class AutoTight(object):
         return bad_bins
 
     @staticmethod
-    def test_S_cutoff(S, corank):
+    def test_S_cutoff(S, corank, eps_svd=None):
+        if eps_svd is None:
+            eps_svd = AutoTight.EPS_SVD
         if corank > 1:
             try:
-                assert abs(S[-corank]) / AutoTight.EPS_SVD < 1e-1  # 1e-1  1e-10
-                assert abs(S[-corank - 1]) / AutoTight.EPS_SVD > 10  # 1e-11 1e-10
+                assert abs(S[-corank]) / eps_svd < 1e-1  # 1e-1  1e-10
+                assert abs(S[-corank - 1]) / eps_svd > 10  # 1e-11 1e-10
             except AssertionError:
-                print(
-                    f"there might be a problem with the chosen threshold {AutoTight.EPS_SVD}:"
-                )
-                print(S[-corank], AutoTight.EPS_SVD, S[-corank - 1])
+                print(f"there might be a problem with the chosen threshold {eps_svd}:")
+                print(S[-corank], eps_svd, S[-corank - 1])
 
     @staticmethod
-    def get_basis_sparse(lifter, var_list, param_list, A_known=[], plot=False):
+    def get_basis_sparse(
+        lifter, var_list, param_list, A_known=[], plot=False, eps_svd=None
+    ):
 
         Y = AutoTight.generate_Y_sparse(
             lifter, var_subset=var_list, param_subset=param_list, factor=1.0
         )
-        basis, S = AutoTight.get_basis(lifter, Y, A_known=A_known, var_subset=var_list)
-        AutoTight.test_S_cutoff(S, corank=basis.shape[0])
+        basis, S = AutoTight.get_basis(lifter, Y, A_known=A_known, eps_svd=eps_svd)
+        AutoTight.test_S_cutoff(S, corank=basis.shape[0], eps_svd=eps_svd)
         constraints = []
         for i, b in enumerate(basis):
             constraints.append(
@@ -240,8 +242,8 @@ class AutoTight(object):
         Y,
         A_known: list = [],
         basis_known: np.ndarray = None,
-        var_subset: dict = None,
         method=METHOD,
+        eps_svd=None,
     ):
         """Generate basis from lifted state matrix Y.
 
@@ -249,6 +251,8 @@ class AutoTight(object):
 
         :return: basis, S
         """
+        if eps_svd is None:
+            eps_svd = AutoTight.EPS_SVD
 
         # if there is a known list of constraints, add them to the Y so that resulting nullspace is orthogonal to them
         if basis_known is not None:
@@ -263,7 +267,7 @@ class AutoTight(object):
             )
             Y = np.vstack([Y, A])
 
-        basis, info = get_nullspace(Y, method=method, tolerance=AutoTight.EPS_SVD)
+        basis, info = get_nullspace(Y, method=method, tolerance=eps_svd)
 
         basis[np.abs(basis) < lifter.EPS_SPARSE] = 0.0
         return basis, info["values"]
