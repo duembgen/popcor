@@ -34,13 +34,19 @@ class MonoLifter(RobustPoseLifter):
         - tan(a/2)*t3 >= sqrt(t1**2 + t2**2)
         as constraints h_j(t)<=0
         """
-        import autograd.numpy as anp
-
         default = super().h_list(t)
-        return default + [
-            anp.sum(t[:-1] ** 2) - anp.tan(FOV / 2) ** 2 * t[-1] ** 2,
-            -t[-1],
-        ]
+        try:
+            import autograd.numpy as anp
+
+            return default + [
+                anp.sum(t[:-1] ** 2) - anp.tan(FOV / 2) ** 2 * t[-1] ** 2,
+                -t[-1],
+            ]
+        except ModuleNotFoundError:
+            return default + [
+                np.sum(t[:-1] ** 2) - np.tan(FOV / 2) ** 2 * t[-1] ** 2,
+                -t[-1],
+            ]
 
     def get_random_position(self):
         pc_cw = np.random.rand(self.d) * 0.1

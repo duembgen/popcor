@@ -477,9 +477,12 @@ class RobustPoseLifter(StateLifter, ABC):
 
         By default, we always add |t| <= MAX_DIST
         """
-        import autograd.numpy as anp
+        try:
+            import autograd.numpy as anp
 
-        return [anp.sqrt(anp.sum(t[: self.d] ** 2)) - self.MAX_DIST]
+            return [anp.sqrt(anp.sum(t[: self.d] ** 2)) - self.MAX_DIST]
+        except ModuleNotFoundError:
+            return [np.sqrt(np.sum(t[: self.d] ** 2)) - self.MAX_DIST]
 
     @abstractmethod
     def get_random_position(self):
