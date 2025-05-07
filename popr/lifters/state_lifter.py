@@ -178,6 +178,40 @@ class StateLifter(BaseClass):
             A_list.append(A_poly)
         return A_list
 
+    def get_constraint_rank(self, A_list_poly, output_sorted=False):
+        """Find the number of independent constraints when they are of the form A_i @ x = 0.
+
+        :param A_list_poly: list of constraints matrices
+
+        :return: rank (int) and sorted matrices (list, if output_sorted=True) where the first rank matrices correspond to
+                 linearly independent matrices.
+        """
+        x = self.get_x()
+
+        current_rank = 0
+        independent_indices = []
+        dependent_indices = []
+        basis_incremental = np.zeros((len(x), 0))
+        for i, Ai in enumerate(A_list_poly):
+            if isinstance(Ai, PolyMatrix):
+                new_candidate = (Ai.get_matrix(self.var_dict) @ x).reshape((-1, 1))
+            else:
+                new_candidate = (Ai @ x).reshape((-1, 1))
+            basis_candidate = np.hstack([basis_incremental, new_candidate])
+            new_rank = np.linalg.matrix_rank(basis_candidate)
+            if new_rank == current_rank + 1:
+                independent_indices.append(i)
+                basis_incremental = basis_candidate
+                current_rank = new_rank
+            else:
+                dependent_indices.append(i)
+        if not output_sorted:
+            return current_rank
+        A_list_sorted = [A_list_poly[i] for i in independent_indices] + [
+            A_list_poly[i] for i in dependent_indices
+        ]
+        return current_rank, A_list_sorted
+
     def apply_template(self, bi_poly, n_parameters=None, verbose=False):
         if n_parameters is None:
             n_parameters = len(self.parameters)
@@ -368,10 +402,10 @@ class StateLifter(BaseClass):
         self.noise = noise
 
     def generate_random_setup(self):
+        if self.parameters is None:
+            self.parameters = self.sample_parameters()
         if self.theta is None:
             self.theta = self.sample_theta()
-        if self.parameters is None:
-            self.parameters = self.sample_parameters(theta=self.theta)
 
     @property
     def param_dict_landmarks(self):

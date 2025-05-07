@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+
 from popr.examples import Stereo2DLifter, Stereo3DLifter
 from popr.lifters import StereoLifter
 from popr.utils.common import get_vec, ravel_multi_index_triu, unravel_multi_index_triu
@@ -48,6 +49,17 @@ def test_known_constraints():
             assert x.T @ Bi @ x <= 0
 
 
+def test_constraint_rank():
+    for lifter in all_lifters():
+        try:
+            A_known = lifter.get_A_known(add_redundant=False)
+            pass
+        except TypeError:
+            A_known = lifter.get_A_known()
+        rank = lifter.get_constraint_rank(A_known)
+        assert rank == len(A_known)
+
+
 def test_vec_mat():
     """Make sure that we can go back and forth from vec to mat."""
     for lifter in all_lifters():
@@ -92,6 +104,8 @@ pytest_configure()
 
 if __name__ == "__main__":
     import warnings
+
+    test_constraint_rank()
 
     test_ravel()
     test_vec_mat()

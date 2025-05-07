@@ -1,4 +1,5 @@
 import numpy as np
+
 from popr.lifters import PolyLifter
 
 
@@ -32,27 +33,34 @@ class Poly6Lifter(PolyLifter):
                 ]
             )
 
-    def get_A_known(self, target_dict=None, output_poly=False):
+    def get_A_known(self, output_poly=False, add_redundant=True):
         from poly_matrix import PolyMatrix
+
+        A_list = []
 
         # z_0 = t^2
         A_1 = PolyMatrix(symmetric=True)
         A_1[self.HOM, "z0"] = -1
         A_1["t", "t"] = 2
+        A_list.append(A_1)
 
         # z_1 = t^3 = t z_0
         A_2 = PolyMatrix(symmetric=True)
         A_2[self.HOM, "z1"] = -1
         A_2["t", "z0"] = 1
+        A_list.append(A_2)
 
         # t^4 = z_1 t = z_0 z_0
-        B_0 = PolyMatrix(symmetric=True)
-        B_0["z0", "z0"] = 2
-        B_0["t", "z1"] = -1
+        if add_redundant:
+            B_0 = PolyMatrix(symmetric=True)
+            B_0["z0", "z0"] = 2
+            B_0["t", "z1"] = -1
+            A_list.append(B_0)
+
         if output_poly:
-            return [A_1, A_2, B_0]
+            return A_list
         else:
-            return [A_i.get_matrix(self.var_dict) for A_i in [A_1, A_2, B_0]]
+            return [A_i.get_matrix(self.var_dict) for A_i in A_list]
 
     def get_D(self, that):
         # TODO(FD) generalize and move to PolyLifter
