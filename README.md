@@ -10,8 +10,21 @@ replace difficult (often NP-hard) optimization problems by easier-to-solve conve
 in many cases can actually provide the globally optimal solution of the original problem. 
 
 The toolbox allows to run the *AutoTight* and *AutoTemplate* algorithms on problems of your choice. 
-These algorithms are described in detail in [this paper](https://arxiv.org/abs/2308.05783/) [1].
-For a high-level overview of how this works, please refer to the **Quick start guide**. 
+These algorithms are described in detail in [this paper](https://arxiv.org/abs/2308.05783/). For a high-level overview of how this works, please refer to the **Quick start guide**. 
+
+If you use this toolbox, please consider citing the correspondng paper:
+
+```bibtex
+@article{autotight2024,
+  author={Dümbgen, Frederike and Holmes, Connor and Agro, Ben and Barfoot, Timothy D.}, 
+  title={{Toward Globally Optimal State Estimation Using Automatically Tightened Semidefinite Relaxations}},
+  journal={IEEE Transactions on Robotics}, 
+  volume={40},
+  pages={4338-4358},
+  year={2024},
+  doi={10.1109/TRO.2024.3454570}
+}
+```
 
 ## What this tool can and cannot do
 
@@ -31,3 +44,4 @@ Besides the automatically installed dependencies when using the above instructio
 ## Credits
 
 The design of this toolbox, in particular the documentation, is inspired by the nice work of the creators of [PEPit](https://github.com/PerformanceEstimation/PEPit?tab=readme-ov-file).
+
