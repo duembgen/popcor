@@ -3,14 +3,10 @@ from abc import ABC
 # import autograd.numpy as np
 import numpy as np
 from poly_matrix.poly_matrix import PolyMatrix
-from popr.utils.geometry import (
-    generate_random_pose,
-    get_C_r_from_theta,
-    get_noisy_pose,
-    get_pose_errors_from_theta,
-    get_T,
-    get_theta_from_C_r,
-)
+
+from popr.utils.geometry import (generate_random_pose, get_C_r_from_theta,
+                                 get_noisy_pose, get_pose_errors_from_theta,
+                                 get_T, get_theta_from_C_r)
 
 from .state_lifter import StateLifter
 
@@ -398,12 +394,15 @@ class StereoLifter(StateLifter, ABC):
 
     def local_solver_manopt(self, t0, y, W=None, verbose=False, method="CG", **kwargs):
         import pymanopt
-        from pymanopt.manifolds import Euclidean, Product, SpecialOrthogonalGroup
+        from pymanopt.manifolds import (Euclidean, Product,
+                                        SpecialOrthogonalGroup)
 
         if method == "CG":
-            from pymanopt.optimizers import ConjugateGradient as Optimizer  # fastest
+            from pymanopt.optimizers import \
+                ConjugateGradient as Optimizer  # fastest
         elif method == "SD":
-            from pymanopt.optimizers import SteepestDescent as Optimizer  # slow
+            from pymanopt.optimizers import \
+                SteepestDescent as Optimizer  # slow
         elif method == "TR":
             from pymanopt.optimizers import TrustRegions as Optimizer  # okay
         else:

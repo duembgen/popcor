@@ -3,6 +3,7 @@ from abc import abstractmethod
 
 import numpy as np
 from poly_matrix import PolyMatrix
+
 from popr.utils.common import get_vec
 from popr.utils.constraint import Constraint, remove_dependent_constraints
 
@@ -129,7 +130,7 @@ class StateLifter(BaseClass):
         """
 
         A_list = []
-        for template in templates:
+        for k, template in enumerate(templates):
             assert isinstance(template, Constraint)
             # First, we find the current parameters, so that we can factor
             # them into b and compute a from it.
@@ -141,17 +142,22 @@ class StateLifter(BaseClass):
             assert self.get_dim_X(var_dict) == X_dim
             p_dim = self.get_dim_p(template.mat_param_dict)
             assert self.get_dim_p(param_dict) == p_dim
-            n_blocks = len(template.b_) / X_dim
+            n_blocks = int(len(template.b_) / X_dim)
             assert n_blocks == p_dim
 
             a = p_here[0] * template.b_[:X_dim]
-            for i in range(int(n_blocks) - 1):
+            for i in range(n_blocks - 1):
                 a += p_here[i + 1] * template.b_[(i + 1) * X_dim : (i + 2) * X_dim]
+
+            if not np.any(np.abs(a) > self.EPS_SPARSE):
+                print(f"matrix {k} is zero")
+                continue
 
             a_test = self.get_reduced_a(
                 template.b_,
                 var_subset=template.mat_var_dict,
-                parameters=p_here,
+                param_subset=template.mat_param_dict,
+                param_here=p_here,
                 sparse=False,
             )
             np.testing.assert_allclose(a, a_test)
@@ -170,7 +176,6 @@ class StateLifter(BaseClass):
                 unfold=False,
             )
             A_list.append(A_poly)
-
         return A_list
 
     def apply_template(self, bi_poly, n_parameters=None, verbose=False):
@@ -363,10 +368,10 @@ class StateLifter(BaseClass):
         self.noise = noise
 
     def generate_random_setup(self):
-        if self.parameters is None:
-            self.parameters = self.sample_parameters()
         if self.theta is None:
             self.theta = self.sample_theta()
+        if self.parameters is None:
+            self.parameters = self.sample_parameters(theta=self.theta)
 
     @property
     def param_dict_landmarks(self):

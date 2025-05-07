@@ -3,13 +3,14 @@ from copy import deepcopy
 
 import numpy as np
 from poly_matrix.poly_matrix import PolyMatrix
+from scipy.spatial.transform import Rotation as R
+
 from popr.utils.geometry import (
     get_C_r_from_theta,
     get_noisy_pose,
     get_pose_errors_from_theta,
     get_theta_from_C_r,
 )
-from scipy.spatial.transform import Rotation as R
 
 from .state_lifter import StateLifter
 

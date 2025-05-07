@@ -1,10 +1,15 @@
 import matplotlib.pylab as plt
 import numpy as np
 import scipy.sparse as sp
+
 from cert_tools.linalg_tools import find_dependent_columns, get_nullspace
 from popr.utils.common import get_vec
 from popr.utils.constraint import Constraint
-from popr.utils.plotting_tools import plot_singular_values
+from popr.utils.plotting_tools import (
+    add_colorbar,
+    initialize_discrete_cbar,
+    plot_singular_values,
+)
 
 
 class AutoTight(object):
@@ -62,7 +67,7 @@ class AutoTight(object):
                 print(S[-corank], AutoTight.EPS_SVD, S[-corank - 1])
 
     @staticmethod
-    def get_basis_sparse(lifter, var_list, param_list, A_known=[]):
+    def get_basis_sparse(lifter, var_list, param_list, A_known=[], plot=False):
 
         Y = AutoTight.generate_Y_sparse(
             lifter, var_subset=var_list, param_subset=param_list, factor=1.0
@@ -81,6 +86,19 @@ class AutoTight(object):
                     known=False,
                 )
             )
+        if plot:
+            plot_matrix = np.vstack([t.b_[None, :] for t in constraints])
+
+            cmap, norm, colorbar_yticks = initialize_discrete_cbar(plot_matrix)
+            X_dim = lifter.get_dim_X(var_list)
+            fig, ax = plt.subplots()
+            ax.axvline(X_dim - 0.5, color="red")
+            im = ax.matshow(plot_matrix, cmap=cmap, norm=norm)
+            ax.set_title(f"{var_list}, {param_list}")
+            cax = add_colorbar(fig, ax, im)
+            if colorbar_yticks is not None:
+                cax.set_yticklabels(colorbar_yticks)
+            plt.show(block=False)
         return constraints
 
     @staticmethod
@@ -160,6 +178,9 @@ class AutoTight(object):
     def generate_Y_sparse(
         lifter, factor=FACTOR, ax=None, var_subset=None, param_subset=None
     ):
+        from popr.lifters import StateLifter
+
+        assert isinstance(lifter, StateLifter)
         assert (
             lifter.HOM in param_subset
         ), f"{lifter.HOM} must be included in param_subset."
