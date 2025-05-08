@@ -123,6 +123,3 @@ if __name__ == "__main__":
         warnings.simplefilter("ignore")
 
     print("all tests passed")
-    print("all tests passed")
-    print("all tests passed")
-    print("all tests passed")
