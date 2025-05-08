@@ -1,9 +1,9 @@
 import matplotlib.pylab as plt
 import numpy as np
-from cert_tools.linalg_tools import rank_project
-from cert_tools.sdp_solvers import solve_sdp
 from scipy.optimize import minimize
 
+from cert_tools.linalg_tools import rank_project
+from cert_tools.sdp_solvers import solve_sdp
 from popr.examples import Poly4Lifter, Poly6Lifter
 from popr.utils.plotting_tools import savefig
 
@@ -17,6 +17,7 @@ plt.rcParams.update(
 plt.rc("text.latex", preamble=r"\usepackage{bm}")
 
 SAVEFIG = False
+
 
 def coordinate_system():
     fig, ax = plt.subplots()
@@ -68,30 +69,56 @@ def plot_global(lifter, ax, sol_dict):
     import itertools
 
     markers = itertools.cycle(["x", "+", "o", "*"])
+    ylim = ax.get_ylim()
     for label, t in sol_dict.items():
-        ax.scatter(
-            [t],
-            [lifter.get_cost(t)],
-            color="C2",
-            marker=next(markers),
-            label=label,
-        )
+        cost = lifter.get_cost(t)
+        if ylim[0] < cost < ylim[1]:
+            ax.scatter(
+                [t],
+                [cost],
+                color="C2",
+                marker=next(markers),
+                label=label,
+            )
+        elif cost > ylim[1]:
+            ax.quiver(
+                [t],
+                [ylim[1] - 0.2],
+                [0],
+                [1.0],
+                color="C2",
+                label=None,
+            )
+            ax.scatter(
+                [t],
+                [ylim[1] - 0.2],
+                color="C2",
+                marker=next(markers),
+                label=label,
+            )
     ax.legend(loc="upper center")
 
 
 if __name__ == "__main__":
-
-    lifter4 = Poly4Lifter()
-    lifter4.xlims = [-2, 3.1]
-    lifter4.solution_list = [
+    lifter1 = Poly4Lifter(poly_type="A")
+    lifter1.xlims = [-2, 3.1]
+    lifter1.solution_list = [
         dict(x0=-1.9, label="global min", name="global min", color="C2"),
         dict(x0=3.1, label="local min", name="local min", color="C3"),
         dict(x0=0.0, label="local max", name="local max", color="C0"),
     ]
 
-    lifter6 = Poly6Lifter(poly_type="A")
-    lifter6.xlims = [-2, 5.1]
-    lifter6.solution_list = [
+    lifter2 = Poly4Lifter(poly_type="B")
+    lifter2.xlims = [0, 4]
+    lifter2.solution_list = [
+        dict(x0=0, label="global min", name="global min", color="C2"),
+        dict(x0=4, label="glboal min", name="local min", color="C2"),
+        dict(x0=1.3, label="local max", name="local max", color="C0"),
+    ]
+
+    lifter3 = Poly6Lifter(poly_type="A")
+    lifter3.xlims = [-2, 5.1]
+    lifter3.solution_list = [
         dict(x0=-2, label="global min", name="global min", color="C2"),
         dict(x0=2.5, label="local min", name="local min", color="C3"),
         dict(x0=5, label=None, name="local min", color="C3"),
@@ -99,7 +126,7 @@ if __name__ == "__main__":
         dict(x0=3.5, label=None, name="local max", color="C0"),
     ]
 
-    for lifter in [lifter4, lifter6]:
+    for lifter in [lifter2]:  # [lifter1, lifter2, lifter3]:
         thetas = np.linspace(*lifter.xlims, 100)
         costs = []
         for theta in thetas:
@@ -146,8 +173,13 @@ if __name__ == "__main__":
         t_pick = X[1, 0]
 
         fig, ax = plot_cost(thetas, costs)
-        plot_global(lifter, ax, {"global round": t_hat, "global pick": t_pick})
-        if SAVEFIG: 
+        ax.axhline(info_sdp["cost"], ls=":")
+        plot_global(
+            lifter,
+            ax,
+            {f"global round {info_round['EVR']:.1e}": t_hat, "global pick": t_pick},
+        )
+        if SAVEFIG:
             savefig(fig, f"_plots/poly{lifter.degree}_global_wo.png")
 
         # with redundant constraints
@@ -164,6 +196,7 @@ if __name__ == "__main__":
             plot_global(lifter, ax, {"global round": t_hat, "global pick": t_pick})
             if SAVEFIG:
                 savefig(fig, f"_plots/poly{lifter.degree}_global.png")
+            break
 
     if not SAVEFIG:
         plt.show(block=True)

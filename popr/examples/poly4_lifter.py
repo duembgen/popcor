@@ -8,12 +8,24 @@ class Poly4Lifter(PolyLifter):
     def VARIABLE_LIST(self):
         return [[self.HOM, "t", "z0"]]
 
-    def __init__(self):
+    def __init__(self, poly_type="A"):
         # actual minimum
+        assert poly_type in ["A", "B"]
+        self.poly_type = poly_type
         super().__init__(degree=4)
 
     def get_Q_mat(self):
-        Q = np.r_[np.c_[2, 1, 0], np.c_[1, -1 / 2, -1 / 3], np.c_[0, -1 / 3, 1 / 4]]
+        if self.poly_type == "A":
+            Q = np.r_[np.c_[2, 1, 0], np.c_[1, -1 / 2, -1 / 3], np.c_[0, -1 / 3, 1 / 4]]
+        elif self.poly_type == "B":
+            # below is constructed such that f'(t) = (t-1)*(t-2)*(t-3)
+            # fmt: off
+            Q = np.r_[
+                np.c_[3, -3, 0], 
+                np.c_[-3, 11/2, -1], 
+                np.c_[0, -1, 1/4]
+            ]
+            # fmt: on
         return Q
 
     def get_A_known(self, output_poly=False, add_redundant=False):
