@@ -1,4 +1,5 @@
 import numpy as np
+
 from popr.lifters import PolyLifter
 
 
@@ -15,8 +16,11 @@ class Poly4Lifter(PolyLifter):
         Q = np.r_[np.c_[2, 1, 0], np.c_[1, -1 / 2, -1 / 3], np.c_[0, -1 / 3, 1 / 4]]
         return Q
 
-    def get_A_known(self, target_dict=None, output_poly=False):
+    def get_A_known(self, output_poly=False, add_redundant=False):
         from poly_matrix import PolyMatrix
+
+        if add_redundant:
+            print("No redundant constraitns for 4-degree polynomial.")
 
         # z_0 = t^2
         A_1 = PolyMatrix(symmetric=True)
