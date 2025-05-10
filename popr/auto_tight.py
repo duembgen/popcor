@@ -118,9 +118,7 @@ class AutoTight(object):
         if verbose:
             print(f"generate Y ({Y.shape}): {time.time() - t1:4.4f}")
         t1 = time.time()
-        basis, S = AutoTight.get_basis(
-            lifter, Y, A_known=A_known, method=method, var_subset=var_dict
-        )
+        basis, S = AutoTight.get_basis(lifter, Y, A_known=A_known, method=method)
         if verbose:
             print(f"get basis ({basis.shape})): {time.time() - t1:4.4f}")
         t1 = time.time()

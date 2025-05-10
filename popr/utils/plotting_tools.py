@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 from poly_matrix.poly_matrix import PolyMatrix
+
 from popr.utils.geometry import get_C_r_from_theta
 
 
@@ -248,26 +249,30 @@ def plot_matrix(
     norm = None
     if log:
         norm = matplotlib.colors.SymLogNorm(10**-5, vmin=vmin, vmax=vmax)
-
-    cmap = plt.get_cmap("viridis")
+        cmap = plt.get_cmap("viridis")
+    else:
+        norm = matplotlib.colors.Normalize(vmin=vmin, vmax=vmax)
+        cmap = plt.get_cmap("seismic")  # midpoint is white
     colorbar_yticks = None
+    if type(Ai) is np.ndarray:
+        Ai_array = Ai
+    else:
+        Ai_array = Ai.toarray()
+
     if discrete:
-        values = np.unique(Ai[Ai != 0])
+        values = np.unique(Ai_array[Ai_array != 0])
         nticks = None
         cmap, norm, colorbar_yticks = initialize_discrete_cbar(values)
 
-    if type(Ai) is np.ndarray:
-        im = ax.matshow(Ai, norm=norm, cmap=cmap)
-    else:
-        im = ax.matshow(Ai.toarray(), norm=norm, cmap=cmap)
+    im = ax.matshow(Ai_array, norm=norm, cmap=cmap)
     ax.axis("off")
     ax.set_title(title, y=1.0)
     if colorbar:
         cax = add_colorbar(fig, ax, im, nticks=nticks)
+        if colorbar_yticks is not None:
+            cax.set_yticklabels(colorbar_yticks)
     else:
         cax = add_colorbar(fig, ax, im, nticks=nticks, visible=False)
-    if colorbar_yticks is not None:
-        cax.set_yticklabels(colorbar_yticks)
     return fig, ax, im
 
 

@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from popr.examples import Stereo2DLifter, Stereo3DLifter
-from popr.lifters import StereoLifter
+from popr.lifters import StateLifter, StereoLifter
 from popr.utils.common import get_vec, ravel_multi_index_triu, unravel_multi_index_triu
 from popr.utils.test_tools import _test_with_tol, all_lifters
 
@@ -51,6 +51,7 @@ def test_known_constraints():
 
 def test_constraint_rank():
     for lifter in all_lifters():
+        assert isinstance(lifter, StateLifter)
         try:
             A_known = lifter.get_A_known(add_redundant=False)
             pass
