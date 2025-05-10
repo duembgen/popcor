@@ -59,7 +59,7 @@ class RobustPoseLifter(StateLifter, ABC):
     # Add any parameters here that describe the problem (e.g. number of landmarks etc.)
     def __init__(
         self,
-        n_outliers,
+        n_outliers=0,
         level="no",
         param_level="no",
         d=2,
@@ -418,6 +418,28 @@ class RobustPoseLifter(StateLifter, ABC):
                     Ai = PolyMatrix(symmetric=True)
                     Ai["c", "c"] = constraint
                     self.test_and_add(A_list, Ai, output_poly=output_poly)
+
+            # enforce that determinant is one.
+            if self.d == 2:
+                # C = [a b; c d]; ad - bc - 1 = 0
+                #    a b c d
+                # a        1
+                # b     -1
+                # c   -1
+                # d 1
+                Ai = PolyMatrix(symmetric=True)
+                constraint = np.zeros((self.d**2, self.d**2))
+                constraint[0, 3] = constraint[3, 0] = 1.0
+                constraint[1, 2] = constraint[2, 1] = -1.0
+                Ai[self.HOM, self.HOM] = -2
+                Ai["c", "c"] = constraint
+                self.test_and_add(A_list, Ai, output_poly=output_poly)
+            elif self.d == 3:
+                # C = [c1, c2, c3]; c1 x c2 = c3
+                print(
+                    "Warning: consider implementing the determinant constraint for RobustPoseLifter, d=3"
+                )
+
         if self.robust:
             for key in var_dict:
                 if "w" in key:
