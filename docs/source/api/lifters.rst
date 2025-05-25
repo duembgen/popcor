@@ -6,6 +6,15 @@ Lifters
    :local:
 
 
+Some general notes on terminology: 
+
+- *theta* is the original state variable.
+- *x* is the lifted state variable.
+- *A* are equality constraints
+- *B* are inequality constraints
+- *var_dict* refers to the dictionary of variable name - variable size pairs.
+
+
 StateLifter
 -----------
 

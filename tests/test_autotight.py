@@ -44,7 +44,7 @@ def test_constraints_stereo():
     np.random.seed(0)
     n_landmarks = 1  # z_0 and z_1
 
-    for param_level in ["ppT"]:  # ["p", "ppT"]:
+    for param_level in ["p", "ppT"]:
         print(f"1D, {param_level}")
         lifter = Stereo1DLifter(n_landmarks=n_landmarks, param_level=param_level)
         A_learned = AutoTight.get_A_learned(lifter)
