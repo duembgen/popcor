@@ -15,12 +15,16 @@ from popr.lifters import StateLifter
 from popr.solvers.common import find_local_minimum
 from popr.solvers.sparse import bisection, brute_force
 from popr.utils.common import get_aggregate_sparsity, get_vec
-from popr.utils.constraint import (Constraint, generate_poly_matrix,
-                                   plot_poly_matrix)
-from popr.utils.plotting_tools import (add_colorbar, add_rectangles,
-                                       import_plt, initialize_discrete_cbar,
-                                       plot_basis, plot_singular_values,
-                                       savefig)
+from popr.utils.constraint import Constraint, generate_poly_matrix, plot_poly_matrix
+from popr.utils.plotting_tools import (
+    add_colorbar,
+    add_rectangles,
+    import_plt,
+    initialize_discrete_cbar,
+    plot_basis,
+    plot_singular_values,
+    savefig,
+)
 
 plt = import_plt()
 
@@ -144,6 +148,7 @@ class AutoTemplate(object):
             print(
                 f"Warning: dual is significantly larger than primal: d={dual_cost:.3e} > p={primal_cost:.3e}, diff={dual_cost-primal_cost:.3e}"
             )
+            return False
         res = RDG < self.TOL_REL_GAP
         data_dict["RDG"] = RDG
         if not verbose:
@@ -201,17 +206,17 @@ class AutoTemplate(object):
         elif self.check_violation(info["cost"]):
             self.ranks.append(np.zeros(A_list[0].shape[0]))
             print(
-                f"Dual cost higher than QCQP: d={info['cost']:.2e}, q={self.solver_vars['qcqp_cost']:.2e}"
+                f"Warning: dual cost higher than QCQP, d={info['cost']:.2e}, q={self.solver_vars['qcqp_cost']:.2e}"
             )
             print(
                 "Usually this means that MOSEK tolerances are too loose, or that there is a mistake in the constraints."
             )
-            max_error, bad_list = self.lifter.test_constraints(A_list, errors="print")
-            print("Maximum feasibility error at random x:", max_error)
-
             print(
                 "It can also mean that we are not sampling enough of the space close to the true solution."
             )
+            max_error, bad_list = self.lifter.test_constraints(A_list, errors="print")
+            print("Maximum feasibility error at random x:", max_error)
+
             tol = 1e-10
             xhat = self.solver_vars["xhat"]
             max_error = -np.inf
@@ -808,7 +813,6 @@ class AutoTemplate(object):
                 len(self.templates) + len(self.templates_known) + 1
             )
             if n_new == 0:
-                print("new variables didn't have any effect")
                 data.append(data_dict)
                 continue
 
