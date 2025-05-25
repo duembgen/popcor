@@ -13,7 +13,7 @@ class Poly6Lifter(PolyLifter):
         self.poly_type = poly_type
         super().__init__(degree=6)
 
-    def get_Q_mat(self):
+    def get_Q(self, *args, **kwargs):
         if self.poly_type == "A":
             return 0.1 * np.array(
                 [
@@ -63,7 +63,6 @@ class Poly6Lifter(PolyLifter):
             return [A_i.get_matrix(self.var_dict) for A_i in A_list]
 
     def get_D(self, that):
-        # TODO(FD) generalize and move to PolyLifter
         D = np.array(
             [
                 [1.0, 0.0, 0.0, 0.0],

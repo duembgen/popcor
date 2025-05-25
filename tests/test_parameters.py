@@ -1,6 +1,8 @@
 import matplotlib.pylab as plt
 import numpy as np
+import scipy.sparse as sp
 from poly_matrix import PolyMatrix
+
 from popr import AutoTight
 from popr.examples import Stereo2DLifter
 from popr.utils.common import get_vec
@@ -31,10 +33,14 @@ def test_canonical_operations():
     # zero-pad to emulate an augmented basis vector
     bi = lifter.augment_using_zero_padding(ai)
     ai_test = lifter.get_reduced_a(bi, var_subset=var_subset)
+    assert isinstance(ai_test, np.ndarray)
+    assert isinstance(ai, np.ndarray)
     np.testing.assert_allclose(ai, ai_test)
 
     # will return a 9 x 9 matrix with zero padding.
     Ai_test = lifter.get_mat(ai_test, var_dict={var_subset: 6})
+    assert isinstance(Ai, sp.csc_matrix)
+    assert isinstance(Ai_test, sp.csc_matrix)
     np.testing.assert_allclose(Ai.toarray(), Ai_test.toarray())
 
 
@@ -66,6 +72,8 @@ def test_b_to_a():
 
             # test that ai @ x holds (summing out parameters)
             ai_sub = lifter.get_reduced_a(bi_sub, var_subset=var_subset)
+            assert isinstance(ai_sub, np.ndarray)
+            assert isinstance(x_sub, np.ndarray)
             assert abs(ai_sub @ x_sub) < 1e-10
 
 
@@ -105,6 +113,7 @@ def test_zero_padding():
                     Ai_poly.matshow(var_dict)
 
                     fig, ax = plt.subplots()
+                    assert isinstance(Ai, sp.csr_array)
                     ax.matshow(Ai.toarray())
                     plt.show()
                     raise

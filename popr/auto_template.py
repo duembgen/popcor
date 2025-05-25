@@ -2,6 +2,7 @@ import time
 from copy import deepcopy
 
 import matplotlib
+import matplotlib.patches
 import numpy as np
 import pandas as pd
 import scipy.sparse as sp
@@ -63,26 +64,20 @@ class AutoTemplate(object):
     # that should be good enough.
     N_INITS = 1
 
+    APPLY_TEMPLATES_TO_OTHERS = True
+    USE_KNOWN = True
+    USE_INCREMENTAL = True
+
     def __init__(
         self,
         lifter: StateLifter,
-        variable_list: list = None,
-        apply_templates: bool = True,
-        noise: float = None,
-        use_known: bool = USE_KNOWN,
-        use_incremental: bool = USE_INCREMENTAL,
+        variable_list: list | None = None,
     ):
         if variable_list is None:
             variable_list = lifter.variable_list
+        self.variable_iter = iter(variable_list)
 
         self.lifter = lifter
-        self.lifter.set_noise(noise)
-
-        self.variable_iter = iter(variable_list)
-        self.apply_templates_to_others = apply_templates
-
-        self.use_known = use_known
-        self.use_incremental = use_incremental
 
         # templates contains the learned "templates" of the form:
         # ((i, mat_vars), <i-th learned vector for these mat_vars variables, PolyRow form>)
@@ -135,6 +130,7 @@ class AutoTemplate(object):
         return [c.A_sparse_ for c in self.constraints]
 
     def check_violation(self, dual_cost):
+        assert self.solver_vars is not None
         primal_cost = self.solver_vars["qcqp_cost"]
         if primal_cost is None:
             print("warning can't check violation, no primal cost.")
@@ -142,6 +138,7 @@ class AutoTemplate(object):
         return (dual_cost - primal_cost) / abs(dual_cost) > self.TOL_REL_GAP
 
     def duality_gap_is_zero(self, dual_cost, verbose=False, data_dict={}):
+        assert self.solver_vars is not None
         primal_cost = self.solver_vars["qcqp_cost"]
         RDG = (primal_cost - dual_cost) / abs(dual_cost)
         if RDG < -1e-2:
@@ -177,6 +174,7 @@ class AutoTemplate(object):
         return res
 
     def is_tight(self, verbose=False, data_dict={}, tightness=None):
+
         if tightness is None:
             tightness = self.lifter.TIGHTNESS
 
@@ -189,7 +187,8 @@ class AutoTemplate(object):
         B_list = self.lifter.get_B_known()
         X, info = self._test_tightness(A_b_list_all, B_list, verbose=verbose)
 
-        self.solver_vars["X"] = X
+        assert self.solver_vars is not None
+        self.solver_vars["X"] = X  # type: ignore
 
         self.dual_costs.append(info["cost"])
         self.variable_list.append(self.mat_vars)
@@ -204,7 +203,7 @@ class AutoTemplate(object):
             print("Maximum error:", max_error)
             return False
         elif self.check_violation(info["cost"]):
-            self.ranks.append(np.zeros(A_list[0].shape[0]))
+            self.ranks.append(np.zeros(A_list[0].shape[0]))  # type: ignore
             print(
                 f"Warning: dual cost higher than QCQP, d={info['cost']:.2e}, q={self.solver_vars['qcqp_cost']:.2e}"
             )
@@ -220,7 +219,11 @@ class AutoTemplate(object):
             tol = 1e-10
             xhat = self.solver_vars["xhat"]
             max_error = -np.inf
+
+            assert xhat is not None
+            assert X is not None
             for Ai in A_list:
+                assert isinstance(Ai, np.ndarray) or isinstance(Ai, sp.spmatrix)
                 error = xhat.T @ Ai @ xhat
 
                 errorX = np.trace(X @ Ai)
@@ -230,6 +233,8 @@ class AutoTemplate(object):
                         f"Feasibility error too high! xAx:{error:.2e}, <X,A>:{errorX:.2e}"
                     )
             print(f"Maximum feasibility error at solution x: {max_error}")
+
+        assert X is not None
 
         data_dict["d"] = info["cost"]
 
@@ -258,7 +263,7 @@ class AutoTemplate(object):
             eigs, verbose=tightness == "rank", data_dict=data_dict
         )
         self.tightness_dict["rank"] = rank_tight
-        self.tightness_dict["cost"] = cost_tight
+        self.tightness_dict["cost"] = cost_tight  # type: ignore
         if tightness == "rank":
             return rank_tight
         elif tightness == "cost":
@@ -267,12 +272,12 @@ class AutoTemplate(object):
     def get_A_list(self, var_dict=None):
         if var_dict is None:
             A_known = []
-            if self.use_known:
+            if self.USE_KNOWN:
                 A_known += [constraint.A_sparse_ for constraint in self.templates_known]
             return A_known + [constraint.A_sparse_ for constraint in self.constraints]
         else:
             A_known = []
-            if self.use_known:
+            if self.USE_KNOWN:
                 A_known += [constraint.A_poly_ for constraint in self.templates_known]
             A_list_poly = A_known + [
                 constraint.A_poly_ for constraint in self.constraints
@@ -318,6 +323,9 @@ class AutoTemplate(object):
                     print(f"{len(A_b_list_here)}: not cost-tight yet")
                     new_data["cost_tight"] = False
 
+                assert X is not None
+                assert self.solver_vars is not None
+
                 eigs = np.linalg.eigvalsh(X)[::-1]
                 new_data["eigs"] = eigs
                 if self.is_rank_one(eigs):
@@ -343,12 +351,13 @@ class AutoTemplate(object):
         B_list = self.lifter.get_B_known()
 
         force_first = 1
-        if self.use_known:
+        if self.USE_KNOWN:
             force_first += len(self.templates_known)
 
         if reorder:
             if self.solver_vars is None:
                 self.find_local_solution()
+            assert self.solver_vars is not None
 
             # find the importance of each constraint
             _, lamdas = solve_lambda(
@@ -370,6 +379,8 @@ class AutoTemplate(object):
                 X, info = self._test_tightness(A_b_list_all, B_list, verbose=False)
                 xhat_from_X, _ = rank_project(X, p=1)
                 xhat = self.solver_vars["xhat"]
+
+                assert xhat is not None
                 print("max xhat error:", np.min(xhat - xhat_from_X))
                 print("max Hx", np.max(np.abs(info["H"] @ xhat)))
                 print("max Hx_from_X", np.max(np.abs(info["H"] @ xhat_from_X)))
@@ -404,7 +415,7 @@ class AutoTemplate(object):
                 function, (inputs, df_data), left_num=start_idx, right_num=len(inputs)
             )
 
-        df_tight = pd.DataFrame(df_data.values(), index=df_data.keys())
+        df_tight = pd.DataFrame(df_data.values(), index=list(df_data.keys()))
         if self.df_tight is None:
             self.df_tight = df_tight
         else:
@@ -429,10 +440,10 @@ class AutoTemplate(object):
             self.lifter, y=y, verbose=verbose, n_inits=n_inits, plot=plot
         )
         self.solver_vars = dict(Q=Q, y=y, qcqp_cost=qcqp_cost, xhat=None)
-        self.solver_vars.update(info)
+        self.solver_vars.update(info)  # type: ignore
         if qcqp_cost is not None:
             xhat = self.lifter.get_x(qcqp_that)
-            self.solver_vars["xhat"] = xhat
+            self.solver_vars["xhat"] = xhat  # type: ignore
 
             # calculate error for global estimate
             self.solver_vars.update(self.lifter.get_error(qcqp_that))
@@ -452,6 +463,8 @@ class AutoTemplate(object):
 
     def find_global_solution(self, data_dict={}):
         from cert_tools.sdp_solvers import options_cvxpy
+
+        assert self.solver_vars is not None
 
         A_b_list_all = self.get_A_b_list()
         options_cvxpy["accept_unknown"] = True
@@ -517,6 +530,7 @@ class AutoTemplate(object):
 
         if self.solver_vars is None:
             self.find_local_solution(verbose=verbose)
+        assert self.solver_vars is not None
 
         # compute lambas by solving dual problem
         options_cvxpy["accept_unknown"] = True
@@ -570,12 +584,12 @@ class AutoTemplate(object):
             factor=FACTOR,
         )
         a_vectors = []
-        if self.use_incremental:
+        if self.USE_INCREMENTAL:
             for c in self.templates:
                 ai = get_vec(c.A_poly_.get_matrix(mat_var_dict))
                 bi = self.lifter.augment_using_zero_padding(ai, param_dict)
                 a_vectors.append(bi)
-        if self.use_known:
+        if self.USE_KNOWN:
             for c in self.templates_known_sub:
                 ai = get_vec(c.A_poly_.get_matrix(mat_var_dict))
                 bi = self.lifter.augment_using_zero_padding(ai, param_dict)
@@ -622,7 +636,7 @@ class AutoTemplate(object):
                     mat_param_dict=param_dict,
                     b=b,
                     lifter=self.lifter,
-                    convert_to_polyrow=self.apply_templates_to_others,
+                    convert_to_polyrow=self.APPLY_TEMPLATES_TO_OTHERS,
                     known=False,
                 )
                 if constraint is None:
@@ -714,12 +728,12 @@ class AutoTemplate(object):
                     del constraints[idx]
         return constraints
 
-    def get_known_templates(self, unroll=False, use_known=USE_KNOWN):
-        # TODO(FD) we should not always recompute from scratch, but it's not very expensive so it's okay for now.
+    def get_known_templates(self, unroll=False):
         templates_known = []
-        if not use_known:
+        if not self.USE_KNOWN:
             return templates_known
 
+        # TODO(FD) we should not always recompute from scratch, but it's not very expensive so it's okay for now.
         target_dict = self.lifter.get_var_dict(unroll_keys=unroll)
         for i, Ai in enumerate(self.lifter.get_A_known(target_dict, output_poly=True)):
             template = Constraint.init_from_A_poly(
@@ -776,7 +790,7 @@ class AutoTemplate(object):
         data = []
         success = False
 
-        if self.use_known:
+        if self.USE_KNOWN:
             self.templates_known = self.get_known_templates()
             n_known = len(self.templates_known)
             print(f"there are total {n_known} known constraints")
@@ -789,7 +803,7 @@ class AutoTemplate(object):
             print(f"======== {self.mat_vars} ========")
 
             n_new = 0
-            if self.use_known:
+            if self.USE_KNOWN:
                 n_known_here = self.extract_known_templates()
                 n_new += n_known_here
                 print(
@@ -829,14 +843,20 @@ class AutoTemplate(object):
                 fig.set_size_inches(10, 10 * h / w)
 
             # apply the pattern to all landmarks
-            if self.apply_templates_to_others:
+            if self.APPLY_TEMPLATES_TO_OTHERS:
                 print("------- applying templates ---------")
                 t1 = time.time()
                 n_new, n_all = self.apply_templates()
-                print(f"found {n_new} independent constraints, new total: {n_all} ")
+                print(
+                    f"found {n_new} independent learned constraints, new total: {n_all} "
+                )
                 ttot = time.time() - t1
 
                 data_dict["n constraints"] = n_all + len(self.templates_known) + 1
+                print(
+                    f"total including known and homogenization:",
+                    data_dict["n constraints"],
+                )
                 data_dict["t apply templates"] = ttot
             else:
                 self.constraints = []
@@ -1018,7 +1038,7 @@ class AutoTemplate(object):
                 ax.axvline(i, color="red", linewidth=1.0)
                 ax.annotate(
                     text=f"${p.replace(':0', '^x').replace(':1', '^y').replace('l.','').replace('.','')}$",
-                    xy=[i, 0],
+                    xy=(float(i), 0.0),
                     fontsize=8,
                     color="red",
                 )
@@ -1061,12 +1081,14 @@ class AutoTemplate(object):
 
     def save_tightness(self, fname_root, title=""):
         labels = self.variable_list
+        assert self.solver_vars is not None
 
         fig, ax = plt.subplots()
         xticks = range(len(self.dual_costs))
         ax.semilogy(xticks, self.dual_costs, marker="o")
         ax.set_xticks(xticks, labels)
-        ax.axhline(self.solver_vars["qcqp_cost"], color="k", ls=":")
+        if self.solver_vars["qcqp_cost"] is not None:
+            ax.axhline(float(self.solver_vars["qcqp_cost"]), color="k", ls=":")
         ax.set_title(title)
         if fname_root != "":
             savefig(fig, fname_root + "_tightness.png")
@@ -1081,11 +1103,12 @@ class AutoTemplate(object):
         return
 
     def save_matrices_sparsity(self, A_matrices=None, fname_root="", title=""):
+        assert self.solver_vars is not None
 
         if A_matrices is None:
             A_matrices = self.A_matrices
 
-        Q = self.solver_vars["Q"].toarray()
+        Q = self.solver_vars["Q"].toarray()  # type:ignore
 
         sorted_i = self.lifter.get_var_dict(unroll_keys=True)
         A_matrices_sparse = [
@@ -1152,11 +1175,17 @@ class AutoTemplate(object):
                 A_sparse = A_poly.get_matrix(sorted_i)
             else:
                 A_sparse = A_poly
-            cmap, norm, colorbar_yticks = initialize_discrete_cbar(A_sparse.data)
+            cmap, norm, colorbar_yticks = initialize_discrete_cbar(A_sparse.data)  # type: ignore
 
             for ax in plot_axs:
-                im = ax.matshow(A_sparse.toarray(), cmap=cmap, norm=norm)
-                add_rectangles(ax, self.lifter.var_dict)
+                if sp.isspmatrix(A_sparse):
+                    arr = A_sparse.toarray()  # type: ignore
+                else:
+                    arr = A_sparse
+                im = ax.matshow(arr, cmap=cmap, norm=norm)
+                # Use sp.isspmatrix to check if A_sparse is a scipy sparse matrix
+                if sp.isspmatrix(A_sparse):
+                    add_rectangles(ax, self.lifter.var_dict)
                 cax = add_colorbar(fig, ax, im, size=0.1)
                 cax.set_yticklabels(colorbar_yticks)
 

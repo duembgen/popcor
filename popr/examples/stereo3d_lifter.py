@@ -21,25 +21,28 @@ class Stereo3DLifter(StereoLifter):
     def __init__(self, n_landmarks, level="no", param_level="no", variable_list=None):
         self.W = np.stack([np.eye(4)] * n_landmarks)
 
-        f_u = 484.5
-        f_v = 484.5
-        c_u = 322
-        c_v = 247
-        b = 0.24
-        self.M_matrix = np.array(
-            [
-                [f_u, 0, c_u, f_u * b / 2],
-                [0, f_v, c_v, 0],
-                [f_u, 0, c_u, -f_u * b / 2],
-                [0, f_v, c_v, 0],
-            ]
-        )
         super().__init__(
             n_landmarks=n_landmarks,
             level=level,
             param_level=param_level,
             d=3,
             variable_list=variable_list,
+        )
+
+    @property
+    def M_matrix(self):
+        f_u = 484.5
+        f_v = 484.5
+        c_u = 322
+        c_v = 247
+        b = 0.24
+        return np.array(
+            [
+                [f_u, 0, c_u, f_u * b / 2],
+                [0, f_v, c_v, 0],
+                [f_u, 0, c_u, -f_u * b / 2],
+                [0, f_v, c_v, 0],
+            ]
         )
 
     @staticmethod

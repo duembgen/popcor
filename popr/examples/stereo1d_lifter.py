@@ -1,6 +1,7 @@
 from typing import Optional
 
 import numpy as np
+import scipy.sparse as sp
 from poly_matrix.least_squares_problem import LeastSquaresProblem
 from poly_matrix.poly_matrix import PolyMatrix
 
@@ -17,11 +18,14 @@ class Stereo1DLifter(StateLifter):
         self.n_landmarks = n_landmarks
         self.d = 1
         self.W = 1.0
-        super().__init__(param_level=param_level, d=self.d)
+        super().__init__(param_level=param_level, d=self.d, n_parameters=n_landmarks)
 
     def sample_parameters(self, theta=None):
-
         landmarks = np.random.rand(self.n_landmarks)[:, None]
+        try:
+            self.landmarks
+        except AttributeError:
+            self.landmarks = landmarks
         return self.sample_parameters_landmarks(landmarks)
 
     def sample_theta(self):
@@ -91,6 +95,9 @@ class Stereo1DLifter(StateLifter):
         if self.y_ is None:
             self.y_ = y
 
+        return self.get_Q_from_y(y)
+
+    def get_Q_from_y(self, y):
         ls_problem = LeastSquaresProblem()
         for j in range(len(y)):
             ls_problem.add_residual({self.HOM: -y[j], f"z_{j}": 1})
@@ -167,13 +174,15 @@ class Stereo1DLifter(StateLifter):
                 x_op = x_op + dx
                 if np.abs(dx) < eps:
                     msg = f"converged in dx after {i} it"
-                    info = {"msg": msg, "cost": self.get_cost(x_op, y), "success": True}
-                    return x_op, info
+                    cost = self.get_cost(x_op, y)
+                    info = {"msg": msg, "cost": cost, "success": True}
+                    return x_op, info, cost
             else:
                 msg = f"converged in du after {i} it"
+                cost = self.get_cost(x_op, y)
                 info = {"msg": msg, "cost": self.get_cost(x_op, y), "success": True}
-                return x_op, info
-        return None, {"msg": "didn't converge", "cost": None, "success": False}
+                return x_op, info, cost
+        return None, {"msg": "didn't converge", "cost": None, "success": False}, None
 
     def __repr__(self):
         return f"stereo1d_{self.param_level}"

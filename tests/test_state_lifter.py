@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+import scipy.sparse as sp
 
 from popr.examples import Stereo2DLifter, Stereo3DLifter
 from popr.lifters import StateLifter, StereoLifter
@@ -9,9 +10,9 @@ from popr.utils.test_tools import _test_with_tol, all_lifters
 
 def pytest_configure():
     # global variables
-    pytest.A_learned = {}
+    pytest.A_learned = {}  # type: ignore
     for lifter in all_lifters():
-        pytest.A_learned[str(lifter)] = None
+        pytest.A_learned[str(lifter)] = None  # type: ignore
 
 
 def test_ravel():
@@ -73,16 +74,20 @@ def test_vec_mat():
         for A in A_known:
             a_dense = get_vec(A.toarray())
             a_sparse = get_vec(A)
+            assert isinstance(a_dense, np.ndarray)
+            assert isinstance(a_sparse, np.ndarray)
             np.testing.assert_allclose(a_dense, a_sparse)
 
             # get_vec multiplies off-diagonal elements by sqrt(2)
             a = get_vec(A)
 
             A_test = lifter.get_mat(a, sparse=False)
+            assert isinstance(A_test, np.ndarray)
             np.testing.assert_allclose(A.toarray(), A_test)
 
             # get_mat divides off-diagonal elements by sqrt(2)
             A_test = lifter.get_mat(a, sparse=True)
+            assert isinstance(A_test, sp.csr_array)
             np.testing.assert_allclose(A.toarray(), A_test.toarray())
 
             a_poly = lifter.convert_a_to_polyrow(a)
@@ -104,23 +109,11 @@ def test_levels():
 pytest_configure()
 
 if __name__ == "__main__":
-    import warnings
+    import pytest
+
+    pytest.main([__file__, "-s"])
+    print("all tests passed")
 
     test_constraint_rank()
-
     test_ravel()
     test_vec_mat()
-
-    # import pytest
-    # print("testing")
-    # pytest.main([__file__, "-s"])
-    # print("all tests passed")
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        # warnings.simplefilter("error")
-        test_known_constraints()
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-
-    print("all tests passed")

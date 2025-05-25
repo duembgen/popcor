@@ -1,5 +1,6 @@
 # import autograd.numpy as np
 import numpy as np
+
 from popr.lifters import StereoLifter
 from popr.utils.geometry import convert_phi_to_theta, convert_theta_to_phi
 
@@ -19,11 +20,6 @@ class Stereo2DLifter(StereoLifter):
     def __init__(self, n_landmarks, level="no", param_level="no", variable_list=None):
         self.W = np.stack([np.eye(2)] * n_landmarks)
 
-        f_u = 484.5
-        c_u = 322
-        b = 0.24
-        self.M_matrix = np.array([[f_u, c_u, f_u * b / 2], [f_u, c_u, -f_u * b / 2]])
-
         super().__init__(
             n_landmarks=n_landmarks,
             level=level,
@@ -31,6 +27,13 @@ class Stereo2DLifter(StereoLifter):
             d=2,
             variable_list=variable_list,
         )
+
+    @property
+    def M_matrix(self):
+        f_u = 484.5
+        c_u = 322
+        b = 0.24
+        return np.array([[f_u, c_u, f_u * b / 2], [f_u, c_u, -f_u * b / 2]])
 
     def get_cost(self, t, y, W=None):
 

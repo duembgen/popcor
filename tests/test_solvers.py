@@ -139,6 +139,7 @@ def test_cost(noise=0.0):
         elif noise == 0 and isinstance(lifter, MonoLifter):
 
             if lifter.robust:
+                assert lifter.landmarks is not None
                 w = lifter.theta[-lifter.n_landmarks :]
                 for i in range(lifter.y_.shape[0]):
 
@@ -253,10 +254,9 @@ def test_solvers(n_seeds=1, noise=0.0):
                             val_gt = theta_gt[f"x_{i}"].matrix()
                             np.testing.assert_allclose(val_hat, val_gt, rtol=1e-3)
                     else:
-                        if len(theta_hat) == len(theta_gt):
-                            np.testing.assert_allclose(theta_hat, theta_gt, rtol=1e-3)
-                        else:
-                            np.testing.assert_allclose(theta_hat, theta_gt, rtol=1e-3)
+                        assert isinstance(theta_gt, np.ndarray)
+                        assert isinstance(theta_hat, np.ndarray)
+                        np.testing.assert_allclose(theta_hat, theta_gt, rtol=1e-3)
                 except AssertionError as e:
                     print(
                         f"Found solution for {lifter} is not ground truth in zero-noise! is the problem well-conditioned?"
@@ -329,10 +329,10 @@ def compare_solvers():
 if __name__ == "__main__":
     import warnings
 
-    # import pytest
-    # print("testing")
-    # pytest.main([__file__, "-s"])
-    # print("all tests passed")
+    import pytest
+
+    pytest.main([__file__, "-s"])
+    print("all tests passed")
 
     with warnings.catch_warnings():
         # warnings.simplefilter("error")

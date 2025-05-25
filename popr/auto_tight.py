@@ -1,8 +1,9 @@
 import matplotlib.pylab as plt
 import numpy as np
 import scipy.sparse as sp
-
+import scipy.sparse.linalg as splinalg
 from cert_tools.linalg_tools import find_dependent_columns, get_nullspace
+
 from popr.utils.common import get_vec
 from popr.utils.constraint import Constraint
 from popr.utils.plotting_tools import (
@@ -144,12 +145,16 @@ class AutoTight(object):
         t1 = time.time()
         if len(A_known):
             basis_known = np.vstack(
-                [get_vec(Ai.get_matrix(var_dict)) for Ai in A_known]
+                [
+                    np.asarray(get_vec(Ai.get_matrix(var_dict)))
+                    for Ai in A_known
+                    if get_vec(Ai.get_matrix(var_dict)) is not None
+                ]
             ).T
         else:
             basis_known = None
         basis, S = AutoTight.get_basis(
-            lifter, Y, basis_known=basis_known, method=method, var_subset=var_dict
+            lifter, Y, basis_known=basis_known, method=method
         )
         if verbose:
             print(f"get basis ({basis.shape})): {time.time() - t1:4.4f}")
@@ -175,15 +180,12 @@ class AutoTight(object):
         return Y
 
     @staticmethod
-    def generate_Y_sparse(
-        lifter, factor=FACTOR, ax=None, var_subset=None, param_subset=None
-    ):
+    def generate_Y_sparse(lifter, var_subset, param_subset, factor=FACTOR, ax=None):
         from popr.lifters import StateLifter
 
         assert isinstance(lifter, StateLifter)
-        assert (
-            lifter.HOM in param_subset
-        ), f"{lifter.HOM} must be included in param_subset."
+        assert lifter.HOM in param_subset
+
         # need at least dim_Y different random setups
         dim_Y = lifter.get_dim_Y(var_subset, param_subset)
         n_seeds = int(dim_Y * factor)
@@ -239,7 +241,7 @@ class AutoTight(object):
         lifter,
         Y,
         A_known: list = [],
-        basis_known: np.ndarray = None,
+        basis_known: np.ndarray | None = None,
         method=METHOD,
         eps_svd=None,
     ):
@@ -301,14 +303,15 @@ class AutoTight(object):
             # Normalize the matrix
             if normalize and not sparse:
                 # Ai /= np.max(np.abs(Ai))
-                Ai /= np.linalg.norm(Ai, p=2)
+                assert isinstance(Ai, np.ndarray)
+                Ai /= np.linalg.norm(Ai, p=2)  # type: ignore
             elif normalize and sparse:
-                Ai /= sp.linalg.norm(Ai, ord="fro")
+                Ai /= splinalg.norm(Ai, ord="fro")
             # Sparsify and truncate
             if sparse:
-                Ai.eliminate_zeros()
+                Ai.eliminate_zeros()  # type: ignore
             else:
-                Ai[np.abs(Ai) < trunc_tol] = 0.0
+                Ai[np.abs(Ai) < trunc_tol] = 0.0  # type: ignore
             # add to list
             A_list.append(Ai)
         return A_list
@@ -349,22 +352,22 @@ class AutoTight(object):
         else:
             bad_idx = []
 
-        for i in range(basis_reduced.shape[0]):
+        for i in range(basis_reduced.shape[0]):  # type: ignore
             if i in bad_idx:
                 continue
-            ai = basis_reduced[[i], :].toarray().flatten()
+            ai = basis_reduced[[i], :].toarray().flatten()  # type: ignore
             Ai = lifter.get_mat(ai, sparse=sparse, correct=True, var_dict=None)
             # Normalize the matrix
             if normalize and not sparse:
                 # Ai /= np.max(np.abs(Ai))
-                Ai /= np.linalg.norm(Ai, p=2)
+                Ai /= np.linalg.norm(Ai, p=2)  # type: ignore
             elif normalize and sparse:
-                Ai /= sp.linalg.norm(Ai, ord="fro")
+                Ai /= splinalg.norm(Ai, ord="fro")
             # Sparsify and truncate
             if sparse:
-                Ai.eliminate_zeros()
+                Ai.eliminate_zeros()  # type: ignore
             else:
-                Ai[np.abs(Ai) < trunc_tol] = 0.0
+                Ai[np.abs(Ai) < trunc_tol] = 0.0  # type: ignore
             # add to list
             A_list.append(Ai)
         return A_list
@@ -385,7 +388,7 @@ class AutoTight(object):
         if len(A_known):
             A_known = lifter.extract_A_known(A_known, var_subset, output_type="dense")
             Y = np.r_[Y, A_known]
-            for i in range(A_known.shape[0]):
+            for i in range(A_known.shape[0]):  # type: ignore
                 basis_list.append(lifter.convert_b_to_polyrow(A_known[i], var_subset))
 
         for i in range(lifter.N_CLEANING_STEPS + 1):

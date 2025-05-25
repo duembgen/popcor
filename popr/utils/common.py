@@ -21,7 +21,7 @@ def get_aggregate_sparsity(matrix_list_sparse):
     agg_jj = []
     for i, A_sparse in enumerate(matrix_list_sparse):
         assert isinstance(A_sparse, sp.spmatrix)
-        ii, jj = A_sparse.nonzero()
+        ii, jj = A_sparse.nonzero()  # type: ignore
         agg_ii += list(ii)
         agg_jj += list(jj)
     return sp.csr_matrix(([1.0] * len(agg_ii), (agg_ii, agg_jj)), A_sparse.shape)
@@ -123,7 +123,7 @@ def create_symmetric(vec, eps_sparse, correct=False, sparse=False):
     return Ai
 
 
-def get_vec(mat, correct=True, sparse=False):
+def get_vec(mat, correct=True, sparse=False) -> np.ndarray | sp.csr_matrix | None:
     """Convert NxN Symmetric matrix to (N+1)N/2 vectorized version that preserves inner product.
 
     :param mat: (spmatrix or ndarray) symmetric matrix
@@ -133,30 +133,30 @@ def get_vec(mat, correct=True, sparse=False):
 
     mat = deepcopy(mat)
     if correct:
-        if isinstance(mat, sp.spmatrix) or isinstance(mat, sp.sparray):
+        if isinstance(mat, sp.csc_matrix):
             ii, jj = mat.nonzero()
             mat[ii, jj] *= np.sqrt(2.0)
             diag = ii == jj
-            mat[ii[diag], jj[diag]] /= np.sqrt(2)
+            mat[ii[diag], jj[diag]] /= np.sqrt(2)  # type: ignore
         else:
             mat *= np.sqrt(2.0)
             mat[range(mat.shape[0]), range(mat.shape[0])] /= np.sqrt(2)
     if sparse:
-        # flat_indices = np.ravel_multi_index([i_upper, j_upper], mat.shape)
+        assert isinstance(mat, sp.csc_matrix)
         ii, jj = mat.nonzero()
         if len(ii) == 0:
             # got an empty matrix -- this can happen depending on the parameter values.
             return None
         triu_mask = jj >= ii
 
-        flat_indices = ravel_multi_index_triu([ii[triu_mask], jj[triu_mask]], mat.shape)
-        data = np.array(mat[ii[triu_mask], jj[triu_mask]]).flatten()
-        vec_size = int(mat.shape[0] * (mat.shape[0] + 1) / 2)
+        flat_indices = ravel_multi_index_triu([ii[triu_mask], jj[triu_mask]], mat.shape)  # type: ignore
+        data = np.array(mat[ii[triu_mask], jj[triu_mask]]).flatten()  # type: ignore
+        vec_size = int(mat.shape[0] * (mat.shape[0] + 1) / 2)  # type: ignore
         return sp.csr_matrix(
             (data, ([0] * len(flat_indices), flat_indices)), (1, vec_size)
         )
     else:
-        return np.array(mat[np.triu_indices(n=mat.shape[0])]).flatten()
+        return np.array(mat[np.triu_indices(n=mat.shape[0])]).flatten()  # type: ignore
 
 
 def get_labels(p, zi, zj, var_dict):

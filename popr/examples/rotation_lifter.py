@@ -75,10 +75,7 @@ class RotationLifter(StateLifter):
                 else:
                     C = self.theta.T
                 self.y_.append(C)
-
-        Q = PolyMatrix(symmetric=True)
-        for y in self.y_:
-            Q[self.HOM,]
+        raise NotImplementedError("continue here!")
 
     def local_solver(
         self, t0, y, verbose=False, method=METHOD, solver_kwargs=SOLVER_KWARGS

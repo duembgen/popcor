@@ -24,10 +24,6 @@ class PolyLifter(StateLifter):
     def sample_theta(self):
         return np.random.rand(1)
 
-    @abstractmethod
-    def get_Q_mat(self):
-        return
-
     def get_error(self, t):
         return {"MAE": float(abs(self.theta - t)), "error": float(abs(self.theta - t))}
 
@@ -36,14 +32,11 @@ class PolyLifter(StateLifter):
             theta = self.theta
         return np.array([theta**i for i in range(self.degree // 2 + 1)])
 
-    def get_Q(self, noise=1e-3):
-        Q = self.get_Q_mat()
-        return Q
-
-    def get_cost(self, theta, *args, **kwargs):
-        Q = self.get_Q_mat()
-        x = self.get_x(theta)
-        return x.T @ Q @ x
+    def get_cost(self, theta, *args, **kwargs) -> float:
+        Q = self.get_Q()
+        assert isinstance
+        x = self.get_x(theta).flatten()
+        return float(x.T @ Q @ x)
 
     def get_hess(self, *args, **kwargs):
         raise NotImplementedError

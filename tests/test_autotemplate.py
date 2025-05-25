@@ -13,9 +13,9 @@ def test_stereo_1d():
     learner = AutoTemplate(
         lifter=lifter,
         variable_list=[["h", "x"], ["h", "x", "z_0"], ["h", "x", "z_0", "z_1"]],
-        use_known=False,
-        use_incremental=True,
     )
+    learner.USE_KNOWN = False  # type: ignore
+    learner.USE_INCREMENTAL = False  # type: ignore
     data, success = learner.run()
     try:
         assert success
@@ -30,17 +30,18 @@ def test_range_only():
         learner = AutoTemplate(
             lifter=lifter,
             variable_list=[["h", "x_0"], ["h", "x_0", "z_0"]],
-            use_known=False,
-            use_incremental=True,
         )
+        learner.USE_KNOWN = False  # type: ignore
+        learner.USE_INCREMENTAL = False  # type: ignore
         data, success = learner.run()
         assert success
 
         learner = AutoTemplate(
             lifter=lifter,
             variable_list=[["h", "x_0"], ["h", "x_0", "z_0"]],
-            use_known=True,
         )
+        learner.USE_KNOWN = True  # type: ignore
+        learner.USE_INCREMENTAL = False  # type: ignore
         data, success = learner.run()
         assert success
 

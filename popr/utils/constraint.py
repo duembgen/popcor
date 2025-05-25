@@ -119,7 +119,7 @@ def plot_poly_matrix(
             ax.axvline(i, color="red", linewidth=1.0)
             ax.annotate(
                 text=f"${p.replace(':0', '^x').replace(':1', '^y').replace('l.','').replace('.','')}$",
-                xy=[i, 0],
+                xy=(float(i), 0.0),
                 fontsize=8,
                 color="red",
             )
@@ -174,10 +174,10 @@ class Constraint(object):
         b: np.ndarray,
         mat_var_dict: dict,
         lifter=None,
-        mat_param_dict: dict = None,
+        mat_param_dict: dict | None = None,
         convert_to_polyrow: bool = True,
         known: bool = True,
-        template_idx: int = None,
+        template_idx: int = 0,
     ):
         a = None
         A_sparse = None
@@ -191,6 +191,7 @@ class Constraint(object):
             if a_full is None:
                 return None
         if convert_to_polyrow:
+            assert lifter is not None
             A_poly, __ = PolyMatrix.init_from_sparse(
                 A_sparse, var_dict=lifter.var_dict, unfold=True
             )
@@ -221,7 +222,7 @@ class Constraint(object):
         mat_var_dict: dict,
         known: bool = False,
         index: int = 0,
-        template_idx: int = None,
+        template_idx: int = 0,
         compute_polyrow_b=False,
     ):
         Ai_sparse_small = A_poly.get_matrix(variables=mat_var_dict)
@@ -252,8 +253,8 @@ class Constraint(object):
         lifter,
         index: int = 0,
         known: bool = False,
-        template_idx: int = None,
-        mat_var_dict: dict = None,
+        template_idx: int = 0,
+        mat_var_dict: dict | None = None,
     ):
         if mat_var_dict is None:
             mat_var_dict = lifter.var_dict
@@ -274,11 +275,13 @@ class Constraint(object):
 
     def scale_to_new_lifter(self, lifter):
         if self.known:
+            assert self.A_poly_ is not None
             # known matrices are stored in origin variables, not unrolled form
             self.A_sparse_ = self.A_poly_.get_matrix(lifter.var_dict)
             self.a_full_ = get_vec(self.A_sparse_, sparse=True)
 
         else:
+            assert self.A_poly_ is not None
             # known matrices are stored in origin variables, not unrolled form
             target_dict_unroll = lifter.get_var_dict(unroll_keys=True)
             self.A_sparse_ = self.A_poly_.get_matrix(target_dict_unroll)

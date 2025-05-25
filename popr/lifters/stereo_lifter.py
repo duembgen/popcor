@@ -1,12 +1,18 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 # import autograd.numpy as np
 import numpy as np
+import scipy.sparse as sp
 from poly_matrix.poly_matrix import PolyMatrix
 
-from popr.utils.geometry import (generate_random_pose, get_C_r_from_theta,
-                                 get_noisy_pose, get_pose_errors_from_theta,
-                                 get_T, get_theta_from_C_r)
+from popr.utils.geometry import (
+    generate_random_pose,
+    get_C_r_from_theta,
+    get_noisy_pose,
+    get_pose_errors_from_theta,
+    get_T,
+    get_theta_from_C_r,
+)
 
 from .state_lifter import StateLifter
 
@@ -46,11 +52,18 @@ class StereoLifter(StateLifter, ABC):
         self.n_landmarks = n_landmarks
         self.landmarks = None
 
-        self.n_parameters = n_landmarks
-        assert self.M_matrix is not None, "Inheriting class must initialize M_matrix."
         super().__init__(
-            d=d, level=level, param_level=param_level, variable_list=variable_list
+            d=d,
+            level=level,
+            param_level=param_level,
+            variable_list=variable_list,
+            n_parameters=n_landmarks,
         )
+
+    @property
+    @abstractmethod
+    def M_matrix(self):
+        raise NotImplementedError("Inheriting class must initialize M_matrix.")
 
     def get_all_variables(self):
         return [[self.HOM, "x"] + [f"z_{i}" for i in range(self.n_landmarks)]]
@@ -121,7 +134,7 @@ class StereoLifter(StateLifter, ABC):
             self.var_dict_ = {self.HOM: 1}
             self.var_dict.update({"x": self.d**2 + self.d})
             self.var_dict.update(
-                {f"z_{k}": self.d + level_dim for k in range(self.n_parameters)}
+                {f"z_{k}": self.d + level_dim for k in range(self.n_landmarks)}
             )
         return self.var_dict_
 
@@ -135,6 +148,8 @@ class StereoLifter(StateLifter, ABC):
             parameters = self.parameters
         if var_subset is None:
             var_subset = self.var_dict.keys()
+
+        assert self.landmarks is not None
 
         # TODO(FD) below is a bit hacky, these two variables should not both be called theta.
         # theta is either (x, y, alpha) or (x, y, z, a1, a2, a3)
@@ -284,9 +299,11 @@ class StereoLifter(StateLifter, ABC):
     def sample_theta(self):
         return generate_random_pose(d=self.d).flatten()
 
-    def simulate_y(self, noise: float = None):
+    def simulate_y(self, noise: float | None = None):
         if noise is None:
             noise = NOISE
+
+        assert self.landmarks is not None, "Landmarks must be set before simulating y."
 
         T = get_T(theta=self.theta, d=self.d)
 
@@ -302,8 +319,11 @@ class StereoLifter(StateLifter, ABC):
         return y_sim
 
     def get_Q(
-        self, noise: float = None, output_poly: bool = False, use_cliques: list = []
-    ) -> tuple:
+        self,
+        noise: float | None = None,
+        output_poly: bool = False,
+        use_cliques: list = [],
+    ) -> PolyMatrix | sp.csr_matrix | sp.csc_matrix:
         if self.y_ is None:
             if noise is None:
                 noise = NOISE
@@ -312,7 +332,9 @@ class StereoLifter(StateLifter, ABC):
         Q = self.get_Q_from_y(self.y_, output_poly=output_poly, use_cliques=use_cliques)
         return Q
 
-    def get_Q_from_y(self, y, output_poly=False, use_cliques=[]):
+    def get_Q_from_y(
+        self, y, output_poly=False, use_cliques=[]
+    ) -> PolyMatrix | sp.csr_matrix | sp.csc_matrix:
         """
         The least squares problem reads
         min_T sum_{n=0}^{N-1} || y - Mtilde@z ||
@@ -327,9 +349,10 @@ class StereoLifter(StateLifter, ABC):
         else:
             js = range(y.shape[0])
 
+        # when using lifting (level=urT), then we have
         # in 2d: M_tilde is 2 by 6, with first 2 columns: M[:, [0, 2]]
         # in 3d: M_tilde is 4 by 12, with first 3 columns: M[:, [0, 1, 3]]
-        M_tilde = np.zeros((len(y[0]), self.var_dict["z_0"]))  # 4 by dim_z
+        M_tilde = np.zeros((len(y[0]), self.var_dict["z_0"]))
         M_tilde[:, : self.d] = self.M_matrix[:, list(range(self.d - 1)) + [self.d]]
 
         # in 2d: M[:, 1]
@@ -359,13 +382,15 @@ class StereoLifter(StateLifter, ABC):
             cost_test /= self.n_landmarks * self.d
 
         if output_poly:
-            cost_Q = x.T @ Q.get_matrix(self.var_dict) @ x
+            assert isinstance(Q, PolyMatrix)
+            cost_Q = x.T @ Q.get_matrix(self.var_dict, output_type="csr") @ x
         else:
             cost_Q = x.T @ Q @ x
         assert abs(cost_test - cost_Q) < 1e-6, (cost_test, cost_Q)
         if not len(use_cliques):
             cost_raw = self.get_cost(self.theta, y)
             assert abs(cost_test - cost_raw) < 1e-6, (cost_test, cost_raw)
+        assert isinstance(Q, (PolyMatrix, sp.csr_matrix, sp.csc_matrix)), type(Q)
         return Q
 
     def get_theta(self, x):
@@ -394,15 +419,14 @@ class StereoLifter(StateLifter, ABC):
 
     def local_solver_manopt(self, t0, y, W=None, verbose=False, method="CG", **kwargs):
         import pymanopt
-        from pymanopt.manifolds import (Euclidean, Product,
-                                        SpecialOrthogonalGroup)
+        from pymanopt.manifolds import Euclidean, Product, SpecialOrthogonalGroup
+
+        assert self.landmarks is not None, "Landmarks must be set before local solver."
 
         if method == "CG":
-            from pymanopt.optimizers import \
-                ConjugateGradient as Optimizer  # fastest
+            from pymanopt.optimizers import ConjugateGradient as Optimizer  # fastest
         elif method == "SD":
-            from pymanopt.optimizers import \
-                SteepestDescent as Optimizer  # slow
+            from pymanopt.optimizers import SteepestDescent as Optimizer  # slow
         elif method == "TR":
             from pymanopt.optimizers import TrustRegions as Optimizer  # okay
         else:
@@ -425,7 +449,7 @@ class StereoLifter(StateLifter, ABC):
         def cost(R, t):
             cost = 0
             for i in range(self.n_landmarks):
-                pi_cam = np.concatenate([R @ self.landmarks[i] + t, [1]], axis=0)
+                pi_cam = np.concatenate([R @ self.landmarks[i] + t, [1]], axis=0)  # type: ignore
                 y_gt = self.M_matrix @ (pi_cam / pi_cam[self.d - 1])
                 residual = y[i] - y_gt
                 cost += residual.T @ W @ residual
@@ -437,7 +461,7 @@ class StereoLifter(StateLifter, ABC):
         problem = pymanopt.Problem(
             manifold, cost, euclidean_gradient=euclidean_gradient  #
         )
-        optimizer = Optimizer(**solver_kwargs)
+        optimizer = Optimizer(**solver_kwargs)  # type: ignore
 
         R_0, t_0 = get_C_r_from_theta(t0[: self.d + self.d**2], self.d)
         res = optimizer.run(problem, initial_point=(R_0, t_0))
