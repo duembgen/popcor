@@ -2,6 +2,7 @@ import matplotlib.pylab as plt
 import numpy as np
 import scipy.sparse as sp
 from poly_matrix.poly_matrix import PolyMatrix
+
 from popr.utils.common import get_vec
 from popr.utils.plotting_tools import plot_basis
 

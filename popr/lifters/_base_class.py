@@ -2,9 +2,7 @@
 The BaseClass contains all the functionalities that are required by StateLifter but that
 are really tedious and uninteresting, such as converting between different formats.
 
-Ideally, the user never has to look at this code, and we apologize in advance if you do
--- it is not super well documented.
-
+Ideally, the user never has to look at this code.
 """
 
 import itertools
@@ -12,6 +10,7 @@ import itertools
 import numpy as np
 import scipy.sparse as sp
 from poly_matrix import PolyMatrix, unroll
+
 from popr.utils.common import create_symmetric, get_labels, get_vec
 
 

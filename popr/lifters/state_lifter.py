@@ -70,6 +70,8 @@ class StateLifter(BaseClass):
 
     @abstractmethod
     def sample_theta(self) -> np.ndarray:
+        """Randomly sample a feasible state theta. This function must
+        implemented by the inheriting class."""
         raise NotImplementedError("need to implement sample_theta")
 
     ###### MUST OVERWRITE THESE FOR TIGHTNESS CHECKS
@@ -97,7 +99,9 @@ class StateLifter(BaseClass):
 
     ###### MUST OVERWRITE THESE FOR ADDING PARAMETERS
 
-    def sample_parameters(self, theta=None) -> np.ndarray:
+    def sample_parameters(self, theta=None) -> dict:
+        """Create random set of parameters. By default, there are no parameters
+        so this function just returns {`self.HOM`: 1.0}."""
         assert (
             self.param_level == "no"
         ), "Need to overwrite sample_parameters to use level different than 'no'"
@@ -131,6 +135,7 @@ class StateLifter(BaseClass):
 
         A_list = []
         for k, template in enumerate(templates):
+            assert template.b_ is not None
             assert isinstance(template, Constraint)
             # First, we find the current parameters, so that we can factor
             # them into b and compute a from it.
@@ -357,7 +362,7 @@ class StateLifter(BaseClass):
     def get_A_b_list(self, A_list, var_subset=None):
         return [(self.get_A0(var_subset), 1.0)] + [(A, 0.0) for A in A_list]
 
-    def sample_parameters_landmarks(self, landmarks):
+    def sample_parameters_landmarks(self, landmarks: np.ndarray):
         """Used by RobustPoseLifter, RangeOnlyLocLifter: the default way of adding landmarks to parameters."""
         if self.landmarks is None:
             self.landmarks = landmarks
@@ -372,8 +377,14 @@ class StateLifter(BaseClass):
             elif self.param_level == "ppT":
                 parameters[f"p_{i}"] = np.hstack(
                     [
-                        landmarks[i],
-                        get_vec(np.outer(landmarks[i], landmarks[i]), correct=False),
+                        np.asarray(landmarks[i]),
+                        np.asarray(
+                            get_vec(
+                                np.outer(landmarks[i], landmarks[i]),
+                                correct=False,
+                                sparse=False,
+                            )
+                        ),
                     ]
                 )
         return parameters
@@ -425,7 +436,21 @@ class StateLifter(BaseClass):
             )
         return param_dict
 
-    def get_x(self, theta=None, parameters=None, var_subset=None) -> np.ndarray:
+    def get_x(
+        self,
+        theta: np.ndarray | None = None,
+        parameters: np.ndarray | None = None,
+        var_subset: list | None = None,
+    ) -> np.ndarray:
+        """
+        Get the lifted state vector x.
+
+        :param theta: if given, use this theta instead of the ground truth one.
+        :param parameters: if given, use this vector of parameters instead of the ground truth one.
+        :param var_subset: list of parameter keys to use. If None, use all.
+
+        :returns: lifted vector x
+        """
         if theta is None:
             theta = self.theta
         if parameters is None:
@@ -444,7 +469,7 @@ class StateLifter(BaseClass):
                 x_data += list(theta)
         return np.array(x_data)
 
-    def get_p(self, parameters: dict = None, param_subset: dict | list = None):
+    def get_p(self, parameters: dict | None = None, param_subset: dict | list = None):
         if parameters is None:
             parameters = self.parameters
         if param_subset is None:
