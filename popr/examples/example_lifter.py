@@ -1,5 +1,6 @@
 import numpy as np
-from popr.lifters import StateLifter
+
+from popr.base_lifters import StateLifter
 
 
 class ExampleLifter(StateLifter):
@@ -15,25 +16,25 @@ class ExampleLifter(StateLifter):
 
     """
 
-    # you can choose your homogenization variable here
+    # choose your homogenization variable here
     HOM = "h"
 
     # chose the "lifting" levels when going up in the sparse Lasserre's hierarchy.
     LEVELS = ["no"]
 
-    def __init__(self, param_level="p"):
-        # you can choose if you want to use "parameters". Otherwise remove param_level or set to "no"
+    def __init__(self, param_level="no"):
+        # you can choose if you want to use parameters. Otherwise remove param_level or set to "no"
         super().__init__(param_level=param_level)
 
     @property
     def var_dict(self):
-        """Return key,size pairs of all variables."""
+        """Return key, size pairs of all variables."""
         var_dict = {self.HOM: 1}
         return var_dict
 
     @property
     def param_dict(self):
-        """Return key,size pairs of all parameters."""
+        """Return key, size pairs of all parameters."""
         param_dict = {self.HOM: 1}
         return param_dict
 
@@ -62,7 +63,7 @@ class ExampleLifter(StateLifter):
         assert len(x_data) == self.get_dim_x(var_subset)
         return np.array(x_data)
 
-    def sample_parameters(self, theta: np.ndarray = None) -> dict | np.ndarray:
+    def sample_parameters(self, theta: np.ndarray | None = None):
         """
         Return the array of parameters.
 
@@ -70,10 +71,10 @@ class ExampleLifter(StateLifter):
                       Often we don't actually need this because the parameters might not depend
                       on theta (e.g. when parameters = landmarks)
         """
-        return
+        pass
 
-    def sample_theta(self) -> dict | np.ndarray:
+    def sample_theta(self):
         """
         Create a new random instance of theta.
         """
-        return
+        pass

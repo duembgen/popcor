@@ -3,8 +3,8 @@ import numpy as np
 
 
 def find_local_minimum(lifter, y, delta=1.0, verbose=False, n_inits=10, plot=False):
+    from popr.base_lifters import StateLifter
     from popr.examples import RangeOnlyLocLifter
-    from popr.lifters import StateLifter
 
     assert isinstance(lifter, StateLifter)
     local_solutions = []
@@ -49,9 +49,9 @@ def find_local_minimum(lifter, y, delta=1.0, verbose=False, n_inits=10, plot=Fal
         global_solution = local_solutions[global_inds[0]]
         local_inds = np.where(np.isin(costs, local_costs))[0]
 
-        info["n global"] = len(global_inds)
-        info["n local"] = len(costs) - info["n global"] - len(failed)
-        info["n fail"] = len(failed)
+        info["n global"] = len(global_inds)  # type: ignore
+        info["n local"] = len(costs) - info["n global"] - len(failed)  # type: ignore
+        info["n fail"] = len(failed)  # type: ignore
         info["max res"] = max_res[global_inds[0]]
         info["cond Hess"] = cond_Hess[global_inds[0]]
 
@@ -67,13 +67,12 @@ def find_local_minimum(lifter, y, delta=1.0, verbose=False, n_inits=10, plot=Fal
             fig, ax = plt.subplots()
 
             ax.scatter(
-                *lifter.all_landmarks[:, :2].T, color=f"k", marker="+", alpha=0.0
+                *lifter.all_landmarks[:, :2].T, color=f"k", marker="+", alpha=0.0  # type: ignore
             )
-            ax.scatter(*lifter.landmarks[:, :2].T, color=f"k", marker="+")
+            ax.scatter(*lifter.landmarks[:, :2].T, color=f"k", marker="+")  # type: ignore
 
             # plot ground truth, global and local costs only once.
             plot_frame(
-                lifter,
                 ax,
                 theta=lifter.theta,
                 color="k",
@@ -84,7 +83,6 @@ def find_local_minimum(lifter, y, delta=1.0, verbose=False, n_inits=10, plot=Fal
                 label=None,
             )
             plot_frame(
-                lifter,
                 ax,
                 theta=global_solution,
                 color="g",
@@ -95,7 +93,6 @@ def find_local_minimum(lifter, y, delta=1.0, verbose=False, n_inits=10, plot=Fal
                 local_ind = np.where(costs == local_cost)[0][0]
                 theta = local_solutions[local_ind]
                 plot_frame(
-                    lifter,
                     ax,
                     theta=theta,
                     color="r",
@@ -106,9 +103,9 @@ def find_local_minimum(lifter, y, delta=1.0, verbose=False, n_inits=10, plot=Fal
             # plot all solutions that converged to those (for RO only, for stereo it's too crowded)
             if isinstance(lifter, RangeOnlyLocLifter):
                 for i in global_inds[1:]:  # first one corresponds to ground truth
-                    plot_frame(lifter, ax, theta=inits[i], color="g", marker=".")
+                    plot_frame(ax, theta=inits[i], color="g", marker=".")
                 for i in local_inds:
-                    plot_frame(lifter, ax, theta=inits[i], color="r", marker=".")
+                    plot_frame(ax, theta=inits[i], color="r", marker=".")
 
             ax.axis("equal")
             fig.set_size_inches(5, 5)

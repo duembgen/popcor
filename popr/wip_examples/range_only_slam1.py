@@ -4,7 +4,7 @@ import numpy as np
 from poly_matrix.least_squares_problem import LeastSquaresProblem
 from poly_matrix.poly_matrix import PolyMatrix
 
-from popr.lifters import RangeOnlyLifter
+from popr.base_lifters import RangeOnlyLifter
 
 
 def vkron(a, b):

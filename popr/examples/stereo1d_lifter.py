@@ -5,7 +5,7 @@ import scipy.sparse as sp
 from poly_matrix.least_squares_problem import LeastSquaresProblem
 from poly_matrix.poly_matrix import PolyMatrix
 
-from popr.lifters import StateLifter
+from popr.base_lifters import StateLifter
 
 
 class Stereo1DLifter(StateLifter):
@@ -20,12 +20,14 @@ class Stereo1DLifter(StateLifter):
         self.W = 1.0
         super().__init__(param_level=param_level, d=self.d, n_parameters=n_landmarks)
 
+    @property
+    def landmarks(self):
+        if self.landmarks_ is None:
+            self.landmarks_ = np.random.rand(self.n_landmarks, self.d)
+        return self.landmarks_
+
     def sample_parameters(self, theta=None):
-        landmarks = np.random.rand(self.n_landmarks)[:, None]
-        try:
-            self.landmarks
-        except AttributeError:
-            self.landmarks = landmarks
+        landmarks = np.random.rand(self.n_landmarks, self.d)
         return self.sample_parameters_landmarks(landmarks)
 
     def sample_theta(self):

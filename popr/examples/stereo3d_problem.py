@@ -15,7 +15,7 @@ M = np.array(
 )
 
 
-def _u(y: np.array, x: np.array, M: np.array):
+def _u(y: np.ndarray, x: np.ndarray, M: np.ndarray):
     """
     Pixel error.
 
@@ -29,7 +29,7 @@ def _u(y: np.array, x: np.array, M: np.array):
     return y - 1 / (a.transpose((0, 2, 1)) @ x) * (M @ x)
 
 
-def _du(x: np.array, M: np.array):
+def _du(x: np.ndarray, M: np.ndarray):
     """
     Derivative of pixel error w.r.t. x
     Args:
@@ -42,7 +42,7 @@ def _du(x: np.array, M: np.array):
     return ((1 / a_times_x) ** 2) * M @ x @ a.transpose((0, 2, 1)) - (1 / a_times_x) * M
 
 
-def _odot_exp(e: np.array):
+def _odot_exp(e: np.ndarray):
     """
     Computes e^{\\odot}. See section 8.1.8 of State Estimation for Robotics (Barfoot 2022)
     Args:
@@ -61,7 +61,7 @@ def _odot_exp(e: np.array):
     return res
 
 
-def Jacobian(x: np.array, M: np.array):
+def Jacobian(x: np.ndarray, M: np.ndarray):
     """
     Internal function used for local solver. See stereo_camera_sim.ipynb for definition.
 
@@ -75,7 +75,7 @@ def Jacobian(x: np.array, M: np.array):
     return (_du(x, M) @ _odot_exp(x)).transpose((0, 2, 1))
 
 
-def _svdsolve(A: np.array, b: np.array):
+def _svdsolve(A: np.ndarray, b: np.ndarray):
     """Solve Ax = b using SVD
 
     Args:
@@ -93,8 +93,8 @@ def _svdsolve(A: np.array, b: np.array):
 
 
 def generative_camera_model(
-    M: np.array, T_cw: np.array, homo_p_w: np.array
-) -> np.array:
+    M: np.ndarray, T_cw: np.ndarray, homo_p_w: np.ndarray
+) -> np.ndarray:
     """
     Args:
         M (np.array): Stereo camera parameters in a matrix
@@ -110,13 +110,15 @@ def generative_camera_model(
     return M @ p_c / p_c[:, None, 2]
 
 
-def residuals(T: np.array, p_w: np.array, y: np.array, W: np.array, M: np.array):
+def residuals(
+    T: np.ndarray, p_w: np.ndarray, y: np.ndarray, W: np.ndarray, M: np.ndarray
+):
     y_pred = generative_camera_model(M, T, p_w)
     e = y - y_pred
     return e.flatten()
 
 
-def _cost(T: np.array, p_w: np.array, y: np.array, W: np.array, M: np.array):
+def _cost(T: np.ndarray, p_w: np.ndarray, y: np.ndarray, W: np.ndarray, M: np.ndarray):
     """Compute projection error
 
     Args:
@@ -135,11 +137,11 @@ def _cost(T: np.array, p_w: np.array, y: np.array, W: np.array, M: np.array):
 
 
 def local_solver(
-    T_init: np.array,
-    y: np.array,
-    p_w: np.array,
-    W: np.array,
-    M: np.array,
+    T_init: np.ndarray,
+    y: np.ndarray,
+    p_w: np.ndarray,
+    W: np.ndarray,
+    M: np.ndarray,
     max_iters: int = 100,
     min_update_norm: float = 1e-10,
     gtol=1e-6,

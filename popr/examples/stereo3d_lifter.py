@@ -2,7 +2,7 @@ import pickle
 
 import numpy as np
 
-from popr.lifters import StereoLifter
+from popr.base_lifters import StereoLifter
 from popr.utils.geometry import get_T, get_theta_from_T
 
 from .stereo3d_problem import _cost, local_solver
@@ -62,7 +62,7 @@ class Stereo3DLifter(StereoLifter):
             variable_list=variable_list,
         )
         lifter.y_ = y_
-        lifter.landmarks = landmarks
+        lifter.landmarks_ = landmarks
         lifter.parameters = np.r_[1, landmarks.flatten()]
         lifter.theta = theta
         return lifter

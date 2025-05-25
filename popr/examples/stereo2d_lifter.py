@@ -1,7 +1,7 @@
 # import autograd.numpy as np
 import numpy as np
 
-from popr.lifters import StereoLifter
+from popr.base_lifters import StereoLifter
 from popr.utils.geometry import convert_phi_to_theta, convert_theta_to_phi
 
 from .stereo2d_problem import _cost, local_solver

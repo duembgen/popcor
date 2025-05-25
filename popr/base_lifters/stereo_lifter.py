@@ -50,8 +50,6 @@ class StereoLifter(StateLifter, ABC):
     ):
         self.y_ = None
         self.n_landmarks = n_landmarks
-        self.landmarks = None
-
         super().__init__(
             d=d,
             level=level,
@@ -81,6 +79,13 @@ class StereoLifter(StateLifter, ABC):
             "urT": n * self.d**2,
             "uxT": n * (self.d * (self.d + self.d**2)),
         }
+
+    @property
+    def landmarks(self):
+        if self.landmarks_ is None:
+            landmarks = self.generate_random_landmarks(self.theta)
+            self.landmarks_ = landmarks
+        return self.landmarks_
 
     def generate_random_landmarks(self, theta=None):
         if theta is not None:
@@ -148,8 +153,6 @@ class StereoLifter(StateLifter, ABC):
             parameters = self.parameters
         if var_subset is None:
             var_subset = self.var_dict.keys()
-
-        assert self.landmarks is not None
 
         # TODO(FD) below is a bit hacky, these two variables should not both be called theta.
         # theta is either (x, y, alpha) or (x, y, z, a1, a2, a3)
@@ -303,8 +306,6 @@ class StereoLifter(StateLifter, ABC):
         if noise is None:
             noise = NOISE
 
-        assert self.landmarks is not None, "Landmarks must be set before simulating y."
-
         T = get_T(theta=self.theta, d=self.d)
 
         y_sim = np.zeros((self.n_landmarks, self.M_matrix.shape[0]))
@@ -420,8 +421,6 @@ class StereoLifter(StateLifter, ABC):
     def local_solver_manopt(self, t0, y, W=None, verbose=False, method="CG", **kwargs):
         import pymanopt
         from pymanopt.manifolds import Euclidean, Product, SpecialOrthogonalGroup
-
-        assert self.landmarks is not None, "Landmarks must be set before local solver."
 
         if method == "CG":
             from pymanopt.optimizers import ConjugateGradient as Optimizer  # fastest

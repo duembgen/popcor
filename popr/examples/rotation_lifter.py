@@ -2,7 +2,7 @@ import numpy as np
 from poly_matrix.poly_matrix import PolyMatrix
 from scipy.spatial.transform import Rotation as R
 
-from popr.lifters import StateLifter
+from popr.base_lifters import StateLifter
 
 METHOD = "CG"
 SOLVER_KWARGS = dict(
@@ -11,9 +11,11 @@ SOLVER_KWARGS = dict(
 
 
 class RotationLifter(StateLifter):
+    """Rotation averaging problem."""
+
     LEVELS = ["no"]
     HOM = "h"
-    VARIABLE_LIST = ["h", "c"]
+    VARIABLE_LIST = [["h", "c"]]
 
     # whether or not to include the determinant constraints in the known constraints.
     ADD_DETERMINANT = False

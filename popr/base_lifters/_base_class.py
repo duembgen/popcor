@@ -653,14 +653,14 @@ class BaseClass(object):
 
             for i in range(n_seeds):
                 if i == 0:
-                    x = self.get_x()
+                    x = self.get_x().flatten()
                 else:
                     np.random.seed(i)
                     t = self.sample_theta()
                     p = self.sample_parameters()
-                    x = self.get_x(theta=t, parameters=p)
+                    x = self.get_x(theta=t, parameters=p).flatten()
 
-                constraint_violation = abs(x.T @ A @ x)
+                constraint_violation = abs(float(x.T @ A @ x))
                 max_violation = max(max_violation, constraint_violation)
                 if constraint_violation > self.EPS_ERROR:
                     msg = f"big violation at {j}: {constraint_violation:.1e}"
@@ -689,8 +689,6 @@ class BaseClass(object):
 
     def sample_parameters_landmarks(self, landmarks: np.ndarray):
         """Used by RobustPoseLifter, RangeOnlyLocLifter: the default way of adding landmarks to parameters."""
-        if self.landmarks is None:
-            self.landmarks = landmarks
         parameters = {self.HOM: 1.0}
         n_landmarks = landmarks.shape[0]
 

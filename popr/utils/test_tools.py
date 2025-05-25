@@ -43,7 +43,7 @@ ExampleLifters = [
 # fmt: on
 
 
-def _test_with_tol(lifter, A_list, tol):
+def test_with_tol(lifter, A_list, tol):
     x = lifter.get_x().astype(float).reshape((-1, 1))
     for Ai in A_list:
         err = abs((x.T @ Ai @ x)[0, 0])

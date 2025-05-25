@@ -75,7 +75,6 @@ class RobustPoseLifter(StateLifter, ABC):
         """
         self.beta = beta
         self.n_landmarks = n_landmarks
-        self.landmarks = None
 
         self.robust = robust
         self.level = level
@@ -99,14 +98,13 @@ class RobustPoseLifter(StateLifter, ABC):
         import autograd.numpy as anp
 
         try:
-            return anp.sum(
-                [rho * u * anp.log10(1 + anp.exp(hi / u)) for hi in self.h_list(t)]
+            return anp.sum(  # type: ignore
+                [rho * u * anp.log10(1 + anp.exp(hi / u)) for hi in self.h_list(t)]  # type: ignore
             )
         except RuntimeWarning:
-            PENALTY_U *= 0.1
-            u = PENALTY_U
-            return anp.sum(
-                [rho * u * anp.log10(1 + anp.exp(hi / u)) for hi in self.h_list(t)]
+            u = PENALTY_U * 0.1
+            return anp.sum(  # type: ignore
+                [rho * u * anp.log10(1 + anp.exp(hi / u)) for hi in self.h_list(t)]  # type: ignore
             )
 
     @property
@@ -172,6 +170,14 @@ class RobustPoseLifter(StateLifter, ABC):
             return np.hstack([theta_x, w])
         else:
             return theta_x
+
+    @property
+    def landmarks(self):
+        if self.landmarks_ is None:
+            self.landmarks_ = np.random.normal(
+                loc=0, scale=1.0, size=(self.n_landmarks, self.d)
+            )
+        return self.landmarks_
 
     def sample_parameters(self, theta=None):
         landmarks = np.random.normal(loc=0, scale=1.0, size=(self.n_landmarks, self.d))
@@ -480,7 +486,7 @@ class RobustPoseLifter(StateLifter, ABC):
         try:
             import autograd.numpy as anp
 
-            return [anp.sqrt(anp.sum(t[: self.d] ** 2)) - self.MAX_DIST]
+            return [anp.sqrt(anp.sum(t[: self.d] ** 2)) - self.MAX_DIST]  # type: ignore
         except ModuleNotFoundError:
             return [np.sqrt(np.sum(t[: self.d] ** 2)) - self.MAX_DIST]
 
@@ -490,9 +496,9 @@ class RobustPoseLifter(StateLifter, ABC):
         return None
 
     @abstractmethod
-    def term_in_norm(self, R, t, pi, ui):
-        return
+    def term_in_norm(self, R, t, pi, ui) -> np.ndarray:
+        pass
 
     @abstractmethod
-    def residual_sq(self, R, t, pi, ui):
-        return
+    def residual_sq(self, R, t, pi, ui) -> float:
+        pass

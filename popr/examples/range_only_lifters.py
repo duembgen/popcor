@@ -4,7 +4,7 @@ import scipy.sparse as sp
 from poly_matrix.least_squares_problem import LeastSquaresProblem
 from scipy.optimize import minimize
 
-from popr.lifters import StateLifter
+from popr.base_lifters import StateLifter
 from popr.utils.common import diag_indices, upper_triangular
 
 plt.ion()
@@ -41,6 +41,8 @@ class RangeOnlyLocLifter(StateLifter):
         """Sample around ground truth.
         :param delta: sample from gt + std(delta) (set to 0 to start from gt.)
         """
+        assert self.landmarks is not None, "landmarks must be set before sampling"
+
         if delta == 0:
             return self.theta
         else:
@@ -63,10 +65,9 @@ class RangeOnlyLocLifter(StateLifter):
         variable_list=None,
         param_level="no",
     ):
-        # there is no Gauge freedom in range-only localization!
         self.n_positions = n_positions
         self.n_landmarks = n_landmarks
-        self.landmarks = None
+        self.landmarks_ = None  # will be set later
 
         if W is not None:
             assert W.shape == (n_landmarks, n_positions)
@@ -80,6 +81,13 @@ class RangeOnlyLocLifter(StateLifter):
         super().__init__(
             level=level, d=d, variable_list=variable_list, param_level=param_level
         )
+
+    @property
+    def landmarks(self):
+        landmarks = np.random.rand(self.n_landmarks, self.d)
+        if self.landmarks_ is None:
+            self.landmarks_ = landmarks
+        return self.landmarks_
 
     @property
     def VARIABLE_LIST(self):
@@ -109,10 +117,6 @@ class RangeOnlyLocLifter(StateLifter):
         if var_dict is None:
             var_dict = self.var_dict
         positions = self.get_variable_indices(var_dict)
-
-        if self.level == "quad":
-
-            diag_idx = diag_indices(self.d)
 
         A_list = []
         for n in positions:
@@ -242,6 +246,8 @@ class RangeOnlyLocLifter(StateLifter):
                 np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0]]),
                 np.array([[0, 0, 0], [0, 0, 0], [0, 0, 2]]),
             ]
+        else:
+            raise ValueError(f"Unsupported dimension {self.d} for fixed hessians.")
 
     def get_residuals(self, t, y):
         positions = t.reshape((-1, self.d))
@@ -336,7 +342,8 @@ class RangeOnlyLocLifter(StateLifter):
             return Q / np.sum(self.W > 0)
         return Q
 
-    def simulate_y(self, noise: float = None):
+    def simulate_y(self, noise: float | None = None):
+        assert self.landmarks is not None
         # N x K matrix
         if noise is None:
             noise = NOISE
@@ -347,7 +354,7 @@ class RangeOnlyLocLifter(StateLifter):
         )
         return y_gt + np.random.normal(loc=0, scale=noise, size=y_gt.shape)
 
-    def get_Q(self, noise: float = None) -> tuple:
+    def get_Q(self, noise: float | None = None) -> tuple:
         if self.y_ is None:
             self.y_ = self.simulate_y(noise=noise)
         Q = self.get_Q_from_y(self.y_)
@@ -367,7 +374,7 @@ class RangeOnlyLocLifter(StateLifter):
         D = sp.lil_array((len(x), len(x)))
         D[range(len(x)), range(len(x))] = 1.0
         D[:, 0] = x
-        D[-J.shape[0] :, 1 : 1 + J.shape[1]] = J
+        D[-J.shape[0] :, 1 : 1 + J.shape[1]] = J  # type: ignore
         return D.tocsc()
 
     def get_sub_idx_x(self, sub_idx, add_z=True):
@@ -455,6 +462,8 @@ class RangeOnlyLocLifter(StateLifter):
             return 1
         elif self.level == "quad":
             return int(self.d * (self.d + 1) / 2)
+        else:
+            raise ValueError(f"Unknown level {self.level}")
 
     @property
     def N(self):

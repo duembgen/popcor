@@ -1,7 +1,7 @@
 # import autograd.numpy as np
 import numpy as np
 
-from popr.lifters import RobustPoseLifter
+from popr.base_lifters import RobustPoseLifter
 from popr.utils.geometry import get_C_r_from_theta
 from popr.utils.plotting_tools import plot_frame
 
@@ -74,7 +74,6 @@ class WahbaLifter(RobustPoseLifter):
                 # this vector is in camera coordinates
                 t_cpi_c = self.y_[i]
                 # t_cpi_w: vector from camera to pi in world coordinates
-                t_cpi_w = C_cw.T @ t_cpi_c
 
                 ax.plot(
                     [t_wc_w[0], self.landmarks[i][0]],
@@ -82,14 +81,19 @@ class WahbaLifter(RobustPoseLifter):
                     color=f"C{i}",
                     ls=":",
                 )
-                ax.plot(
-                    [t_wc_w[0], t_wc_w[0] + t_cpi_w[0]],
-                    [t_wc_w[1], t_wc_w[1] + t_cpi_w[1]],
-                    color=f"r" if i < self.n_outliers else "g",
-                )
+                if C_cw is not None:
+                    t_cpi_w = C_cw.T @ t_cpi_c
+                    ax.plot(
+                        [t_wc_w[0], t_wc_w[0] + t_cpi_w[0]],
+                        [t_wc_w[1], t_wc_w[1] + t_cpi_w[1]],
+                        color=f"r" if i < self.n_outliers else "g",
+                    )
 
     def get_Q(
-        self, noise: float = None, output_poly: bool = False, use_cliques: list = []
+        self,
+        noise: float | None = None,
+        output_poly: bool = False,
+        use_cliques: list = [],
     ):
         if noise is None:
             noise = self.NOISE

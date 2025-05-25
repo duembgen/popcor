@@ -12,7 +12,7 @@ from cert_tools.sdp_solvers import solve_lambda_cvxpy as solve_lambda
 from cert_tools.sdp_solvers import solve_sdp_cvxpy
 from poly_matrix import PolyMatrix
 
-from popr.lifters import StateLifter
+from popr.base_lifters import StateLifter
 from popr.solvers.common import find_local_minimum
 from popr.solvers.sparse import bisection, brute_force
 from popr.utils.common import get_aggregate_sparsity, get_vec
@@ -224,6 +224,7 @@ class AutoTemplate(object):
             assert X is not None
             for Ai in A_list:
                 assert isinstance(Ai, np.ndarray) or isinstance(Ai, sp.spmatrix)
+                assert isinstance(xhat, np.ndarray)
                 error = xhat.T @ Ai @ xhat
 
                 errorX = np.trace(X @ Ai)
@@ -735,7 +736,9 @@ class AutoTemplate(object):
 
         # TODO(FD) we should not always recompute from scratch, but it's not very expensive so it's okay for now.
         target_dict = self.lifter.get_var_dict(unroll_keys=unroll)
-        for i, Ai in enumerate(self.lifter.get_A_known(target_dict, output_poly=True)):
+        for i, Ai in enumerate(
+            self.lifter.get_A_known(var_dict=target_dict, output_poly=True)
+        ):
             template = Constraint.init_from_A_poly(
                 lifter=self.lifter,
                 A_poly=Ai,

@@ -1,6 +1,7 @@
 import numpy as np
 from poly_matrix.least_squares_problem import LeastSquaresProblem
-from popr.examples.range_only_slam1 import RangeOnlySLAM1Lifter
+
+from popr.wip_examples.range_only_slam1 import RangeOnlySLAM1Lifter
 
 
 class RangeOnlySLAM2Lifter(RangeOnlySLAM1Lifter):
