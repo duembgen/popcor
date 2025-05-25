@@ -126,21 +126,25 @@ class StateLifter(BaseClass):
     def get_grad(self, theta, y=None) -> float:
         raise NotImplementedError("must define get_grad if you want to use it.")
 
+    def get_hess(self, theta, y=None) -> float:
+        raise NotImplementedError("must define get_hess if you want to use it.")
+
     def get_cost(self, theta, y=None) -> float:
         print(
             "Warning: using default get_cost, which may be less efficient than a custom one."
         )
-        x = self.get_x(theta=theta)
+        x = self.get_x(theta=theta).flatten("C")
         if y is not None:
             Q = self.get_Q_from_y(y)
         else:
             Q = self.get_Q()
-        return float((x.T @ Q @ x)[0])
+        return float(x.T @ Q @ x)
 
-    def local_solver(self, t0, y=None, verbose=False):
+    def local_solver(self, t0, y=None, *args, **kwargs):
         print(
             "Warning: using default local_solver, which may be less efficient than a custom one."
         )
+        print("Ignoring args and kwargs:", args, kwargs)
         from cert_tools.sdp_solvers import solve_low_rank_sdp
 
         if y is not None:
@@ -155,7 +159,10 @@ class StateLifter(BaseClass):
         )
         # TODO(FD) identify when the solve is not successful.
         info["success"] = True
-        theta = X[1 : 1 + self.d, 0]
+        try:
+            theta = self.get_theta(X[:, 0])
+        except:
+            theta = X[1 : 1 + self.d, 0]
         return theta, info, info["cost"]
 
     @property

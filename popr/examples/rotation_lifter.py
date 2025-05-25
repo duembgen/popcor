@@ -12,13 +12,13 @@ SOLVER_KWARGS = dict(
 
 class RotationLifter(StateLifter):
     LEVELS = ["no"]
-    PARAM_LEVELS = ["no", "p", "ppT"]
-
     HOM = "h"
     VARIABLE_LIST = ["h", "c"]
 
     # whether or not to include the determinant constraints in the known constraints.
     ADD_DETERMINANT = False
+
+    NOISE = 1e-3
 
     # Add any parameters here that describe the problem (e.g. number of landmarks etc.)
     def __init__(self, level="no", param_level="no", d=2, n_meas=2):
@@ -63,24 +63,53 @@ class RotationLifter(StateLifter):
         assert len(x_data) == dim_x
         return np.array(x_data)
 
-    def get_Q(self, noise):
-        # f(R) = sum_i || R @ R_i - I ||_F^2
-        # min f(R) = min || R_i.T @ R_i ||^2 - 2 tr(R.T @ R_i) + I
-        #          = max tr(R.T @ R_i)
+    def get_theta(self, x: np.ndarray) -> np.ndarray:
+        assert np.ndim(x) == 1
+        C_flat = x[1 : 1 + self.d**2]
+        return C_flat.reshape((self.d, self.d))
+
+    def get_Q(self, noise: float | None = None):
+        if noise is None:
+            noise = self.NOISE
         if self.y_ is None:
             self.y_ = []
             for i in range(self.n_meas):
+                # noise model: R_i = R.T @ Rnoise
                 if noise > 0:
-                    C = self.theta.T @ R.random(noise).as_matrix()
+                    # Generate a random small rotation as noise and apply it
+                    noise_rotvec = np.random.normal(scale=noise, size=(self.d,))
+                    Rnoise = (
+                        R.from_rotvec(noise_rotvec).as_matrix()
+                        if self.d == 3
+                        else R.from_euler("z", noise_rotvec[0]).as_matrix()[:2, :2]
+                    )
+                    Ri = self.theta.T @ Rnoise
                 else:
-                    C = self.theta.T
-                self.y_.append(C)
-        raise NotImplementedError("continue here!")
+                    Ri = self.theta.T
+                self.y_.append(Ri)
 
-    def local_solver(
+        return self.get_Q_from_y(self.y_)
+
+    def get_Q_from_y(self, y, output_poly=False):
+        # f(R) = sum_i || R @ R_i - I ||_F^2
+        # argmin f(R) = argmin sum_i || R_i.T @ R_i ||^2 - 2 tr(R.T @ R_i) + ||I||_F^2
+        #             = argmin sum_i -2 tr(R.T @ R_i) + sum_i d
+        #             = argmin sum_i -2 vec(R).T @ vec(R_i.T) + N * d
+        # sanity check for zero noise:
+        #              || R @ R.T - I ||_F^2 = 0
+        """param y: list of noisy rotation matrices."""
+        Q = PolyMatrix()
+        for Ri in y:
+            Q[self.HOM, "c"] -= Ri.T.flatten("C")[None, :]
+        Q[self.HOM, self.HOM] += len(y) * self.d
+        if output_poly:
+            return Q
+        else:
+            return Q.get_matrix(self.var_dict)
+
+    def local_solver_old(
         self, t0, y, verbose=False, method=METHOD, solver_kwargs=SOLVER_KWARGS
     ):
-        raise NotImplementedError("local solver not tested yet")
         import pymanopt
         from pymanopt.manifolds import SpecialOrthogonalGroup
 
@@ -103,8 +132,8 @@ class RotationLifter(StateLifter):
         @pymanopt.function.autograd(manifold)
         def cost(R):
             cost = 0
-            for yi in y:
-                cost += R.T @ yi - np.eye(self.d)
+            for Ri in y:
+                cost += np.sum((R.T @ Ri - np.eye(self.d)) ** 2)
             return cost
 
         euclidean_gradient = None
