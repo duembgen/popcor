@@ -11,7 +11,7 @@ replace difficult (often NP-hard) optimization problems by easier-to-solve conve
 The toolbox allows to run the *AutoTight* and *AutoTemplate* algorithms on problems of your choice. 
 These algorithms are described in detail in [this paper](https://arxiv.org/abs/2308.05783/). For a high-level overview of how this works, please refer to the **Quick start guide**. 
 
-If you use this toolbox, please cite our correspondng paper:
+If you use this toolbox, please cite our corresponding paper:
 ```bibtex
 @article{autotight2024,
   author={Dümbgen, Frederike and Holmes, Connor and Agro, Ben and Barfoot, Timothy D.}, 

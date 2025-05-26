@@ -33,7 +33,6 @@ class PolyLifter(StateLifter):
 
     def get_cost(self, theta, *args, **kwargs) -> float:
         Q = self.get_Q()
-        assert isinstance
         x = self.get_x(theta).flatten()
         return float(x.T @ Q @ x)
 
