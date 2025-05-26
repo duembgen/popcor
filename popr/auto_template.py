@@ -2,6 +2,7 @@ import time
 from copy import deepcopy
 
 import matplotlib
+import matplotlib.patches
 import numpy as np
 import pandas as pd
 import scipy.sparse as sp
@@ -11,16 +12,20 @@ from cert_tools.sdp_solvers import solve_lambda_cvxpy as solve_lambda
 from cert_tools.sdp_solvers import solve_sdp_cvxpy
 from poly_matrix import PolyMatrix
 
-from popr.lifters import StateLifter
+from popr.base_lifters import StateLifter
 from popr.solvers.common import find_local_minimum
 from popr.solvers.sparse import bisection, brute_force
 from popr.utils.common import get_aggregate_sparsity, get_vec
-from popr.utils.constraint import (Constraint, generate_poly_matrix,
-                                   plot_poly_matrix)
-from popr.utils.plotting_tools import (add_colorbar, add_rectangles,
-                                       import_plt, initialize_discrete_cbar,
-                                       plot_basis, plot_singular_values,
-                                       savefig)
+from popr.utils.constraint import Constraint, generate_poly_matrix, plot_poly_matrix
+from popr.utils.plotting_tools import (
+    add_colorbar,
+    add_rectangles,
+    import_plt,
+    initialize_discrete_cbar,
+    plot_basis,
+    plot_singular_values,
+    savefig,
+)
 
 plt = import_plt()
 
@@ -30,14 +35,14 @@ TOL = 1e-10
 NOISE_SEED = 5
 
 ADJUST_Q = True  # rescale Q matrix
-PRIMAL = False  # use primal or dual formulation of SDP. Recommended is False, because of how MOSEK is set up.
+PRIMAL = False  # use primal or dual formulation of SDP. Recommended is False, because of how MOSEK handles this parameter.
 
 FACTOR = 1.2  # oversampling factor.
 
 PLOT_MAX_MATRICES = 10  # set to np.inf to plot all individual matrices.
 
 USE_KNOWN = True
-USE_INCREMENTAL = True
+USE_INCREMENTAL = False
 
 GLOBAL_THRESH = 1e-3  # consider dual problem optimal when eps<GLOBAL_THRESH
 
@@ -59,26 +64,13 @@ class AutoTemplate(object):
     # that should be good enough.
     N_INITS = 1
 
+    APPLY_TEMPLATES_TO_OTHERS = True
+
     def __init__(
         self,
         lifter: StateLifter,
-        variable_list: list = None,
-        apply_templates: bool = True,
-        noise: float = None,
-        use_known: bool = USE_KNOWN,
-        use_incremental: bool = USE_INCREMENTAL,
     ):
-        if variable_list is None:
-            variable_list = lifter.variable_list
-
         self.lifter = lifter
-        self.lifter.set_noise(noise)
-
-        self.variable_iter = iter(variable_list)
-        self.apply_templates_to_others = apply_templates
-
-        self.use_known = use_known
-        self.use_incremental = use_incremental
 
         # templates contains the learned "templates" of the form:
         # ((i, mat_vars), <i-th learned vector for these mat_vars variables, PolyRow form>)
@@ -115,6 +107,10 @@ class AutoTemplate(object):
         # so-far used variables
         self.variable_list = []
 
+        # can be overwritten later
+        self.use_known = USE_KNOWN
+        self.use_incremental = USE_INCREMENTAL
+
     def reset_tightness_dict(self):
         self.tightness_dict = {"rank": None, "cost": None}
 
@@ -131,6 +127,7 @@ class AutoTemplate(object):
         return [c.A_sparse_ for c in self.constraints]
 
     def check_violation(self, dual_cost):
+        assert self.solver_vars is not None
         primal_cost = self.solver_vars["qcqp_cost"]
         if primal_cost is None:
             print("warning can't check violation, no primal cost.")
@@ -138,12 +135,14 @@ class AutoTemplate(object):
         return (dual_cost - primal_cost) / abs(dual_cost) > self.TOL_REL_GAP
 
     def duality_gap_is_zero(self, dual_cost, verbose=False, data_dict={}):
+        assert self.solver_vars is not None
         primal_cost = self.solver_vars["qcqp_cost"]
         RDG = (primal_cost - dual_cost) / abs(dual_cost)
         if RDG < -1e-2:
             print(
                 f"Warning: dual is significantly larger than primal: d={dual_cost:.3e} > p={primal_cost:.3e}, diff={dual_cost-primal_cost:.3e}"
             )
+            return False
         res = RDG < self.TOL_REL_GAP
         data_dict["RDG"] = RDG
         if not verbose:
@@ -172,6 +171,7 @@ class AutoTemplate(object):
         return res
 
     def is_tight(self, verbose=False, data_dict={}, tightness=None):
+
         if tightness is None:
             tightness = self.lifter.TIGHTNESS
 
@@ -184,7 +184,8 @@ class AutoTemplate(object):
         B_list = self.lifter.get_B_known()
         X, info = self._test_tightness(A_b_list_all, B_list, verbose=verbose)
 
-        self.solver_vars["X"] = X
+        assert self.solver_vars is not None
+        self.solver_vars["X"] = X  # type: ignore
 
         self.dual_costs.append(info["cost"])
         self.variable_list.append(self.mat_vars)
@@ -199,23 +200,28 @@ class AutoTemplate(object):
             print("Maximum error:", max_error)
             return False
         elif self.check_violation(info["cost"]):
-            self.ranks.append(np.zeros(A_list[0].shape[0]))
+            self.ranks.append(np.zeros(A_list[0].shape[0]))  # type: ignore
             print(
-                f"Dual cost higher than QCQP: d={info['cost']:.2e}, q={self.solver_vars['qcqp_cost']:.2e}"
+                f"Warning: dual cost higher than QCQP, d={info['cost']:.2e}, q={self.solver_vars['qcqp_cost']:.2e}"
             )
             print(
                 "Usually this means that MOSEK tolerances are too loose, or that there is a mistake in the constraints."
             )
-            max_error, bad_list = self.lifter.test_constraints(A_list, errors="print")
-            print("Maximum feasibility error at random x:", max_error)
-
             print(
                 "It can also mean that we are not sampling enough of the space close to the true solution."
             )
+            max_error, bad_list = self.lifter.test_constraints(A_list, errors="print")
+            print("Maximum feasibility error at random x:", max_error)
+
             tol = 1e-10
             xhat = self.solver_vars["xhat"]
             max_error = -np.inf
+
+            assert xhat is not None
+            assert X is not None
             for Ai in A_list:
+                assert isinstance(Ai, np.ndarray) or isinstance(Ai, sp.spmatrix)
+                assert isinstance(xhat, np.ndarray)
                 error = xhat.T @ Ai @ xhat
 
                 errorX = np.trace(X @ Ai)
@@ -225,6 +231,8 @@ class AutoTemplate(object):
                         f"Feasibility error too high! xAx:{error:.2e}, <X,A>:{errorX:.2e}"
                     )
             print(f"Maximum feasibility error at solution x: {max_error}")
+
+        assert X is not None
 
         data_dict["d"] = info["cost"]
 
@@ -253,7 +261,7 @@ class AutoTemplate(object):
             eigs, verbose=tightness == "rank", data_dict=data_dict
         )
         self.tightness_dict["rank"] = rank_tight
-        self.tightness_dict["cost"] = cost_tight
+        self.tightness_dict["cost"] = cost_tight  # type: ignore
         if tightness == "rank":
             return rank_tight
         elif tightness == "cost":
@@ -313,6 +321,9 @@ class AutoTemplate(object):
                     print(f"{len(A_b_list_here)}: not cost-tight yet")
                     new_data["cost_tight"] = False
 
+                assert X is not None
+                assert self.solver_vars is not None
+
                 eigs = np.linalg.eigvalsh(X)[::-1]
                 new_data["eigs"] = eigs
                 if self.is_rank_one(eigs):
@@ -344,6 +355,7 @@ class AutoTemplate(object):
         if reorder:
             if self.solver_vars is None:
                 self.find_local_solution()
+            assert self.solver_vars is not None
 
             # find the importance of each constraint
             _, lamdas = solve_lambda(
@@ -365,6 +377,8 @@ class AutoTemplate(object):
                 X, info = self._test_tightness(A_b_list_all, B_list, verbose=False)
                 xhat_from_X, _ = rank_project(X, p=1)
                 xhat = self.solver_vars["xhat"]
+
+                assert xhat is not None
                 print("max xhat error:", np.min(xhat - xhat_from_X))
                 print("max Hx", np.max(np.abs(info["H"] @ xhat)))
                 print("max Hx_from_X", np.max(np.abs(info["H"] @ xhat_from_X)))
@@ -399,7 +413,7 @@ class AutoTemplate(object):
                 function, (inputs, df_data), left_num=start_idx, right_num=len(inputs)
             )
 
-        df_tight = pd.DataFrame(df_data.values(), index=df_data.keys())
+        df_tight = pd.DataFrame(df_data.values(), index=list(df_data.keys()))
         if self.df_tight is None:
             self.df_tight = df_tight
         else:
@@ -424,10 +438,10 @@ class AutoTemplate(object):
             self.lifter, y=y, verbose=verbose, n_inits=n_inits, plot=plot
         )
         self.solver_vars = dict(Q=Q, y=y, qcqp_cost=qcqp_cost, xhat=None)
-        self.solver_vars.update(info)
+        self.solver_vars.update(info)  # type: ignore
         if qcqp_cost is not None:
             xhat = self.lifter.get_x(qcqp_that)
-            self.solver_vars["xhat"] = xhat
+            self.solver_vars["xhat"] = xhat  # type: ignore
 
             # calculate error for global estimate
             self.solver_vars.update(self.lifter.get_error(qcqp_that))
@@ -447,6 +461,8 @@ class AutoTemplate(object):
 
     def find_global_solution(self, data_dict={}):
         from cert_tools.sdp_solvers import options_cvxpy
+
+        assert self.solver_vars is not None
 
         A_b_list_all = self.get_A_b_list()
         options_cvxpy["accept_unknown"] = True
@@ -512,8 +528,8 @@ class AutoTemplate(object):
 
         if self.solver_vars is None:
             self.find_local_solution(verbose=verbose)
+        assert self.solver_vars is not None
 
-        # compute lambas by solving dual problem
         options_cvxpy["accept_unknown"] = True
         X, info = solve_sdp_cvxpy(
             self.solver_vars["Q"],
@@ -524,7 +540,7 @@ class AutoTemplate(object):
             primal=PRIMAL,
             tol=TOL,
             options=options_cvxpy,
-        )  # , rho_hat=qcqp_cost)
+        )
         return X, info
 
     def update_variables(self):
@@ -617,7 +633,7 @@ class AutoTemplate(object):
                     mat_param_dict=param_dict,
                     b=b,
                     lifter=self.lifter,
-                    convert_to_polyrow=self.apply_templates_to_others,
+                    convert_to_polyrow=self.APPLY_TEMPLATES_TO_OTHERS,
                     known=False,
                 )
                 if constraint is None:
@@ -709,14 +725,16 @@ class AutoTemplate(object):
                     del constraints[idx]
         return constraints
 
-    def get_known_templates(self, unroll=False, use_known=USE_KNOWN):
-        # TODO(FD) we should not always recompute from scratch, but it's not very expensive so it's okay for now.
+    def get_known_templates(self, unroll=False):
         templates_known = []
-        if not use_known:
+        if not self.use_known:
             return templates_known
 
+        # TODO(FD) we should not always recompute from scratch, but it's not very expensive so it's okay for now.
         target_dict = self.lifter.get_var_dict(unroll_keys=unroll)
-        for i, Ai in enumerate(self.lifter.get_A_known(target_dict, output_poly=True)):
+        for i, Ai in enumerate(
+            self.lifter.get_A_known(var_dict=target_dict, output_poly=True)
+        ):
             template = Constraint.init_from_A_poly(
                 lifter=self.lifter,
                 A_poly=Ai,
@@ -766,92 +784,6 @@ class AutoTemplate(object):
                 scaled_template = template.scale_to_new_lifter(new_lifter)
                 new_templates.append(scaled_template)
         return new_templates
-
-    def run(self, verbose=False, plot=False):
-        data = []
-        success = False
-
-        if self.use_known:
-            self.templates_known = self.get_known_templates()
-            n_known = len(self.templates_known)
-            print(f"there are total {n_known} known constraints")
-
-        while 1:
-            # add one more variable to the list of variables to vary
-            if not self.update_variables():
-                print("no more variables to add")
-                break
-            print(f"======== {self.mat_vars} ========")
-
-            n_new = 0
-            if self.use_known:
-                n_known_here = self.extract_known_templates()
-                n_new += n_known_here
-                print(
-                    f"using {n_known_here}/{n_known} known constraints (only the ones that contain the current variables)"
-                )
-
-            data_dict = {"variables": self.mat_vars}
-            param_dict = self.lifter.get_involved_param_dict(self.mat_vars)
-            data_dict["n dims"] = self.lifter.get_dim_Y(
-                var_subset=self.mat_vars, param_subset=param_dict
-            )
-
-            print("-------- templates learning --------")
-            # learn new templates, orthogonal to the ones found so far.
-            n_new_learned, n_all = self.learn_templates(plot=plot, data_dict=data_dict)
-            n_new += n_new_learned
-            print(
-                f"found {n_new_learned} learned templates, new total learned: {n_all} "
-            )
-            data_dict["n templates"] = (
-                len(self.templates) + len(self.templates_known) + 1
-            )
-            if n_new == 0:
-                print("new variables didn't have any effect")
-                data.append(data_dict)
-                continue
-
-            if plot:
-
-                # turn the current list of templates into a poly matrix.
-                templates = self.templates_known + self.templates
-                poly_matrix = generate_poly_matrix(templates, lifter=self.lifter)
-                fig, ax = plt.subplots()
-                poly_matrix.matshow(ax=ax)
-
-                fig, ax = plot_poly_matrix(poly_matrix, simplify=False, hom="l")
-                w, h = fig.get_size_inches()
-                fig.set_size_inches(10, 10 * h / w)
-
-            # apply the pattern to all landmarks
-            if self.apply_templates_to_others:
-                print("------- applying templates ---------")
-                t1 = time.time()
-                n_new, n_all = self.apply_templates()
-                print(f"found {n_new} independent constraints, new total: {n_all} ")
-                ttot = time.time() - t1
-
-                data_dict["n constraints"] = n_all + len(self.templates_known) + 1
-                data_dict["t apply templates"] = ttot
-            else:
-                self.constraints = []
-                for temp in self.templates:
-                    con = deepcopy(temp)
-                    con.template_idx = temp.index
-                    self.constraints.append(con)
-
-            t1 = time.time()
-            print("-------- checking tightness ----------")
-            self.reset_tightness_dict()
-            is_tight = self.is_tight(verbose=verbose, data_dict=data_dict)
-            ttot = time.time() - t1
-            data_dict["t check tightness"] = ttot
-            data.append(data_dict)
-            if is_tight:
-                success = True
-                break
-        return data, success
 
     def get_sorted_df(self, templates_poly=None, add_columns={}):
         def sort_fun_sparsity(series):
@@ -1014,7 +946,7 @@ class AutoTemplate(object):
                 ax.axvline(i, color="red", linewidth=1.0)
                 ax.annotate(
                     text=f"${p.replace(':0', '^x').replace(':1', '^y').replace('l.','').replace('.','')}$",
-                    xy=[i, 0],
+                    xy=(float(i), 0.0),
                     fontsize=8,
                     color="red",
                 )
@@ -1057,12 +989,14 @@ class AutoTemplate(object):
 
     def save_tightness(self, fname_root, title=""):
         labels = self.variable_list
+        assert self.solver_vars is not None
 
         fig, ax = plt.subplots()
         xticks = range(len(self.dual_costs))
         ax.semilogy(xticks, self.dual_costs, marker="o")
         ax.set_xticks(xticks, labels)
-        ax.axhline(self.solver_vars["qcqp_cost"], color="k", ls=":")
+        if self.solver_vars["qcqp_cost"] is not None:
+            ax.axhline(float(self.solver_vars["qcqp_cost"]), color="k", ls=":")
         ax.set_title(title)
         if fname_root != "":
             savefig(fig, fname_root + "_tightness.png")
@@ -1077,11 +1011,12 @@ class AutoTemplate(object):
         return
 
     def save_matrices_sparsity(self, A_matrices=None, fname_root="", title=""):
+        assert self.solver_vars is not None
 
         if A_matrices is None:
             A_matrices = self.A_matrices
 
-        Q = self.solver_vars["Q"].toarray()
+        Q = self.solver_vars["Q"].toarray()  # type:ignore
 
         sorted_i = self.lifter.get_var_dict(unroll_keys=True)
         A_matrices_sparse = [
@@ -1148,11 +1083,17 @@ class AutoTemplate(object):
                 A_sparse = A_poly.get_matrix(sorted_i)
             else:
                 A_sparse = A_poly
-            cmap, norm, colorbar_yticks = initialize_discrete_cbar(A_sparse.data)
+            cmap, norm, colorbar_yticks = initialize_discrete_cbar(A_sparse.data)  # type: ignore
 
             for ax in plot_axs:
-                im = ax.matshow(A_sparse.toarray(), cmap=cmap, norm=norm)
-                add_rectangles(ax, self.lifter.var_dict)
+                if sp.isspmatrix(A_sparse):
+                    arr = A_sparse.toarray()  # type: ignore
+                else:
+                    arr = A_sparse
+                im = ax.matshow(arr, cmap=cmap, norm=norm)
+                # Use sp.isspmatrix to check if A_sparse is a scipy sparse matrix
+                if sp.isspmatrix(A_sparse):
+                    add_rectangles(ax, self.lifter.var_dict)
                 cax = add_colorbar(fig, ax, im, size=0.1)
                 cax.set_yticklabels(colorbar_yticks)
 
@@ -1161,3 +1102,136 @@ class AutoTemplate(object):
         for ax in axs[i + 1 :]:
             ax.axis("off")
         return fig, axs
+
+    def run(
+        self,
+        use_known: bool = USE_KNOWN,
+        use_incremental: bool = USE_INCREMENTAL,
+        variable_list: list[list[str]] | None = None,
+        verbose: bool = False,
+        plot: bool = False,
+    ):
+        """Run the template learning algorithm until we reach tightness, or run out of variables to add.
+
+        :param use_known: whether to use the known constraints of the lfiter (must have get_A_known).
+        :param use_incremental: whether to keep adding the learned tempaltes to the set of known constraints, to enforce we find orthogonal ones.
+        :param variable_list: list of lists of variables to consider. If not given, will use the VARIABLE_LIST parameter of the lifter class.
+
+        """
+        data = []
+        success = False
+        self.use_known = use_known
+        self.use_incremental = use_incremental
+
+        if use_known:
+            self.templates_known = self.get_known_templates()
+            n_known = len(self.templates_known)
+            print(f"there are total {n_known} known constraints")
+
+        if variable_list is None:
+            variable_list = self.lifter.VARIABLE_LIST
+        self.variable_iter = iter(variable_list)
+
+        while 1:
+            # add one more variable to the list of variables to vary
+            if not self.update_variables():
+                print("no more variables to add")
+                break
+            print(f"======== {self.mat_vars} ========")
+
+            n_new = 0
+            if use_known:
+                n_known_here = self.extract_known_templates()
+                n_new += n_known_here
+                print(
+                    f"using {n_known_here}/{n_known} known constraints (only the ones that contain the current variables)"
+                )
+
+            data_dict = {"variables": self.mat_vars}
+            param_dict = self.lifter.get_involved_param_dict(self.mat_vars)
+
+            # Set the type expectation for the dictionary if using type hints
+            data_dict: dict[str, float | int | list | None]
+            data_dict["n dims"] = self.lifter.get_dim_Y(
+                var_subset=self.mat_vars, param_subset=param_dict
+            )
+
+            print("-------- templates learning --------")
+            # learn new templates, orthogonal to the ones found so far.
+            n_new_learned, n_all = self.learn_templates(plot=plot, data_dict=data_dict)
+            n_new += n_new_learned
+            print(
+                f"found {n_new_learned} learned templates, new total learned: {n_all} "
+            )
+            data_dict["n templates"] = (
+                len(self.templates) + len(self.templates_known) + 1
+            )
+            if n_new == 0:
+                data.append(data_dict)
+                continue
+
+            if plot:
+                # turn the current list of templates into a poly matrix.
+                templates = self.templates_known + self.templates
+                poly_matrix = generate_poly_matrix(templates, lifter=self.lifter)
+
+                # make sure we use sorted column names
+                variables_j_all = self.lifter.var_dict_row()
+                variables_j = {
+                    key: val
+                    for key, val in variables_j_all.items()
+                    if key in poly_matrix.variable_dict_j
+                }
+
+                fig, ax = plot_poly_matrix(
+                    poly_matrix, variables_j, simplify=False, hom="l"
+                )
+                w, h = fig.get_size_inches()
+                fig.set_size_inches(10, 10 * h / w)
+
+            # apply the pattern to all landmarks
+            if self.APPLY_TEMPLATES_TO_OTHERS:
+                print("------- applying templates ---------")
+                t1 = time.time()
+                n_new, n_all = self.apply_templates()
+                print(
+                    f"found {n_new} independent learned constraints, new total: {n_all} "
+                )
+                ttot = time.time() - t1
+
+                data_dict["n constraints"] = n_all + len(self.templates_known) + 1
+                print(
+                    f"total including known and homogenization:",
+                    data_dict["n constraints"],
+                )
+                data_dict["t apply templates"] = ttot
+            else:
+                self.constraints = []
+                for temp in self.templates:
+                    con = deepcopy(temp)
+                    con.template_idx = temp.index
+                    self.constraints.append(con)
+
+            t1 = time.time()
+            print("-------- checking tightness ----------")
+            self.reset_tightness_dict()
+            is_tight = self.is_tight(verbose=verbose, data_dict=data_dict)
+            ttot = time.time() - t1
+            data_dict["t check tightness"] = ttot
+            data.append(data_dict)
+            if is_tight:
+                success = True
+                break
+        return data, success
+
+    def apply(self, lifter: StateLifter, use_known: bool = False) -> list:
+        """Apply the learned templates to a new lifter."""
+        constraints = lifter.apply_templates(self.templates)
+
+        if use_known:
+            # if we set use_known=True in running AutoTemplate, then we learned only
+            # constraints that were not already known, so we need to add them to the
+            # overall set of constraints.
+            A_known = lifter.get_A_known()
+            assert isinstance(A_known, list)
+        return A_known + [c.A_sparse_ for c in constraints]  # type: ignore

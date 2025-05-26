@@ -1,9 +1,9 @@
 # import autograd.numpy as np
 import numpy as np
-from popr.lifters import StereoLifter
-from popr.utils.geometry import convert_phi_to_theta, convert_theta_to_phi
 
-from .stereo2d_problem import _cost, local_solver
+from popr.base_lifters import StereoLifter
+from popr.utils.geometry import convert_phi_to_theta, convert_theta_to_phi
+from popr.utils.stereo2d_problem import _cost, local_solver
 
 
 def change_dimensions(a, y, x):
@@ -16,13 +16,34 @@ GTOL = 1e-6
 
 
 class Stereo2DLifter(StereoLifter):
+    """Stereo-camera localization in 2D.
+
+    We minimize the following cost function:
+
+    .. math::
+        f(\\theta) = \\sum_{j=0}^{n} (u_j - M q_j / q_j[1])^2
+
+    where
+
+    - :math:`p_j` are known landmarks (in homogeneous coordinates),
+    - :math:`u_j` are pixel measurements (2 elements: one pixel in left "image" and one in right "image"),
+    - :math:`q_j = T(\\theta) p_j` are the (homogeneous) coordinates of landmark j in the (unknown) camera frame, parameterized by :math:`T(\\theta)`, and
+    - :math:`M` is the stereo camera calibration matrix. Here, it is given by
+
+    .. math::
+
+        \\begin{bmatrix}
+            f_u & c_u & \\frac{b f_u}{2} \\\\
+            f_v & c_v & -\\frac{b f_v}{2} \\\\
+        \\end{bmatrix}
+
+    where :math:`f_u, f_v` are horizontal and vertical focal lengths, :math:`c_u,c_v` are image center points in pixels and :math:`b` is the camera baseline.
+
+    This example is treated in more details in `this paper <https://arxiv.org/abs/2308.05783>`_.
+    """
+
     def __init__(self, n_landmarks, level="no", param_level="no", variable_list=None):
         self.W = np.stack([np.eye(2)] * n_landmarks)
-
-        f_u = 484.5
-        c_u = 322
-        b = 0.24
-        self.M_matrix = np.array([[f_u, c_u, f_u * b / 2], [f_u, c_u, -f_u * b / 2]])
 
         super().__init__(
             n_landmarks=n_landmarks,
@@ -31,6 +52,13 @@ class Stereo2DLifter(StereoLifter):
             d=2,
             variable_list=variable_list,
         )
+
+    @property
+    def M_matrix(self):
+        f_u = 484.5
+        c_u = 322
+        b = 0.24
+        return np.array([[f_u, c_u, f_u * b / 2], [f_u, c_u, -f_u * b / 2]])
 
     def get_cost(self, t, y, W=None):
 

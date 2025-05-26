@@ -1,24 +1,49 @@
+from typing import Optional
+
 import numpy as np
 from poly_matrix.least_squares_problem import LeastSquaresProblem
 from poly_matrix.poly_matrix import PolyMatrix
 
-from popr.lifters import StateLifter
+from popr.base_lifters import StateLifter
 
 
 class Stereo1DLifter(StateLifter):
+    """Toy example for stereo localization in 1D. We minimize the following cost function:
+
+    .. math::
+        f(\\theta) = \\sum_{j=0}^{N-1} (u_j - 1 / (\\theta - a_j))^2
+
+    where :math:`a_j` are the landmarks and :math:`u_j` are the measurements.
+
+    This is the pedagogical running example of `this paper <https://arxiv.org/abs/2308.05783>`_.
+    and also used in the :ref:`Quick Start Guide`.
+    """
+
     PARAM_LEVELS = ["no", "p", "ppT"]
+    VARIABLE_LIST = [["h", "x"], ["h", "x", "z_0"], ["h", "x", "z_0", "z_1"]]
+
     NOISE = 0.1
 
     def __init__(self, n_landmarks, param_level="no"):
         self.n_landmarks = n_landmarks
-        self.landmarks = None
         self.d = 1
         self.W = 1.0
-        super().__init__(param_level=param_level, d=self.d)
+
+        # will be initialized later
+        self.landmarks_ = None
+
+        super().__init__(param_level=param_level, d=self.d, n_parameters=n_landmarks)
+
+    @property
+    def landmarks(self):
+        if self.landmarks_ is None:
+            self.landmarks_ = np.random.rand(self.n_landmarks, self.d)
+        return self.landmarks_
 
     def sample_parameters(self, theta=None):
-
-        landmarks = np.random.rand(self.n_landmarks)[:, None]
+        if self.parameters_ is None:
+            return self.sample_parameters_landmarks(self.landmarks)
+        landmarks = np.random.rand(self.n_landmarks, self.d)
         return self.sample_parameters_landmarks(landmarks)
 
     def sample_theta(self):
@@ -26,6 +51,7 @@ class Stereo1DLifter(StateLifter):
         counter = 0
         while np.min(np.abs(x_try - self.landmarks)) <= 1e-2:
             x_try = np.random.rand(1)
+            counter += 1
             if counter >= 1000:
                 print("Warning: couldn't find valid setup")
                 return
@@ -58,13 +84,13 @@ class Stereo1DLifter(StateLifter):
             if key == self.HOM:
                 x_data.append(1.0)
             elif key == "x":
-                x_data.append(float(theta[0]))
+                x_data.append(theta[0])
             elif "z" in key:
                 idx = int(key.split("_")[-1])
-                x_data.append(float(1 / (theta[0] - landmarks[f"p_{idx}"])))
+                x_data.append(1 / (theta[0] - landmarks[f"p_{idx}"]))
             else:
                 raise ValueError("unknown key in get_x", key)
-        return np.array(x_data)
+        return np.hstack(x_data)
 
     @property
     def var_dict(self):
@@ -75,8 +101,9 @@ class Stereo1DLifter(StateLifter):
     def param_dict(self):
         return self.param_dict_landmarks
 
-    def get_Q(self, noise: float = None) -> tuple:
-
+    def get_Q(self, noise: Optional[float] = None):
+        if self.landmarks is None:
+            raise ValueError("self.landmarks must be initialized before calling get_Q.")
         if noise is None:
             noise = self.NOISE
 
@@ -86,12 +113,17 @@ class Stereo1DLifter(StateLifter):
         if self.y_ is None:
             self.y_ = y
 
+        return self.get_Q_from_y(y)
+
+    def get_Q_from_y(self, y):
         ls_problem = LeastSquaresProblem()
         for j in range(len(y)):
             ls_problem.add_residual({self.HOM: -y[j], f"z_{j}": 1})
         return ls_problem.get_Q().get_matrix(self.var_dict)
 
-    def get_A_known(self, add_known_redundant=False):
+    def get_A_known(self, var_dict=None, output_poly=False):
+        if var_dict is None:
+            var_dict = self.var_dict
 
         # if self.add_parameters:
         #    raise ValueError("can't extract known matrices yet when using parameters.")
@@ -99,24 +131,45 @@ class Stereo1DLifter(StateLifter):
         A_known = []
 
         # enforce that z_j = 1/(x - a_j) <=> 1 - z_j*x + a_j*z_j = 0
-        for j in range(self.n_landmarks):
+        if not ("x" in var_dict and self.HOM in var_dict):
+            return []
+
+        landmark_indices = [
+            int(key.split("_")[-1]) for key in var_dict if key.startswith("z_")
+        ]
+        for j in landmark_indices:
             A = PolyMatrix()
             A[self.HOM, f"z_{j}"] = 0.5 * self.landmarks[j]
             A["x", f"z_{j}"] = -0.5
             A[self.HOM, self.HOM] = 1.0
-            A_known.append(A.get_matrix(variables=self.var_dict))
+            if output_poly:
+                A_known.append(A)
+            else:
+                A_known.append(A.get_matrix(variables=self.var_dict))
+        return A_known
 
-        if not add_known_redundant:
-            return A_known
+    def get_A_known_redundant(self, var_dict=None, output_poly=False):
+        import itertools
 
+        if var_dict is None:
+            var_dict = self.var_dict
+
+        assert self.HOM in var_dict, "homogenization variable must be in var_dict"
+
+        landmark_indices = [
+            int(key.split("_")[-1]) for key in var_dict if key.startswith("z_")
+        ]
         # add known redundant constraints:
         # enforce that z_j - z_i = (a_j - a_i) * z_j * z_i
-        for i in range(self.n_landmarks):
-            for j in range(i + 1, self.n_landmarks):
-                A = PolyMatrix()
-                A[self.HOM, f"z_{j}"] = 1
-                A[self.HOM, f"z_{i}"] = -1
-                A[f"z_{i}", f"z_{j}"] = self.landmarks[i] - self.landmarks[j]
+        A_known = []
+        for i, j in itertools.combinations(landmark_indices, 2):
+            A = PolyMatrix()
+            A[self.HOM, f"z_{j}"] = 1
+            A[self.HOM, f"z_{i}"] = -1
+            A[f"z_{i}", f"z_{j}"] = self.landmarks[i] - self.landmarks[j]
+            if output_poly:
+                A_known.append(A)
+            else:
                 A_known.append(A.get_matrix(variables=self.var_dict))
         return A_known
 
@@ -138,14 +191,16 @@ class Stereo1DLifter(StateLifter):
                 dx = -np.sum(u * du) / np.sum(du * du)
                 x_op = x_op + dx
                 if np.abs(dx) < eps:
-                    msg = f"converged dx after {i} it"
-                    info = {"msg": msg, "cost": self.get_cost(x_op, y)}
-                    return x_op, info, info["cost"]
+                    msg = f"converged in dx after {i} it"
+                    cost = self.get_cost(x_op, y)
+                    info = {"msg": msg, "cost": cost, "success": True}
+                    return x_op, info, cost
             else:
                 msg = f"converged in du after {i} it"
-                info = {"msg": msg, "cost": self.get_cost(x_op, y)}
-                return x_op, info, info["cost"]
-        return None, {"msg": "didn't converge", "cost": None}, None
+                cost = self.get_cost(x_op, y)
+                info = {"msg": msg, "cost": self.get_cost(x_op, y), "success": True}
+                return x_op, info, cost
+        return None, {"msg": "didn't converge", "cost": None, "success": False}, None
 
     def __repr__(self):
         return f"stereo1d_{self.param_level}"

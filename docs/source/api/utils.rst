@@ -1,30 +1,29 @@
 Utils
 =====
 
-.. contents::
-   :depth: 2
-   :local:
+
+.. warning:: 
+   This page of the documentation is unfinished, and may significantly change in future versions.
 
 
-Constraints and Templates
+Constraints and templates
 -------------------------
 
 .. autoclass:: popr.utils.constraint.Constraint
    :members:
-   :show-inheritance:
 
 
-Matrix and vector operations
+Helpers for matrix and vector operations
 ----------------------------
 
 .. automodule:: popr.utils.common
    :members:
 
 
-Geometry: lie algebra etc.
---------------------------
+.. comment::
 
-.. automodule:: popr.utils.geometry
-   :members:
+   Geometry: lie algebra etc.
+   --------------------------
 
-
+   .. automodule:: popr.utils.geometry
+      :members:

@@ -1,6 +1,7 @@
 """Tools related to geometry.
 
 Naming conventions:
+
 - C and r are rotation matrix and translation. T is the transformation matrix.
 - theta contains the translation and vectorzied rotation (i.e., r and vec(C))
 """
@@ -56,7 +57,7 @@ def get_theta_from_C_r(C, r):
     return np.r_[r, C.flatten("C")]
 
 
-def get_T(theta=None, d=None):
+def get_T(theta, d):
     C_cw, r_wc_c = get_C_r_from_theta(theta, d)
     T = np.zeros((d + 1, d + 1))
     T[:d, :d] = C_cw
@@ -70,10 +71,6 @@ def get_theta_from_T(T):
     C = T[:-1, :-1]
     r = T[:-1, -1]
     return get_theta_from_C_r(C, r)
-
-
-def get_theta_from_C_r(C, r):
-    return np.r_[r, C.flatten("C")]
 
 
 def get_pose_errors_from_theta(theta_hat, theta_gt, d):

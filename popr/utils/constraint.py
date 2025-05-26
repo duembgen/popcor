@@ -2,6 +2,7 @@ import matplotlib.pylab as plt
 import numpy as np
 import scipy.sparse as sp
 from poly_matrix.poly_matrix import PolyMatrix
+
 from popr.utils.common import get_vec
 from popr.utils.plotting_tools import plot_basis
 
@@ -77,17 +78,14 @@ def generate_poly_matrix(constraints, factor_out_parameters=False, lifter=None):
 
 
 def plot_poly_matrix(
-    poly_matrix, variables_j=None, variables_i=None, simplify=True, ax=None, hom="h"
+    poly_matrix, variables_j=None, variables_i=None, simplify=True, hom="h"
 ):
     if variables_i is None:
         variables_i = poly_matrix.variable_dict_i
     if variables_j is None:
         variables_j = poly_matrix.variable_dict_j
 
-    if ax is None:
-        fig, ax = plt.subplots()
     # plot the templates stored in poly_matrix.
-
     fig, ax = plot_basis(
         poly_matrix,
         variables_j=variables_j,
@@ -115,10 +113,10 @@ def plot_poly_matrix(
     old_param = params[0]
     for i, p in enumerate(params):
         if p != old_param:
-            ax.axvline(i, color="red", linewidth=1.0)
+            ax.axvline(i - 0.5, color="red", linewidth=1.0)
             ax.annotate(
                 text=f"${p.replace(':0', '^x').replace(':1', '^y').replace('l.','').replace('.','')}$",
-                xy=[i, 0],
+                xy=(float(i - 0.4), 0.0),
                 fontsize=8,
                 color="red",
             )
@@ -173,10 +171,10 @@ class Constraint(object):
         b: np.ndarray,
         mat_var_dict: dict,
         lifter=None,
-        mat_param_dict: dict = None,
+        mat_param_dict: dict | None = None,
         convert_to_polyrow: bool = True,
         known: bool = True,
-        template_idx: int = None,
+        template_idx: int = 0,
     ):
         a = None
         A_sparse = None
@@ -190,6 +188,7 @@ class Constraint(object):
             if a_full is None:
                 return None
         if convert_to_polyrow:
+            assert lifter is not None
             A_poly, __ = PolyMatrix.init_from_sparse(
                 A_sparse, var_dict=lifter.var_dict, unfold=True
             )
@@ -220,7 +219,7 @@ class Constraint(object):
         mat_var_dict: dict,
         known: bool = False,
         index: int = 0,
-        template_idx: int = None,
+        template_idx: int = 0,
         compute_polyrow_b=False,
     ):
         Ai_sparse_small = A_poly.get_matrix(variables=mat_var_dict)
@@ -251,8 +250,8 @@ class Constraint(object):
         lifter,
         index: int = 0,
         known: bool = False,
-        template_idx: int = None,
-        mat_var_dict: dict = None,
+        template_idx: int = 0,
+        mat_var_dict: dict | None = None,
     ):
         if mat_var_dict is None:
             mat_var_dict = lifter.var_dict
@@ -273,11 +272,13 @@ class Constraint(object):
 
     def scale_to_new_lifter(self, lifter):
         if self.known:
+            assert self.A_poly_ is not None
             # known matrices are stored in origin variables, not unrolled form
             self.A_sparse_ = self.A_poly_.get_matrix(lifter.var_dict)
             self.a_full_ = get_vec(self.A_sparse_, sparse=True)
 
         else:
+            assert self.A_poly_ is not None
             # known matrices are stored in origin variables, not unrolled form
             target_dict_unroll = lifter.get_var_dict(unroll_keys=True)
             self.A_sparse_ = self.A_poly_.get_matrix(target_dict_unroll)

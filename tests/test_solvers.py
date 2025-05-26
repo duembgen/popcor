@@ -1,8 +1,9 @@
 import numpy as np
 
+from popr.base_lifters import PolyLifter, RobustPoseLifter
+
 # from lifters.matweight_lifter import MatWeightLifter
 from popr.examples import MonoLifter
-from popr.lifters import PolyLifter, RobustPoseLifter
 from popr.utils.geometry import get_C_r_from_theta
 from popr.utils.test_tools import all_lifters
 
@@ -23,7 +24,8 @@ def test_hess_finite_diff():
 
             try:
                 grad = lifter.get_grad(theta, y)
-                hess = lifter.get_hess(theta, y).toarray()
+                hess = lifter.get_hess(theta, y)
+                pass
             except (NotImplementedError, AttributeError):
                 print("get_hess not implemented?")
                 return
@@ -39,6 +41,7 @@ def test_hess_finite_diff():
 
                 hess_est = (grad_delta - grad) / eps
 
+                assert isinstance(hess, np.ndarray)
                 abs_error = np.abs(hess_est - hess[i, :])
                 errors_mat[i, :] = np.maximum(abs_error, errors_mat[i, :])
                 max_err = max(np.max(abs_error), max_err)
@@ -91,6 +94,7 @@ def test_grad_finite_diff():
 
                 grad_est = (cost_delta - cost) / eps
 
+                assert isinstance(grad, np.ndarray)
                 err = abs(grad_est - grad[i])
                 errors_mat[i] = max(errors_mat[i], err)
                 max_err = max(err, max_err)
@@ -130,7 +134,7 @@ def test_cost(noise=0.0):
         cost = lifter.get_cost(theta, y)
 
         x = lifter.get_x(theta)
-        costQ = abs(x.T @ Q @ x)
+        costQ = x.T @ Q @ x
 
         assert abs(cost - costQ) < 1e-6, (cost, costQ)
         if noise == 0 and not isinstance(lifter, PolyLifter) and not lifter.robust:
@@ -139,9 +143,9 @@ def test_cost(noise=0.0):
         elif noise == 0 and isinstance(lifter, MonoLifter):
 
             if lifter.robust:
+                assert lifter.landmarks is not None
                 w = lifter.theta[-lifter.n_landmarks :]
-                for i in range(lifter.y_.shape[0]):
-
+                for i in range(len(lifter.y_)):
                     C, r = get_C_r_from_theta(lifter.theta, lifter.d)
 
                     y_gt = C @ lifter.landmarks[i] + r
@@ -186,17 +190,11 @@ def test_solvers(n_seeds=1, noise=0.0):
             if noise == 0:
                 # test that solution is ground truth with no noise
 
-                if type(theta_gt) is dict:
-                    for i in range(lifter.n_poses):
-                        val_hat = theta_hat[f"xT0_{i}"]
-                        val_gt = theta_gt[f"x_{i}"].matrix()
-                        np.testing.assert_allclose(val_hat, val_gt)
+                if len(theta_hat) == len(theta_gt):
+                    np.testing.assert_allclose(theta_hat, theta_gt)
                 else:
-                    if len(theta_hat) == len(theta_gt):
-                        np.testing.assert_allclose(theta_hat, theta_gt)
-                    else:
-                        # theta_gt = lifter.get_vec_around_gt(delta=0)
-                        np.testing.assert_allclose(theta_hat, theta_gt)
+                    # theta_gt = lifter.get_vec_around_gt(delta=0)
+                    np.testing.assert_allclose(theta_hat, theta_gt)
 
             else:
                 # just test that we converged when noise is added
@@ -224,17 +222,10 @@ def test_solvers(n_seeds=1, noise=0.0):
                 )
 
             # test that we made progress
-            if type(theta_hat) is dict:
-                progress = 0
-                for i in range(lifter.n_poses):
-                    val_hat = theta_hat[f"xT0_{i}"]
-                    val_gt = theta_gt[f"x_{i}"].matrix()
-                    progress += np.linalg.norm(val_hat - val_gt)
+            if len(theta_0) != len(theta_hat):
+                progress = np.linalg.norm(theta_0 - theta_hat)
             else:
-                if len(theta_0) != len(theta_hat):
-                    progress = np.linalg.norm(theta_0 - theta_hat)
-                else:
-                    progress = np.linalg.norm(theta_0 - theta_hat)
+                progress = np.linalg.norm(theta_0 - theta_hat)
             assert progress > 1e-10, progress
 
             if noise == 0:
@@ -247,16 +238,9 @@ def test_solvers(n_seeds=1, noise=0.0):
                 if lifter.n_outliers > 0:
                     continue
                 try:
-                    if type(theta_gt) is dict:
-                        for i in range(lifter.n_poses):
-                            val_hat = theta_hat[f"xT0_{i}"]
-                            val_gt = theta_gt[f"x_{i}"].matrix()
-                            np.testing.assert_allclose(val_hat, val_gt, rtol=1e-3)
-                    else:
-                        if len(theta_hat) == len(theta_gt):
-                            np.testing.assert_allclose(theta_hat, theta_gt, rtol=1e-3)
-                        else:
-                            np.testing.assert_allclose(theta_hat, theta_gt, rtol=1e-3)
+                    assert isinstance(theta_gt, np.ndarray)
+                    assert isinstance(theta_hat, np.ndarray)
+                    np.testing.assert_allclose(theta_hat, theta_gt, rtol=1e-3)
                 except AssertionError as e:
                     print(
                         f"Found solution for {lifter} is not ground truth in zero-noise! is the problem well-conditioned?"
@@ -330,12 +314,11 @@ if __name__ == "__main__":
     import warnings
 
     # import pytest
-    # print("testing")
     # pytest.main([__file__, "-s"])
     # print("all tests passed")
 
     with warnings.catch_warnings():
-        # warnings.simplefilter("error")
+        # warnings.simplefilter("error"))
         test_cost()
         test_cost_noisy()
         test_solvers()

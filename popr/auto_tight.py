@@ -1,8 +1,9 @@
 import matplotlib.pylab as plt
 import numpy as np
 import scipy.sparse as sp
-
+import scipy.sparse.linalg as splinalg
 from cert_tools.linalg_tools import find_dependent_columns, get_nullspace
+
 from popr.utils.common import get_vec
 from popr.utils.constraint import Constraint
 from popr.utils.plotting_tools import (
@@ -13,6 +14,8 @@ from popr.utils.plotting_tools import (
 
 
 class AutoTight(object):
+    """Class for automatic constraint generation."""
+
     # consider singular value zero below this
     EPS_SVD = 1e-5
 
@@ -111,6 +114,16 @@ class AutoTight(object):
         method=METHOD,
         verbose=False,
     ) -> list:
+        """Generate list of learned constraints by sampling the lifter.
+
+        :param lifter: StateLifter object
+        :param A_known: list of known constraints, if given, will generate basis that is orthogonal to these given constraints.
+        :param var_dict: variable dictionary, if None, will use all variables
+        :param method: method to use for basis generation, can be 'qr', 'qrp', or 'svd'. 'qrp' is recommended.
+        :param verbose: if True, will print timing information
+
+        :return: list of learned constraints.
+        """
         import time
 
         t1 = time.time()
@@ -135,6 +148,7 @@ class AutoTight(object):
         method=METHOD,
         verbose=False,
     ) -> list:
+        """Simplified version of get_A_learned that does not consider parameters."""
         import time
 
         t1 = time.time()
@@ -144,12 +158,16 @@ class AutoTight(object):
         t1 = time.time()
         if len(A_known):
             basis_known = np.vstack(
-                [get_vec(Ai.get_matrix(var_dict)) for Ai in A_known]
+                [
+                    np.asarray(get_vec(Ai.get_matrix(var_dict)))
+                    for Ai in A_known
+                    if get_vec(Ai.get_matrix(var_dict)) is not None
+                ]
             ).T
         else:
             basis_known = None
         basis, S = AutoTight.get_basis(
-            lifter, Y, basis_known=basis_known, method=method, var_subset=var_dict
+            lifter, Y, basis_known=basis_known, method=method
         )
         if verbose:
             print(f"get basis ({basis.shape})): {time.time() - t1:4.4f}")
@@ -175,15 +193,12 @@ class AutoTight(object):
         return Y
 
     @staticmethod
-    def generate_Y_sparse(
-        lifter, factor=FACTOR, ax=None, var_subset=None, param_subset=None
-    ):
-        from popr.lifters import StateLifter
+    def generate_Y_sparse(lifter, var_subset, param_subset, factor=FACTOR, ax=None):
+        from popr.base_lifters import StateLifter
 
         assert isinstance(lifter, StateLifter)
-        assert (
-            lifter.HOM in param_subset
-        ), f"{lifter.HOM} must be included in param_subset."
+        assert lifter.HOM in param_subset
+
         # need at least dim_Y different random setups
         dim_Y = lifter.get_dim_Y(var_subset, param_subset)
         n_seeds = int(dim_Y * factor)
@@ -239,7 +254,7 @@ class AutoTight(object):
         lifter,
         Y,
         A_known: list = [],
-        basis_known: np.ndarray = None,
+        basis_known: np.ndarray | None = None,
         method=METHOD,
         eps_svd=None,
     ):
@@ -290,7 +305,7 @@ class AutoTight(object):
         if isinstance(var_dict, list):
             var_dict = lifter.get_var_dict(var_dict)
 
-        from popr.lifters import StateLifter
+        from popr.base_lifters import StateLifter
 
         assert isinstance(lifter, StateLifter)
 
@@ -301,14 +316,15 @@ class AutoTight(object):
             # Normalize the matrix
             if normalize and not sparse:
                 # Ai /= np.max(np.abs(Ai))
-                Ai /= np.linalg.norm(Ai, p=2)
+                assert isinstance(Ai, np.ndarray)
+                Ai /= np.linalg.norm(Ai, p=2)  # type: ignore
             elif normalize and sparse:
-                Ai /= sp.linalg.norm(Ai, ord="fro")
+                Ai /= splinalg.norm(Ai, ord="fro")
             # Sparsify and truncate
             if sparse:
-                Ai.eliminate_zeros()
+                Ai.eliminate_zeros()  # type: ignore
             else:
-                Ai[np.abs(Ai) < trunc_tol] = 0.0
+                Ai[np.abs(Ai) < trunc_tol] = 0.0  # type: ignore
             # add to list
             A_list.append(Ai)
         return A_list
@@ -325,7 +341,7 @@ class AutoTight(object):
         """
         Generate constraint matrices from the rows of the nullspace basis matrix.
         """
-        from popr.lifters import StateLifter
+        from popr.base_lifters import StateLifter
 
         assert isinstance(lifter, StateLifter)
 
@@ -349,76 +365,26 @@ class AutoTight(object):
         else:
             bad_idx = []
 
-        for i in range(basis_reduced.shape[0]):
+        for i in range(basis_reduced.shape[0]):  # type: ignore
             if i in bad_idx:
                 continue
-            ai = basis_reduced[[i], :].toarray().flatten()
+            ai = basis_reduced[[i], :].toarray().flatten()  # type: ignore
             Ai = lifter.get_mat(ai, sparse=sparse, correct=True, var_dict=None)
             # Normalize the matrix
             if normalize and not sparse:
                 # Ai /= np.max(np.abs(Ai))
-                Ai /= np.linalg.norm(Ai, p=2)
+                Ai /= np.linalg.norm(Ai, p=2)  # type: ignore
             elif normalize and sparse:
-                Ai /= sp.linalg.norm(Ai, ord="fro")
+                Ai /= splinalg.norm(Ai, ord="fro")
             # Sparsify and truncate
             if sparse:
-                Ai.eliminate_zeros()
+                Ai.eliminate_zeros()  # type: ignore
             else:
-                Ai[np.abs(Ai) < trunc_tol] = 0.0
+                Ai[np.abs(Ai) < trunc_tol] = 0.0  # type: ignore
             # add to list
             A_list.append(Ai)
         return A_list
 
     @staticmethod
-    def get_basis_list(
-        lifter,
-        var_subset,
-        A_known: list = [],
-        plot: bool = False,
-        method: str = METHOD,
-    ):
-        print("Warning: do not use get_basis_list anymore, it is not efficient.")
-        """Generate list of PolyRow basis vectors"""
-        basis_list = []
-
-        Y = AutoTight.generate_Y(lifter, var_subset=var_subset)
-        if len(A_known):
-            A_known = lifter.extract_A_known(A_known, var_subset, output_type="dense")
-            Y = np.r_[Y, A_known]
-            for i in range(A_known.shape[0]):
-                basis_list.append(lifter.convert_b_to_polyrow(A_known[i], var_subset))
-
-        for i in range(lifter.N_CLEANING_STEPS + 1):
-            # TODO(FD) can e enforce lin. independance to previously found
-            # matrices at this point?
-            basis_new, S = AutoTight.get_basis(lifter, Y, method=method)
-            corank = basis_new.shape[0]
-
-            if corank == 0:
-                print(f"{var_subset}: no new learned matrices found")
-                return basis_list
-            print(f"{var_subset}: {corank} learned matrices found")
-            AutoTight.test_S_cutoff(S, corank)
-            bad_bins = AutoTight.clean_Y(basis_new, Y, S[-corank:], plot)
-            if len(bad_bins) > 0:
-                print(f"deleting {len(bad_bins)}")
-                Y = np.delete(Y, bad_bins, axis=0)
-            else:
-                break
-
-        if plot:
-            plot_singular_values(S, eps=lifter.EPS_SVD)
-
-        # find out which of the constraints are linearly dependant of the others.
-        current_basis = None
-        for i, bi_sub in enumerate(basis_new):
-            bi_poly = lifter.convert_b_to_polyrow(
-                bi_sub, var_subset, tol=lifter.EPS_SPARSE
-            )
-            ai = lifter.get_reduced_a(bi_sub, var_subset)
-            basis_list.append(bi_poly)
-            if current_basis is None:
-                current_basis = ai[None, :]
-            else:
-                current_basis = np.r_[current_basis, ai[None, :]]
-        return basis_list
+    def get_duality_gap(cost_local, cost_sdp):
+        return (cost_local - cost_sdp) / abs(cost_sdp)

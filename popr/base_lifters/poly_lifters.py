@@ -1,5 +1,3 @@
-from abc import abstractmethod
-
 import numpy as np
 
 from .state_lifter import StateLifter
@@ -7,6 +5,7 @@ from .state_lifter import StateLifter
 
 class PolyLifter(StateLifter):
     def __init__(self, degree, param_level="no"):
+        """Simple univariate polynomial lifter, mostly for testing and pedagogical purposes."""
         self.degree = degree
         super().__init__(d=1, param_level=param_level)
 
@@ -24,10 +23,6 @@ class PolyLifter(StateLifter):
     def sample_theta(self):
         return np.random.rand(1)
 
-    @abstractmethod
-    def get_Q_mat(self):
-        return
-
     def get_error(self, t):
         return {"MAE": float(abs(self.theta - t)), "error": float(abs(self.theta - t))}
 
@@ -36,14 +31,10 @@ class PolyLifter(StateLifter):
             theta = self.theta
         return np.array([theta**i for i in range(self.degree // 2 + 1)])
 
-    def get_Q(self, noise=1e-3):
-        Q = self.get_Q_mat()
-        return Q
-
-    def get_cost(self, theta, *args, **kwargs):
-        Q = self.get_Q_mat()
-        x = self.get_x(theta)
-        return x.T @ Q @ x
+    def get_cost(self, theta, *args, **kwargs) -> float:
+        Q = self.get_Q()
+        x = self.get_x(theta).flatten()
+        return float(x.T @ Q @ x)
 
     def get_hess(self, *args, **kwargs):
         raise NotImplementedError
@@ -54,6 +45,16 @@ class PolyLifter(StateLifter):
         sol = minimize(self.get_cost, t0)
         info = {"success": sol.success}
         return sol.x, info, sol.fun
+
+    def plot(self, thetas, label=None):
+        from popr.utils.plotting_tools_poly import coordinate_system
+
+        fig, ax = coordinate_system()
+        ys = [self.get_cost(t) for t in thetas]
+        ax.plot(thetas, ys, label=label)
+        ymin = min(-max(ys) / 3, min(ys))
+        ax.set_ylim(ymin, max(ys))
+        return fig, ax
 
     def __repr__(self):
         return f"poly{self.degree}"

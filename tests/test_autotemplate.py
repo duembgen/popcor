@@ -12,11 +12,12 @@ def test_stereo_1d():
     lifter = Stereo1DLifter(n_landmarks=5, param_level="p")
     learner = AutoTemplate(
         lifter=lifter,
-        variable_list=[["h", "x"], ["h", "x", "z_0"], ["h", "x", "z_0", "z_1"]],
-        use_known=False,
-        use_incremental=True,
     )
-    data, success = learner.run()
+    data, success = learner.run(
+        use_known=False,
+        use_incremental=False,
+        variable_list=[["h", "x"], ["h", "x", "z_0"], ["h", "x", "z_0", "z_1"]],
+    )
     try:
         assert success
     except:
@@ -29,19 +30,22 @@ def test_range_only():
         lifter = RangeOnlyLocLifter(n_positions=4, n_landmarks=5, d=2, level=level)
         learner = AutoTemplate(
             lifter=lifter,
-            variable_list=[["h", "x_0"], ["h", "x_0", "z_0"]],
-            use_known=False,
-            use_incremental=True,
         )
-        data, success = learner.run()
+        data, success = learner.run(
+            use_known=False,
+            use_incremental=False,
+            variable_list=[["h", "x_0"], ["h", "x_0", "z_0"]],
+        )
         assert success
 
         learner = AutoTemplate(
             lifter=lifter,
-            variable_list=[["h", "x_0"], ["h", "x_0", "z_0"]],
-            use_known=True,
         )
-        data, success = learner.run()
+        data, success = learner.run(
+            use_known=True,
+            use_incremental=False,
+            variable_list=[["h", "x_0"], ["h", "x_0", "z_0"]],
+        )
         assert success
 
 

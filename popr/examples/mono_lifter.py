@@ -4,7 +4,7 @@ from copy import deepcopy
 import numpy as np
 from poly_matrix.poly_matrix import PolyMatrix
 
-from popr.lifters import RobustPoseLifter
+from popr.base_lifters import RobustPoseLifter
 from popr.utils.geometry import get_C_r_from_theta
 from popr.utils.plotting_tools import plot_frame
 
@@ -20,6 +20,10 @@ NORMALIZE = False
 
 
 class MonoLifter(RobustPoseLifter):
+    """This example is treated in more details in `this paper <https://arxiv.org/abs/2308.05783>`_,
+    under the name "PLR" (point-to-line registration).
+    """
+
     NOISE = 1e-3  # inlier noise
     NOISE_OUT = 0.1  # outlier noise
 
@@ -39,7 +43,7 @@ class MonoLifter(RobustPoseLifter):
             import autograd.numpy as anp
 
             return default + [
-                anp.sum(t[:-1] ** 2) - anp.tan(FOV / 2) ** 2 * t[-1] ** 2,
+                anp.sum(t[:-1] ** 2) - anp.tan(FOV / 2) ** 2 * t[-1] ** 2,  # type: ignore
                 -t[-1],
             ]
         except ModuleNotFoundError:
@@ -99,6 +103,8 @@ class MonoLifter(RobustPoseLifter):
             return
         import matplotlib.pylab as plt
 
+        assert self.landmarks is not None
+
         fig, ax = plt.subplots()
 
         # R, t = get_C_r_from_theta(self.theta, self.d)
@@ -109,13 +115,16 @@ class MonoLifter(RobustPoseLifter):
 
         if self.y_ is not None:
             for i in range(self.y_.shape[0]):
-                ax.scatter(*self.landmarks[i], color=f"C{i}", label="landmarks")
+                ax.scatter(
+                    self.landmarks[i][0],
+                    self.landmarks[i][1],
+                    color=f"C{i}",
+                    label="landmarks",
+                )
 
                 # this vector is in camera coordinates
                 ui_c = self.y_[i]
                 assert abs(np.linalg.norm(ui_c) - 1.0) < 1e-10
-
-                ui_w = C_cw.T @ ui_c
 
                 ax.plot(
                     [t_wc_w[0], self.landmarks[i][0]],
@@ -123,15 +132,21 @@ class MonoLifter(RobustPoseLifter):
                     color=f"C{i}",
                     ls=":",
                 )
-                ax.plot(
-                    [t_wc_w[0], t_wc_w[0] + ui_w[0]],
-                    [t_wc_w[1], t_wc_w[1] + ui_w[1]],
-                    color=f"r" if i < self.n_outliers else "g",
-                )
+                if C_cw is not None:
+                    ui_w = C_cw.T @ ui_c
+                    ax.plot(
+                        [t_wc_w[0], t_wc_w[0] + ui_w[0]],
+                        [t_wc_w[1], t_wc_w[1] + ui_w[1]],
+                        color=f"r" if i < self.n_outliers else "g",
+                    )
 
     def get_Q(
-        self, noise: float = None, output_poly: bool = False, use_cliques: list = []
+        self,
+        noise: float | None = None,
+        output_poly: bool = False,
+        use_cliques: list = [],
     ):
+        assert self.landmarks is not None, "landmarks must be set before calling get_Q"
         if noise is None:
             noise = self.NOISE
 
@@ -190,6 +205,10 @@ class MonoLifter(RobustPoseLifter):
         cost term:
         (Rpi + t) (I - uiui') (Rpi + t)
         """
+        assert (
+            self.landmarks is not None
+        ), "landmarks must be set before calling get_Q_from_y"
+
         Q = PolyMatrix(symmetric=True)
         if NORMALIZE:
             norm = (self.n_landmarks * self.d) ** 2

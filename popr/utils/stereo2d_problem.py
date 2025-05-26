@@ -1,5 +1,5 @@
 """
-Temporary copy of Ben's code, to get the local solver
+Adopted from Thesis code by Ben to get basic functions related to Stereo-2D
 """
 
 import numpy as np
@@ -75,7 +75,7 @@ def generate_problem(N, sigma, M):
     return y, p_w, phi, W
 
 
-def _svdsolve(A: np.array, b: np.array):
+def _svdsolve(A: np.ndarray, b: np.ndarray):
     """Solve Ax = b using SVD
 
     Args:

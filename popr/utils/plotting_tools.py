@@ -1,4 +1,5 @@
 import os
+from collections.abc import Iterable
 
 import numpy as np
 from poly_matrix.poly_matrix import PolyMatrix
@@ -41,7 +42,7 @@ def add_colorbar(fig, ax, im, title=None, nticks=None, visible=True, size=None):
 
     if not visible:
         cax.axis("off")
-        return
+        return cax
 
     fig.colorbar(im, cax=cax, orientation="vertical")
 
@@ -103,7 +104,7 @@ def savefig(fig, name, verbose=True):
 
 
 def plot_frame(
-    ax=None,
+    ax,
     theta=None,
     color="k",
     marker="+",
@@ -120,6 +121,8 @@ def plot_frame(
     except:
         C_cw = None
         r_wc_w = theta
+
+    assert r_wc_w is not None
 
     if C_cw is not None:
         for col, dir_gt in zip(["r", "g", "b"], C_cw):
@@ -162,7 +165,7 @@ def add_rectangles(ax, dict_sizes, color="red"):
 
 
 def initialize_discrete_cbar(values):
-    import matplotlib as mpl
+    import matplotlib.colors
 
     values = sorted(list(np.unique(values.round(3))) + [0])
     cmap = plt.get_cmap("viridis", len(values))
@@ -170,14 +173,14 @@ def initialize_discrete_cbar(values):
     cmap.set_under((0.0, 0.0, 1.0))
     bounds = [values[0] - 0.005] + [v + 0.005 for v in values]
     colorbar_yticks = [""] + list(values)
-    norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+    norm = matplotlib.colors.BoundaryNorm(bounds, cmap.N)
     return cmap, norm, colorbar_yticks
 
 
 def plot_basis(
     basis_poly: PolyMatrix,
     variables_j: dict,
-    variables_i: list = None,
+    variables_i: Iterable | None = None,
     fname_root: str = "",
     discrete: bool = True,
 ):
@@ -185,7 +188,7 @@ def plot_basis(
         variables_i = basis_poly.generate_variable_dict_i()
 
     if discrete:
-        values = basis_poly.get_matrix((variables_i, variables_j)).data
+        values = basis_poly.get_matrix((variables_i, variables_j)).data  # type: ignore
         cmap, norm, colorbar_yticks = initialize_discrete_cbar(values)
     else:
         cmap = plt.get_cmap("viridis")
@@ -199,7 +202,7 @@ def plot_basis(
         cmap=cmap,
         norm=norm,  # reduced_ticks=True
     )
-    fig.set_size_inches(15, 15 * len(variables_i) / len(variables_j))
+    fig.set_size_inches(15, 15 * len(variables_i) / len(variables_j))  # type: ignore
     cax = add_colorbar(fig, ax, im)
     if colorbar_yticks is not None:
         cax.set_yticklabels(colorbar_yticks)
@@ -240,6 +243,7 @@ def plot_matrix(
     discrete=False,
 ):
     import matplotlib
+    import matplotlib.colors
 
     if ax is None:
         fig, ax = plt.subplots()
@@ -346,7 +350,7 @@ def plot_matrices(df_tight, fname_root):
         return
 
 
-def plot_singular_values(S, eps=None, label="singular values", ax=None):
+def plot_singular_values(S, eps=None, label: str | None = "singular values", ax=None):
     if ax is None:
         fig, ax = plt.subplots()
     else:
@@ -368,34 +372,6 @@ def plot_aggregate_sparsity(mask):
     ax.matshow(mask.toarray())
     plt.show(block=False)
     return fig, ax
-
-
-def add_scalebar(
-    ax, size=5, size_vertical=1, loc="lower left", fontsize=8, color="black", pad=0.1
-):
-    """Add a scale bar to the plot.
-
-    :param ax: axis to use.
-    :param size: size of scale bar.
-    :param size_vertical: height (thckness) of the bar
-    :param loc: location (same syntax as for matplotlib legend)
-    """
-    import matplotlib.font_manager as fm
-    from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
-
-    fontprops = fm.FontProperties(size=fontsize)
-    scalebar = AnchoredSizeBar(
-        ax.transData,
-        size,
-        "{} m".format(size),
-        loc,
-        pad=pad,
-        color=color,
-        frameon=False,
-        size_vertical=size_vertical,
-        fontproperties=fontprops,
-    )
-    ax.add_artist(scalebar)
 
 
 def add_lines(ax, xs, start, facs=[1, 2, 3]):

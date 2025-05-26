@@ -6,7 +6,7 @@ Examples
    :maxdepth: 2
    :caption: Contents:
 
-   examples/d
-   examples/a
-   examples/b
-   examples/c
+   examples/templates
+   examples/toy
+   examples/standard
+   examples/robust

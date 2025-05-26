@@ -5,6 +5,6 @@ API and modules
    :maxdepth: 2
    :caption: Contents:
 
-   api/auto_tight
+   api/algorithms
    api/lifters
    api/utils

@@ -14,9 +14,6 @@ from popr.utils.geometry import (
 
 from .state_lifter import StateLifter
 
-# import autograd.numpy as np
-
-
 N_TRYS = 10
 
 METHOD = "CG"
@@ -59,7 +56,7 @@ class RobustPoseLifter(StateLifter, ABC):
     # Add any parameters here that describe the problem (e.g. number of landmarks etc.)
     def __init__(
         self,
-        n_outliers,
+        n_outliers=0,
         level="no",
         param_level="no",
         d=2,
@@ -68,14 +65,20 @@ class RobustPoseLifter(StateLifter, ABC):
         robust=False,
         beta=BETA,
     ):
-        """
-        :param level:
-            - xwT: x kron w
-            - xxT: x kron x
+        """RobustPoseLifter is a general class for point-to-point, point-to-line, and point-to-plane registration problems,
+        with starndard or robust loss functions.
+
+        The goal is to regress an unknown pose based on extrinsic measurements.
+
+        See :class:`~popr.examples.WahbaLifter` for point-to-point registration and :class:`~popr.examples.MonoLifter`) for point-to-line registration.
+
+        Implemented lifting functions are:
+
+            - xwT: :math:`x \\otimes w`
+            - xxT: :math:`x \\otimes x`
         """
         self.beta = beta
         self.n_landmarks = n_landmarks
-        self.landmarks = None
 
         self.robust = robust
         self.level = level
@@ -86,6 +89,8 @@ class RobustPoseLifter(StateLifter, ABC):
 
         if not robust:
             assert level == "no"
+
+        self.landmarks_ = None  # will be initialized later
         super().__init__(
             level=level,
             param_level=param_level,
@@ -99,14 +104,13 @@ class RobustPoseLifter(StateLifter, ABC):
         import autograd.numpy as anp
 
         try:
-            return anp.sum(
-                [rho * u * anp.log10(1 + anp.exp(hi / u)) for hi in self.h_list(t)]
+            return anp.sum(  # type: ignore
+                [rho * u * anp.log10(1 + anp.exp(hi / u)) for hi in self.h_list(t)]  # type: ignore
             )
         except RuntimeWarning:
-            PENALTY_U *= 0.1
-            u = PENALTY_U
-            return anp.sum(
-                [rho * u * anp.log10(1 + anp.exp(hi / u)) for hi in self.h_list(t)]
+            u = PENALTY_U * 0.1
+            return anp.sum(  # type: ignore
+                [rho * u * anp.log10(1 + anp.exp(hi / u)) for hi in self.h_list(t)]  # type: ignore
             )
 
     @property
@@ -173,7 +177,17 @@ class RobustPoseLifter(StateLifter, ABC):
         else:
             return theta_x
 
+    @property
+    def landmarks(self):
+        if self.landmarks_ is None:
+            self.landmarks_ = np.random.normal(
+                loc=0, scale=1.0, size=(self.n_landmarks, self.d)
+            )
+        return self.landmarks_
+
     def sample_parameters(self, theta=None):
+        if self.parameters_ is None:
+            return self.sample_parameters_landmarks(self.landmarks)
         landmarks = np.random.normal(loc=0, scale=1.0, size=(self.n_landmarks, self.d))
         return self.sample_parameters_landmarks(landmarks)
 
@@ -480,7 +494,7 @@ class RobustPoseLifter(StateLifter, ABC):
         try:
             import autograd.numpy as anp
 
-            return [anp.sqrt(anp.sum(t[: self.d] ** 2)) - self.MAX_DIST]
+            return [anp.sqrt(anp.sum(t[: self.d] ** 2)) - self.MAX_DIST]  # type: ignore
         except ModuleNotFoundError:
             return [np.sqrt(np.sum(t[: self.d] ** 2)) - self.MAX_DIST]
 
@@ -490,9 +504,9 @@ class RobustPoseLifter(StateLifter, ABC):
         return None
 
     @abstractmethod
-    def term_in_norm(self, R, t, pi, ui):
-        return
+    def term_in_norm(self, R, t, pi, ui) -> np.ndarray:
+        pass
 
     @abstractmethod
-    def residual_sq(self, R, t, pi, ui):
-        return
+    def residual_sq(self, R, t, pi, ui) -> float:
+        pass
