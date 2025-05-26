@@ -1,3 +1,7 @@
+"""
+Adopted from Thesis code by Ben to get basic functions related to Stereo-3D
+"""
+
 import numpy as np
 
 f_u = 484.5

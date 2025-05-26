@@ -1,5 +1,5 @@
 """
-Temporary copy of Ben's code, to get the local solver
+Adopted from Thesis code by Ben to get basic functions related to Stereo-2D
 """
 
 import numpy as np
