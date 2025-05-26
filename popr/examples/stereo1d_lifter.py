@@ -1,7 +1,6 @@
 from typing import Optional
 
 import numpy as np
-import scipy.sparse as sp
 from poly_matrix.least_squares_problem import LeastSquaresProblem
 from poly_matrix.poly_matrix import PolyMatrix
 
@@ -9,6 +8,16 @@ from popr.base_lifters import StateLifter
 
 
 class Stereo1DLifter(StateLifter):
+    """Toy example for stereo localization in 1D. We minimize the following cost function:
+
+    .. math::
+        f(\\theta) = \\sum_{j=0}^{n} (u_j - 1 / (\\theta - a_j))^2
+
+    where :math:`a_j` are the landmarks and :math:`u_j` are the measurements.
+
+    This is the running example of `this paper <https://arxiv.org/abs/2308.05783>`_.
+    """
+
     PARAM_LEVELS = ["no", "p", "ppT"]
     VARIABLE_LIST = [["h", "x"], ["h", "x", "z_0"], ["h", "x", "z_0", "z_1"]]
 
@@ -18,6 +27,10 @@ class Stereo1DLifter(StateLifter):
         self.n_landmarks = n_landmarks
         self.d = 1
         self.W = 1.0
+
+        # will be initialized later
+        self.landmarks_ = None
+
         super().__init__(param_level=param_level, d=self.d, n_parameters=n_landmarks)
 
     @property

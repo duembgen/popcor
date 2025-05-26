@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 import scipy.sparse as sp
 
+from popr.base_lifters import StateLifter, StereoLifter
 from popr.examples import Stereo2DLifter, Stereo3DLifter
-from popr.lifters import StateLifter, StereoLifter
 from popr.utils.common import get_vec, ravel_multi_index_triu, unravel_multi_index_triu
 from popr.utils.test_tools import all_lifters, test_with_tol
 

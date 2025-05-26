@@ -76,17 +76,18 @@ def test_autotight():
     assert x is not None
     assert info_local["success"]
 
-    X, info_sdp = solve_sdp(Q, [(A_0, 1.0)] + [(A_i, 0.0) for A_i in A_known])
+    constraints = lifter.get_A_b_list(A_list=A_known)
+    X, info_sdp = solve_sdp(Q, constraints)
 
-    gap = (info_local["cost"] - info_sdp["cost"]) / abs(info_sdp["cost"])
+    gap = auto_tight.get_duality_gap(info_local["cost"], info_sdp["cost"])
     assert gap > 0.1
 
     # learn matrices and solve again
     A_learned = auto_tight.get_A_learned(lifter)
-    X, info_sdp_learned = solve_sdp(Q, [(A_0, 1.0)] + [(A_i, 0.0) for A_i in A_learned])
-    gap = (info_local["cost"] - info_sdp_learned["cost"]) / abs(
-        info_sdp_learned["cost"]
-    )
+    constraints = lifter.get_A_b_list(A_list=A_learned)
+    X, info_sdp_learned = solve_sdp(Q, constraints)
+    gap = auto_tight.get_duality_gap(info_local["cost"], info_sdp_learned["cost"])
+
     # note that the gap can be slightly negative because of mismatch in convergence tolerances etc.
     assert abs(gap) < 1e-2
 
@@ -105,6 +106,7 @@ def test_autotemplate():
     from cert_tools.sdp_solvers import solve_sdp
 
     from popr.auto_template import AutoTemplate
+    from popr.auto_tight import AutoTight
     from popr.examples.stereo1d_lifter import Stereo1DLifter
 
     # important: we need to use param_level="p", otherwise the parameters
@@ -113,24 +115,22 @@ def test_autotemplate():
 
     # learn the template matrices
     auto_template = AutoTemplate(lifter)
-    data, success = auto_template.run()
+    data, success = auto_template.run(use_known=False)
     assert success
 
     # apply the templates to a different lifter
     new_lifter = Stereo1DLifter(n_landmarks=5, param_level="p")
-    constraints = new_lifter.apply_templates(auto_template.templates)
+    A_learned = auto_template.apply(new_lifter, use_known=True)
 
     Q = new_lifter.get_Q(noise=1e-1)
-    A_known = new_lifter.get_A_known()
-    A_learned = [c.A_sparse_ for c in constraints]
 
     # adds homogenization constraint and all b_i terms
-    constraints = new_lifter.get_A_b_list(A_list=A_known + A_learned)
+    constraints = new_lifter.get_A_b_list(A_list=A_learned)
     X, info_sdp = solve_sdp(Q, constraints)
 
     # evaluate duality gap
     x, info_local, cost = new_lifter.local_solver(new_lifter.theta, y=new_lifter.y_)
-    gap = (info_local["cost"] - info_sdp["cost"]) / abs(info_sdp["cost"])
+    gap = AutoTight.get_duality_gap(info_local["cost"], info_sdp["cost"])
     # note that the gap can be slightly negative because of mismatch in convergence tolerances etc.
     assert abs(gap) < 1e-2
 
@@ -139,6 +139,7 @@ def test_autotemplate_literal():
     """Here, we used AutoTemplate to interpret the templates (i.e., implemented get_A_known_redundant)"""
     from cert_tools.sdp_solvers import solve_sdp
 
+    from popr.auto_tight import AutoTight
     from popr.examples.stereo1d_lifter import Stereo1DLifter
 
     new_lifter = Stereo1DLifter(n_landmarks=5, param_level="p")
@@ -152,7 +153,7 @@ def test_autotemplate_literal():
 
     # evaluate duality gap
     x, info_local, cost = new_lifter.local_solver(new_lifter.theta, y=new_lifter.y_)
-    gap = (info_local["cost"] - info_sdp["cost"]) / abs(info_sdp["cost"])
+    gap = AutoTight.get_duality_gap(info_local["cost"], info_sdp["cost"])
     # note that the gap can be slightly negative because of mismatch in convergence tolerances etc.
     assert abs(gap) < 1e-2
 

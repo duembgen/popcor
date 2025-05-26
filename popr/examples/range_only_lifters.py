@@ -24,10 +24,27 @@ SOLVER_KWARGS = {
 
 
 class RangeOnlyLocLifter(StateLifter):
-    """Range-only localization
+    """Range-only localization in 2D or 3D.
 
-    - level "no" uses substitution z_i=||p_i||^2=x_i^2 + y_i^2
-    - level "quad" uses substitution z_i=[x_i^2, x_iy_i, y_i^2]
+    We minimize the cost function
+
+    .. math:: f(\\theta) = \\sum_{n=0}^{N-1} \\sum_{k=0}^{K-1} w_{nk} (d_{nk}^2 - ||p_n - a_k||^2)^2
+
+    where
+
+    - :math:`w_{nk}` is the weight for the nth point and kth landmark (currently assumed binary to mark missing edges).
+    - :math:`\\theta` is the flattened vector of positions :math:`p_n`.
+    - :math:`d_{nk}` is the distance measurement from point n to landmark k.
+    - :math:`a_k` is the kth landmark.
+
+    Note that in the current implementation, there is no regularization term so the problem could be split into individual points.
+
+    We experiment with two different substitutions to turn the cost function into aquadratic form:
+
+    - level "no" uses substitution :math:`z_i=||p_i||^2=x_i^2 + y_i^2` (or equivalent 3D version).
+    - level "quad" uses substitution :math:`y_i=[x_i^2, x_iy_i, y_i^2]` (or equivalent 3D version).
+
+    This example is treated in more details in `this paper <https://arxiv.org/abs/2308.05783>`_.
     """
 
     TIGHTNESS = "rank"

@@ -4,8 +4,7 @@ import numpy as np
 
 from popr.base_lifters import StereoLifter
 from popr.utils.geometry import get_T, get_theta_from_T
-
-from .stereo3d_problem import _cost, local_solver
+from popr.utils.stereo3d_problem import _cost, local_solver
 
 
 def change_dimensions(a, y):
@@ -18,6 +17,34 @@ GTOL = 1e-6
 
 
 class Stereo3DLifter(StereoLifter):
+    """Stereo-camera localization in 3D.
+
+    Analogously to :class:`Stereo2DLifter`, we minimize the following cost function:
+
+    .. math::
+        f(\\theta) = \\sum_{j=0}^{n} (u_j - M q_j / q_j[2])^2
+
+    where
+
+    - :math:`p_j` are known landmarks (in homogeneous coordinates),
+    - :math:`u_j` are pixel measurements (4 elements: two pixel coordinates in left image and two in right image),
+    - :math:`q_j = T(\\theta) p_j` are the (homogeneous) coordinates of landmark j in the (unknown) camera frame, parameterized by :math:`T(\\theta)`, and
+    - :math:`M` is the stereo camera calibration matrix. Here, it is given by
+
+    .. math::
+
+        \\begin{bmatrix}
+            f_u & 0 & c_u & \\frac{b f_u}{2} \\\\
+            0   & f_v & c_v & 0 \\\\
+            f_u & 0 & c_u & -\\frac{b f_u}{2} \\\\
+            0   & f_v & c_v & 0 \\\\
+        \\end{bmatrix}
+
+    where :math:`f_u, f_v` are horizontal and vertical focal lengths, :math:`c_u,c_v` are image center points in pixels and :math:`b` is the camera baseline.
+
+    This example is treated in more details in `this paper <https://arxiv.org/abs/2308.05783>`_.
+    """
+
     def __init__(self, n_landmarks, level="no", param_level="no", variable_list=None):
         self.W = np.stack([np.eye(4)] * n_landmarks)
 

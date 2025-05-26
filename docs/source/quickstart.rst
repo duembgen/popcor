@@ -117,12 +117,12 @@ If successful, the output is a set of constraints that leads to a tight SDP rela
 
 More information on how to use AutoTight can be found :ref:`here <AutoTight>` and a simple example is given next. 
 
-**Example: tightening the SDP relaxation using AutoTight.**
+**Example: tightening the SDP relaxation using AutoTight**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. literalinclude:: ../../tests/test_quickstart.py
    :language: python
-   :lines: 60-100
+   :lines: 60-101
    :dedent: 4
 
 
@@ -133,9 +133,12 @@ AutoTemplate Method
 
 More information on how to use AutoTemplate can be found :ref:`here <AutoTemplate>` and a simple example is given next. 
 
+**Example: tightening a different problem using AutoTemplate**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. literalinclude:: ../../tests/test_quickstart.py
    :language: python
-   :lines: 105-135
+   :lines: 106-135
    :dedent: 4
 
 

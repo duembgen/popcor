@@ -15,6 +15,10 @@ NORMALIZE = False
 
 
 class WahbaLifter(RobustPoseLifter):
+    """This example is treated in more details in `this paper <https://arxiv.org/abs/2308.05783>`_,
+    under the name "PPR" (point-to-point registration).
+    """
+
     NOISE = 1e-2  # inlier noise
     NOISE_OUT = 1.0  # outlier noise
 

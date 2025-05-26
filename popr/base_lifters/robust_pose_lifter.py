@@ -14,9 +14,6 @@ from popr.utils.geometry import (
 
 from .state_lifter import StateLifter
 
-# import autograd.numpy as np
-
-
 N_TRYS = 10
 
 METHOD = "CG"
@@ -68,10 +65,17 @@ class RobustPoseLifter(StateLifter, ABC):
         robust=False,
         beta=BETA,
     ):
-        """
-        :param level:
-            - xwT: x kron w
-            - xxT: x kron x
+        """RobustPoseLifter is a general class for point-to-point, point-to-line, and point-to-plane registration problems,
+        with starndard or robust loss functions.
+
+        The goal is to regress an unknown pose based on extrinsic measurements.
+
+        See :class:`~popr.examples.WahbaLifter` for point-to-point registration and :class:`~popr.examples.MonoLifter`) for point-to-line registration.
+
+        Implemented lifting functions are:
+
+            - xwT: :math:`x \\otimes w`
+            - xxT: :math:`x \\otimes x`
         """
         self.beta = beta
         self.n_landmarks = n_landmarks

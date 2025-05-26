@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 
-# import autograd.numpy as np
 import numpy as np
 import scipy.sparse as sp
 from poly_matrix.poly_matrix import PolyMatrix
@@ -25,10 +24,14 @@ SOLVER_KWARGS = dict(
 
 
 class StereoLifter(StateLifter, ABC):
-    """General lifter for stereo localization problem."""
+    """StereoLifter is a general lifter class for the stereo localization problem, supporting both 2D and 3D cases.
+
+    See :class:`~popr.examples.Stereo2DLifter` for 2D and :class:`~popr.examples.Stereo3DLifter` for 3D.
+    """
 
     NORMALIZE = True
 
+    # Levels that were experimented with for creating a tight relaxation.
     LEVELS = [
         "no",
         "u@u",  # ...
@@ -419,6 +422,7 @@ class StereoLifter(StateLifter, ABC):
         return get_pose_errors_from_theta(theta_hat, self.theta, self.d)
 
     def local_solver_manopt(self, t0, y, W=None, verbose=False, method="CG", **kwargs):
+        """Alternative solver using Pymanopt. By default, :ref:`StateLifter.local_solver` by is used."""
         import pymanopt
         from pymanopt.manifolds import Euclidean, Product, SpecialOrthogonalGroup
 

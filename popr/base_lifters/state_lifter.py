@@ -10,7 +10,7 @@ class StateLifter(BaseClass):
     LEVELS = ["no"]
 
     # used for AutoTemplate
-    VARIABLE_LIST = ["h"]
+    VARIABLE_LIST = [["h"]]
     TIGHTNESS = "cost"
 
     # to be overwritten by inheriting class
@@ -57,7 +57,7 @@ class StateLifter(BaseClass):
 
     @abstractmethod
     def sample_theta(self) -> np.ndarray:
-        """Randomly sample a feasible state theta. This function must
+        """Randomly sample a feasible state theta. This function must be
         implemented by the inheriting class."""
         raise NotImplementedError("need to implement sample_theta")
 
@@ -86,7 +86,12 @@ class StateLifter(BaseClass):
         var_dict: dict | None = None,
         output_poly: bool = False,
     ) -> list:
-        """Construct the matrices defining the known equality constraints."""
+        """Construct the matrices defining the known equality constraints.
+
+        :param add_redundant: if True, add redundant constraints.
+        :param var_dict: if provided, return only the matrices that involve these variables.
+        :param output_poly: if True, return the matrices in PolyMatrix format.
+        """
         return []
 
     def get_B_known(self) -> list:
@@ -97,7 +102,7 @@ class StateLifter(BaseClass):
 
     def sample_parameters(self, theta=None) -> dict:
         """Create random set of parameters. By default, there are no parameters
-        so this function just returns {`self.HOM`: 1.0}."""
+        so this function just returns `{self.HOM: 1.0}`."""
         assert (
             self.param_level == "no"
         ), "Need to overwrite sample_parameters to use level different than 'no'"
@@ -111,6 +116,9 @@ class StateLifter(BaseClass):
         return {self.HOM: 1}
 
     def get_involved_param_dict(self, var_subset):
+        """Find which parameters to include, given the current var_subset. Here we implicitly assume
+        that each parameter is associated with a variable. This is true for parameters that involve
+        substitution variables."""
         keys = [self.HOM]
         for v in var_subset:
             index = v.split("_")
@@ -130,6 +138,8 @@ class StateLifter(BaseClass):
         raise NotImplementedError("must define get_hess if you want to use it.")
 
     def get_cost(self, theta, y=None) -> float:
+        """Compute the cost of the given state theta. This uses the simple form
+        x.T @ Q @ x. Consider overwriting this for more efficient computations."""
         print(
             "Warning: using default get_cost, which may be less efficient than a custom one."
         )
@@ -141,6 +151,10 @@ class StateLifter(BaseClass):
         return float(x.T @ Q @ x)
 
     def local_solver(self, t0, y=None, *args, **kwargs):
+        """
+        Default local solver that uses IPOPT to solve the QCQP problem defined by Q and the constraints matrices.
+        Consider overwriting this for more efficient solvers.
+        """
         print(
             "Warning: using default local_solver, which may be less efficient than a custom one."
         )
@@ -151,6 +165,12 @@ class StateLifter(BaseClass):
             Q = self.get_Q_from_y(y)
         else:
             Q = self.get_Q()
+
+        B = self.get_B_known()
+        if len(B) > 0:
+            raise NotImplementedError(
+                "Inequality constraints are not currently considered by default solver. Must implement your own."
+            )
 
         Constraints = self.get_A_b_list(A_list=self.get_A_known())
         x0 = self.get_x(theta=t0)

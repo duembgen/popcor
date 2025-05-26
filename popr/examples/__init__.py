@@ -3,8 +3,6 @@ from .mono_lifter import MonoLifter
 from .poly4_lifter import Poly4Lifter
 from .poly6_lifter import Poly6Lifter
 from .range_only_lifters import RangeOnlyLocLifter
-from .range_only_slam1 import RangeOnlySLAM1Lifter
-from .range_only_slam2 import RangeOnlySLAM2Lifter
 from .rotation_lifter import RotationLifter
 from .stereo1d_lifter import Stereo1DLifter
 from .stereo2d_lifter import Stereo2DLifter

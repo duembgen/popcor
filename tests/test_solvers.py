@@ -1,8 +1,9 @@
 import numpy as np
 
+from popr.base_lifters import PolyLifter, RobustPoseLifter
+
 # from lifters.matweight_lifter import MatWeightLifter
 from popr.examples import MonoLifter
-from popr.lifters import PolyLifter, RobustPoseLifter
 from popr.utils.geometry import get_C_r_from_theta
 from popr.utils.test_tools import all_lifters
 
