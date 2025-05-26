@@ -118,7 +118,7 @@ def plot_frame(
     try:
         C_cw, r_wc_c = get_C_r_from_theta(theta, d=d)
         r_wc_w = -C_cw.T @ r_wc_c  # r_wc_w
-    except:
+    except Exception as e:
         C_cw = None
         r_wc_w = theta
 

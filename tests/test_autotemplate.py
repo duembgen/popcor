@@ -20,7 +20,7 @@ def test_stereo_1d():
     )
     try:
         assert success
-    except:
+    except AssertionError:
         learner.save_matrices_poly()
 
 

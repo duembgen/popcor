@@ -261,8 +261,6 @@ class RobustPoseLifter(StateLifter, ABC):
             return theta_noisy
 
     def get_cost(self, theta, y):
-        import autograd.numpy as anp
-
         if self.robust:
             x = theta[: -self.n_landmarks]
             w = theta[-self.n_landmarks :]

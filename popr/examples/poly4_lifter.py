@@ -25,19 +25,21 @@ class Poly4Lifter(PolyLifter):
     def get_Q(self, *args, **kwargs):
         if self.poly_type == "A":
             # fmt: off
+            # noqa
             Q = np.r_[
-                np.c_[2, 1, 0], 
-                np.c_[1, -1 / 2, -1 / 3], 
+                np.c_[2, 1, 0],
+                np.c_[1, -1 / 2, -1 / 3],
                 np.c_[0, -1 / 3, 1 / 4]
             ]
             # fmt: on
         elif self.poly_type == "B":
             # below is constructed such that f'(t) = (t-1)*(t-2)*(t-3)
             # fmt: off
+            # noqa
             Q = np.r_[
-                np.c_[3, -3, 0], 
-                np.c_[-3, 11/2, -1], 
-                np.c_[0, -1, 1/4]
+                np.c_[3, -3, 0],
+                np.c_[-3, 11 / 2, -1],
+                np.c_[0, -1, 1 / 4]
             ]
             # fmt: on
         return Q

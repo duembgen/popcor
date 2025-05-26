@@ -74,7 +74,7 @@ class BaseClass(object):
         # n_parameters * (self.d + (self.d * (self.d + 1)) // 2)
         self.generate_random_setup()
 
-    ### Functionalities related to var_dict
+    # Functionalities related to var_dict
     def get_var_dict(self, var_subset=None, unroll_keys=False):
         if var_subset is not None:
             var_dict = {k: v for k, v in self.var_dict.items() if k in var_subset}
@@ -91,7 +91,7 @@ class BaseClass(object):
             return {k: v for k, v in self.param_dict.items() if k in param_subset}
         return self.param_dict
 
-    ### Functionalities related to random setups
+    # Functionalities related to random setups
     @property
     def theta(self):
         if self.theta_ is None:
@@ -379,7 +379,7 @@ class BaseClass(object):
         var_list_row = self.var_list_row(var_subset, param_subset)
         assert len(b) == len(var_list_row)
 
-        for idx in np.where(mask == True)[0]:
+        for idx in np.where(mask == 1)[0]:
             poly_row[self.HOM, var_list_row[idx]] = b[idx]
         return poly_row
 
