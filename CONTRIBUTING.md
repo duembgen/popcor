@@ -32,3 +32,29 @@ It is also encouraged that added functionality is added as testable code to the 
 make doctest
 ```
 to make sure there are no errors. There is also the possibility to just use literal includes from test files inside the documentation. See [docs/source/quickstart.rst](./docs/source/quickstart.rst) for an example. 
+
+### Setting up mosek license on server
+
+This has already been done -- just keeping track of the process here to make it is easy to redo this in the future. TAken from [here](https://docs.mosek.com/11.0/faq.pdf), page 11. 
+
+1. Go to Settings -> Security -> Secrets and variables -> Actions ([direct link](https://github.com/duembgen/popr/settings/secrets/actions))
+2. Create secret called MSK_LICENSE with content 
+
+```
+START_LICENSE\n
+FEATURE PTS ....
+...
+... here copy the text of the "FEATURE" sections in the license ...
+...
+... ... 5FE1 5DBC"
+END_LICENSE\n
+```
+
+3. Add the following to the workflow file: 
+```
+- name: Setup MOSEK & Run Tests
+    env:
+      MOSEKLM_LICENSE_FILE: ${{ secrets.MSK_LICENSE }}
+    run: |
+      pytest -sv
+```
