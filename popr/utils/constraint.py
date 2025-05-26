@@ -78,17 +78,14 @@ def generate_poly_matrix(constraints, factor_out_parameters=False, lifter=None):
 
 
 def plot_poly_matrix(
-    poly_matrix, variables_j=None, variables_i=None, simplify=True, ax=None, hom="h"
+    poly_matrix, variables_j=None, variables_i=None, simplify=True, hom="h"
 ):
     if variables_i is None:
         variables_i = poly_matrix.variable_dict_i
     if variables_j is None:
         variables_j = poly_matrix.variable_dict_j
 
-    if ax is None:
-        fig, ax = plt.subplots()
     # plot the templates stored in poly_matrix.
-
     fig, ax = plot_basis(
         poly_matrix,
         variables_j=variables_j,
@@ -116,10 +113,10 @@ def plot_poly_matrix(
     old_param = params[0]
     for i, p in enumerate(params):
         if p != old_param:
-            ax.axvline(i, color="red", linewidth=1.0)
+            ax.axvline(i - 0.5, color="red", linewidth=1.0)
             ax.annotate(
                 text=f"${p.replace(':0', '^x').replace(':1', '^y').replace('l.','').replace('.','')}$",
-                xy=(float(i), 0.0),
+                xy=(float(i - 0.4), 0.0),
                 fontsize=8,
                 color="red",
             )

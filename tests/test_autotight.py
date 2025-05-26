@@ -2,7 +2,11 @@ import numpy as np
 
 from popr import AutoTight
 from popr.examples import Stereo1DLifter, Stereo2DLifter, Stereo3DLifter
-from popr.utils.test_tools import all_lifters, example_lifters, test_with_tol
+from popr.utils.test_tools import (
+    all_lifters,
+    constraints_test_with_tol,
+    example_lifters,
+)
 
 # random seed, for reproducibility
 SEED = 3
@@ -12,7 +16,7 @@ def test_constraints():
     # testing qrp, our go-to method, for all example lifters
     for lifter in all_lifters(SEED):
         A_learned = AutoTight.get_A_learned(lifter=lifter, method="qrp")
-        test_with_tol(lifter, A_learned, tol=1e-4)
+        constraints_test_with_tol(lifter, A_learned, tol=1e-4)
 
 
 def test_constraints_params():
@@ -20,7 +24,7 @@ def test_constraints_params():
     for param_level in ["no", "p", "ppT"]:
         for lifter in example_lifters(seed=SEED, param_level=param_level):
             A_learned = AutoTight.get_A_learned(lifter=lifter, verbose=False)
-            test_with_tol(lifter, A_learned, tol=1e-4)
+            constraints_test_with_tol(lifter, A_learned, tol=1e-4)
 
 
 def test_constraints_methods():
@@ -31,7 +35,7 @@ def test_constraints_methods():
             A_learned = AutoTight.get_A_learned(
                 lifter=lifter, verbose=False, method=method
             )
-            test_with_tol(lifter, A_learned, tol=1e-4)
+            constraints_test_with_tol(lifter, A_learned, tol=1e-4)
 
             # make sure each method finds the same number of matrices
             if num_learned is None:
@@ -69,4 +73,5 @@ if __name__ == "__main__":
     test_constraints_stereo()
     test_constraints()
     test_constraints_params()
+    test_constraints_methods()
     test_constraints_methods()

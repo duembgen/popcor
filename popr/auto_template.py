@@ -1171,14 +1171,21 @@ class AutoTemplate(object):
                 continue
 
             if plot:
-
                 # turn the current list of templates into a poly matrix.
                 templates = self.templates_known + self.templates
                 poly_matrix = generate_poly_matrix(templates, lifter=self.lifter)
-                fig, ax = plt.subplots()
-                poly_matrix.matshow(ax=ax)
 
-                fig, ax = plot_poly_matrix(poly_matrix, simplify=False, hom="l")
+                # make sure we use sorted column names
+                variables_j_all = self.lifter.var_dict_row()
+                variables_j = {
+                    key: val
+                    for key, val in variables_j_all.items()
+                    if key in poly_matrix.variable_dict_j
+                }
+
+                fig, ax = plot_poly_matrix(
+                    poly_matrix, variables_j, simplify=False, hom="l"
+                )
                 w, h = fig.get_size_inches()
                 fig.set_size_inches(10, 10 * h / w)
 

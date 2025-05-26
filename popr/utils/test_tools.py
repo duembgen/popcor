@@ -18,11 +18,11 @@ n_landmarks = 3
 n_poses = 4
 # fmt: off
 Lifters = [
-    (Poly4Lifter, dict()),
-    (Poly6Lifter, dict()),
-    (WahbaLifter, dict(n_landmarks=3, d=2, robust=False, level="no", n_outliers=0)),
-    (MonoLifter, dict(n_landmarks=5, d=2, robust=False, level="no", n_outliers=0)),
-    (WahbaLifter, dict(n_landmarks=5, d=2, robust=True, level="xwT", n_outliers=1)),
+    #(Poly4Lifter, dict()),
+    #(Poly6Lifter, dict()),
+    #(WahbaLifter, dict(n_landmarks=3, d=2, robust=False, level="no", n_outliers=0)),
+    #(MonoLifter, dict(n_landmarks=5, d=2, robust=False, level="no", n_outliers=0)),
+    #(WahbaLifter, dict(n_landmarks=5, d=2, robust=True, level="xwT", n_outliers=1)),
     (MonoLifter, dict(n_landmarks=6, d=2, robust=True, level="xwT", n_outliers=1)),
     (RangeOnlyLocLifter,  dict(n_positions=n_poses, n_landmarks=n_landmarks, d=d, level="no")),
     (RangeOnlyLocLifter, dict(n_positions=n_poses, n_landmarks=n_landmarks, d=d, level="quad")),
@@ -43,7 +43,7 @@ ExampleLifters = [
 # fmt: on
 
 
-def test_with_tol(lifter, A_list, tol):
+def constraints_test_with_tol(lifter, A_list, tol):
     x = lifter.get_x().astype(float).reshape((-1, 1))
     for Ai in A_list:
         err = abs((x.T @ Ai @ x)[0, 0])

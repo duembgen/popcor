@@ -53,6 +53,7 @@ class StereoLifter(StateLifter, ABC):
     ):
         self.y_ = None
         self.n_landmarks = n_landmarks
+        self.landmarks_ = None  # will be initialized on first access
         super().__init__(
             d=d,
             level=level,

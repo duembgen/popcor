@@ -115,7 +115,7 @@ def test_autotemplate():
 
     # learn the template matrices
     auto_template = AutoTemplate(lifter)
-    data, success = auto_template.run(use_known=False)
+    data, success = auto_template.run(use_known=False, plot=True)
     assert success
 
     # apply the templates to a different lifter

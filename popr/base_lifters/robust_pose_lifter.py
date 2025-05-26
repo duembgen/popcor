@@ -89,6 +89,8 @@ class RobustPoseLifter(StateLifter, ABC):
 
         if not robust:
             assert level == "no"
+
+        self.landmarks_ = None  # will be initialized later
         super().__init__(
             level=level,
             param_level=param_level,

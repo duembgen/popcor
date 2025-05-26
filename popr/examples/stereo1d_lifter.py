@@ -11,11 +11,12 @@ class Stereo1DLifter(StateLifter):
     """Toy example for stereo localization in 1D. We minimize the following cost function:
 
     .. math::
-        f(\\theta) = \\sum_{j=0}^{n} (u_j - 1 / (\\theta - a_j))^2
+        f(\\theta) = \\sum_{j=0}^{N-1} (u_j - 1 / (\\theta - a_j))^2
 
     where :math:`a_j` are the landmarks and :math:`u_j` are the measurements.
 
-    This is the running example of `this paper <https://arxiv.org/abs/2308.05783>`_.
+    This is the pedagogical running example of `this paper <https://arxiv.org/abs/2308.05783>`_.
+    and also used in the :ref:`Quick Start Guide`.
     """
 
     PARAM_LEVELS = ["no", "p", "ppT"]
@@ -40,6 +41,8 @@ class Stereo1DLifter(StateLifter):
         return self.landmarks_
 
     def sample_parameters(self, theta=None):
+        if self.parameters_ is None:
+            return self.sample_parameters_landmarks(self.landmarks)
         landmarks = np.random.rand(self.n_landmarks, self.d)
         return self.sample_parameters_landmarks(landmarks)
 

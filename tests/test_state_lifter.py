@@ -5,7 +5,7 @@ import scipy.sparse as sp
 from popr.base_lifters import StateLifter, StereoLifter
 from popr.examples import Stereo2DLifter, Stereo3DLifter
 from popr.utils.common import get_vec, ravel_multi_index_triu, unravel_multi_index_triu
-from popr.utils.test_tools import all_lifters, test_with_tol
+from popr.utils.test_tools import all_lifters, constraints_test_with_tol
 
 
 def pytest_configure():
@@ -42,7 +42,7 @@ def test_ravel():
 def test_known_constraints():
     for lifter in all_lifters():
         A_known = lifter.get_A_known()
-        test_with_tol(lifter, A_known, tol=1e-10)
+        constraints_test_with_tol(lifter, A_known, tol=1e-10)
 
         B_known = lifter.get_B_known()
         x = lifter.get_x(theta=lifter.theta)
@@ -111,8 +111,10 @@ pytest_configure()
 if __name__ == "__main__":
     import pytest
 
-    pytest.main([__file__, "-s"])
-    print("all tests passed")
+    # pytest.main([__file__, "-s"])
+    # print("all tests passed")
+
+    test_known_constraints()
 
     test_constraint_rank()
     test_ravel()

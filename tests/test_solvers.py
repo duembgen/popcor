@@ -178,6 +178,9 @@ def test_solvers(n_seeds=1, noise=0.0):
             if Q is None:
                 continue
 
+            if lifter.robust:
+                lifter.beta = 1e-2
+
             # test that we stay at real solution when initializing at it
             theta_gt = lifter.get_vec_around_gt(delta=0)
             try:
@@ -319,7 +322,6 @@ if __name__ == "__main__":
 
     with warnings.catch_warnings():
         # warnings.simplefilter("error"))
-        test_cost(noise=0)
         test_cost()
         test_cost_noisy()
         test_solvers()
