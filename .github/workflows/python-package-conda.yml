@@ -29,6 +29,8 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --exit-zero --max-complexity=25 --max-line-length=127 --statistics --per-file-ignores="__init__.py:F401,F403" --exclude docs/build/_static/conf.py 
     - name: Test with pytest
+      env: 
+        MOSEKLM_LICENSE_FILE: ${{ secrets.MSK_LICENSE }}
       run: |
         conda install pytest
         pytest
