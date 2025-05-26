@@ -186,6 +186,8 @@ class RobustPoseLifter(StateLifter, ABC):
         return self.landmarks_
 
     def sample_parameters(self, theta=None):
+        if self.parameters_ is None:
+            return self.sample_parameters_landmarks(self.landmarks)
         landmarks = np.random.normal(loc=0, scale=1.0, size=(self.n_landmarks, self.d))
         return self.sample_parameters_landmarks(landmarks)
 

@@ -178,9 +178,6 @@ def test_solvers(n_seeds=1, noise=0.0):
             if Q is None:
                 continue
 
-            if lifter.robust:
-                lifter.beta = 1e-2
-
             # test that we stay at real solution when initializing at it
             theta_gt = lifter.get_vec_around_gt(delta=0)
             try:
