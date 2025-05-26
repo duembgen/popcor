@@ -9,12 +9,11 @@ Core Algorithms
 AutoTight
 ---------
 .. autoclass:: popr.AutoTight
-   :members:
-   :show-inheritance:
+   :undoc-members:
+   :members: get_A_learned, get_duality_gap
 
 AutoTemplate
 ------------
 .. autoclass:: popr.AutoTemplate
-   :members:
-   :show-inheritance:
-
+   :undoc-members:
+   :members: run, apply

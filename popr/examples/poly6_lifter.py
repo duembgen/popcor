@@ -1,9 +1,17 @@
 import numpy as np
 
-from popr.lifters import PolyLifter
+from popr.base_lifters import PolyLifter
 
 
 class Poly6Lifter(PolyLifter):
+    """Sixth-degree polynomial examples.
+
+    Two types are provided:
+
+    - poly_type="A": one global minimum, two local minima, 2 local maxima
+    - poly_type="B": one global minimum, one local minimum, one local maximum
+    """
+
     @property
     def VARIABLE_LIST(self):
         return [[self.HOM, "t", "z0", "z1"]]
@@ -75,3 +83,25 @@ class Poly6Lifter(PolyLifter):
 
     def generate_random_setup(self):
         self.theta_ = np.array([-1])
+
+
+if __name__ == "__main__":
+    import os
+
+    import matplotlib.pylab as plt
+
+    # Get the directory two levels up from this file
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+    thetas = np.linspace(-1.5, 4.5, 100)
+    poly_lifter = Poly6Lifter(poly_type="A")
+    fig, ax = poly_lifter.plot(thetas)
+    fig.savefig(os.path.join(base_dir, "docs", "figures", "poly6_lifter_A.png"))
+
+    thetas = np.linspace(-3, 3, 100)
+    poly_lifter = Poly6Lifter(poly_type="B")
+    fig, ax = poly_lifter.plot(thetas)
+    fig.savefig(os.path.join(base_dir, "docs", "figures", "poly6_lifter_B.png"))
+
+    plt.show(block=False)
+    print("done")

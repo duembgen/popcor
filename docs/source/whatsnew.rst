@@ -1,9 +1,7 @@
-What's new in POPR
-==================
+What's new
+==========
 
-.. toctree::
-   :numbered:
-   :maxdepth: 2
-   :caption: Contents:
+Below is a rendering of the CHANGELOG.md file. 
 
-   whatsnew/0.0.1
+.. include:: ../../CHANGELOG.md
+   :parser: myst_parser.sphinx_

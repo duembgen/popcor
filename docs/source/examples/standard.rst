@@ -1,10 +1,6 @@
 Standard Estimation Problems
 ============================
 
-.. contents::
-   :depth: 1
-   :local:
-
 Range-Only Localization
 -----------------------
 
@@ -14,17 +10,17 @@ Range-Only Localization
 Stereo-Camera Localization
 --------------------------
 
-.. autoclass:: popr.examples.Stereo1DLifter
-
 .. autoclass:: popr.examples.Stereo2DLifter
+   :undoc-members:
+   :show-inheritance:
 
 .. autoclass:: popr.examples.Stereo3DLifter
+   :undoc-members:
+   :show-inheritance:
 
+Rotation Averaging
+------------------
 
-Work in Progress
-----------------
-
-.. autoclass:: popr.examples.RangeOnlySLAM1Lifter
-
-.. autoclass:: popr.examples.RangeOnlySLAM2Lifter
-
+.. autoclass:: popr.examples.RotationLifter
+   :undoc-members:
+   :show-inheritance:

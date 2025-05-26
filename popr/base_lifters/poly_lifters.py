@@ -1,5 +1,3 @@
-from abc import abstractmethod
-
 import numpy as np
 
 from .state_lifter import StateLifter
@@ -7,6 +5,7 @@ from .state_lifter import StateLifter
 
 class PolyLifter(StateLifter):
     def __init__(self, degree, param_level="no"):
+        """Simple univariate polynomial lifter, mostly for testing and pedagogical purposes."""
         self.degree = degree
         super().__init__(d=1, param_level=param_level)
 
@@ -47,6 +46,16 @@ class PolyLifter(StateLifter):
         sol = minimize(self.get_cost, t0)
         info = {"success": sol.success}
         return sol.x, info, sol.fun
+
+    def plot(self, thetas, label=None):
+        from popr.utils.plotting_tools_poly import coordinate_system
+
+        fig, ax = coordinate_system()
+        ys = [self.get_cost(t) for t in thetas]
+        ax.plot(thetas, ys, label=label)
+        ymin = min(-max(ys) / 3, min(ys))
+        ax.set_ylim(ymin, max(ys))
+        return fig, ax
 
     def __repr__(self):
         return f"poly{self.degree}"

@@ -4,7 +4,7 @@ Quick Start Guide
 Installation
 ------------
 
-The tool can be installed by running from a terminal:
+POPR can be installed by running from a terminal:
 
 .. code-block:: bash
 
@@ -49,7 +49,7 @@ Note that
 
 For the standard usage, the user first needs to define a custom **Lifter** class which essentially contains all elements related to the QCQP problem formulation.
 This class should inherit from :ref:`StateLifter`. A basic skeleton of such a 
-Lifter class is provided in :ref:`ExampleLifter`. The main purpose of this class is 
+Lifter class is provided in :ref:`Example for AutoTight`. The main purpose of this class is 
 that it provides all basic operations related to the problem formulation, such as:
 
 - to sample feasible states (:meth:`popr.lifters.StateLifter.sample_theta`),
