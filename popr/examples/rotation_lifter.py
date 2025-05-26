@@ -70,26 +70,30 @@ class RotationLifter(StateLifter):
         C_flat = x[1 : 1 + self.d**2]
         return C_flat.reshape((self.d, self.d))
 
-    def get_Q(self, noise: float | None = None):
+    def simulate_y(self, noise: float | None = None):
         if noise is None:
             noise = self.NOISE
-        if self.y_ is None:
-            self.y_ = []
-            for i in range(self.n_meas):
-                # noise model: R_i = R.T @ Rnoise
-                if noise > 0:
-                    # Generate a random small rotation as noise and apply it
-                    noise_rotvec = np.random.normal(scale=noise, size=(self.d,))
-                    Rnoise = (
-                        R.from_rotvec(noise_rotvec).as_matrix()
-                        if self.d == 3
-                        else R.from_euler("z", noise_rotvec[0]).as_matrix()[:2, :2]
-                    )
-                    Ri = self.theta.T @ Rnoise
-                else:
-                    Ri = self.theta.T
-                self.y_.append(Ri)
 
+        self.y_ = []
+        for i in range(self.n_meas):
+            # noise model: R_i = R.T @ Rnoise
+            if noise > 0:
+                # Generate a random small rotation as noise and apply it
+                noise_rotvec = np.random.normal(scale=noise, size=(self.d,))
+                Rnoise = (
+                    R.from_rotvec(noise_rotvec).as_matrix()
+                    if self.d == 3
+                    else R.from_euler("z", noise_rotvec[0]).as_matrix()[:2, :2]
+                )
+                Ri = self.theta.T @ Rnoise
+            else:
+                Ri = self.theta.T
+            self.y_.append(Ri)
+        return self.y_
+
+    def get_Q(self, noise: float | None = None):
+        if self.y_ is None:
+            self.y = self.simulate_y(noise=noise)
         return self.get_Q_from_y(self.y_)
 
     def get_Q_from_y(self, y, output_poly=False):
@@ -217,3 +221,18 @@ class RotationLifter(StateLifter):
                     "Warning: consider implementing the determinant constraint for RobustPoseLifter, d=3"
                 )
         return A_list
+
+    def plot(self, estimates={}):
+        import matplotlib.pyplot as plt
+
+        from popr.utils.plotting_tools import plot_frame
+
+        fig, ax = plt.subplots()
+        plot_frame(ax=ax, theta=self.theta, label="gt", ls="-", scale=0.5)
+
+        for label, theta in estimates.items():
+            plot_frame(ax=ax, theta=theta, label=label, ls="--", scale=1.0)
+
+        ax.set_aspect("equal")
+        ax.legend()
+        return fig, ax
