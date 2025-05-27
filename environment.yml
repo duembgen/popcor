@@ -1,4 +1,4 @@
-name: popr
+name: popr 
 channels:
     - defaults
     - conda-forge
