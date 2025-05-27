@@ -10,7 +10,7 @@ jobs:
 
     steps:
     - uses: conda-incubator/setup-miniconda@v3
-    - with:
+      with:
         miniconda-version: "latest"
         activate-environment: foo
         python-version: '3.10'
