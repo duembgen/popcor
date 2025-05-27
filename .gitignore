@@ -19,3 +19,4 @@ mosek_output.tmp
 .coverage
 *.ptf
 docs/build/
+bin/act

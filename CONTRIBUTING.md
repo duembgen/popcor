@@ -58,3 +58,19 @@ END_LICENSE\n
     run: |
       pytest -sv
 ```
+
+### Testing Github actions locally
+
+It can be super useful to run github actions locally for debugging! 
+I did this by using [this](https://nektosact.com/installation/index.html) tool. Basically, it came down to: 
+
+
+- Installing docker
+- From this repo, running: 
+``` 
+curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
+```
+- Also from this repo, running: 
+```
+sudo ./bin/act 
+```
