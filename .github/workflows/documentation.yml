@@ -1,4 +1,4 @@
-name: documentation
+name: Documentation
 
 on: [push]
 
@@ -28,7 +28,7 @@ jobs:
         echo $CONDA/bin >> $GITHUB_PATH
     - name: Install dependencies
       run: |
-        conda env update --file environment.yml --name base
+        conda env update --file environment_small.yml --name base
         pip install -r docs/requirements.txt
     - name: Sphinx build
       run: |
