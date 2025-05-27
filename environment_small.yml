@@ -14,5 +14,6 @@ dependencies:
     - flake8
     - pytest
     - autograd
+    - tbb=2020.2 # sparseqr conflict
     - pip:
       - -r requirements.txt
