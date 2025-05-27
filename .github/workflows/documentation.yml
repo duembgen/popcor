@@ -5,11 +5,6 @@ on: [push]
 permissions:
   contents: write
 
-# if we push to the same pull request, we make sure the previous CI runs are canceled.
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
   docs:
     runs-on: ubuntu-latest
