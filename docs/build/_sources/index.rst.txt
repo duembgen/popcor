@@ -7,7 +7,7 @@
 Welcome to POPCOR!
 ==================
 
-.. figure:: _static/overview.webp
+.. figure:: _static/overview.png
    :align: center
    :width: 500px
 
