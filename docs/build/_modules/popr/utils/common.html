@@ -1,0 +1,302 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>popr.utils.common &mdash; POPR 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            POPR
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Welcome to POPR’s documentation!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API and modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../whatsnew.html">What’s new in POPR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">POPR</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">popr.utils.common</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for popr.utils.common</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.sparse</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sp</span>
+
+
+<div class="viewcode-block" id="upper_triangular">
+<a class="viewcode-back" href="../../../api/utils.html#popr.utils.common.upper_triangular">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">upper_triangular</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Given vector, get the half kronecker product.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">p</span><span class="p">)[</span><span class="n">np</span><span class="o">.</span><span class="n">triu_indices</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">))]</span></div>
+
+
+
+<div class="viewcode-block" id="diag_indices">
+<a class="viewcode-back" href="../../../api/utils.html#popr.utils.common.diag_indices">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">diag_indices</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Given the half kronecker product, return diagonal elements&quot;&quot;&quot;</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+    <span class="n">z</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">triu_indices</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_aggregate_sparsity</span><span class="p">(</span><span class="n">matrix_list_sparse</span><span class="p">):</span>
+    <span class="n">agg_ii</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">agg_jj</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">A_sparse</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">matrix_list_sparse</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">A_sparse</span><span class="p">,</span> <span class="n">sp</span><span class="o">.</span><span class="n">spmatrix</span><span class="p">)</span>
+        <span class="n">ii</span><span class="p">,</span> <span class="n">jj</span> <span class="o">=</span> <span class="n">A_sparse</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
+        <span class="n">agg_ii</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ii</span><span class="p">)</span>
+        <span class="n">agg_jj</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">jj</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sp</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">(([</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">agg_ii</span><span class="p">),</span> <span class="p">(</span><span class="n">agg_ii</span><span class="p">,</span> <span class="n">agg_jj</span><span class="p">)),</span> <span class="n">A_sparse</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="unravel_multi_index_triu">
+<a class="viewcode-back" href="../../../api/utils.html#popr.utils.common.unravel_multi_index_triu">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">unravel_multi_index_triu</span><span class="p">(</span><span class="n">flat_indices</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Equivalent of np.multi_index_triu, but using only the upper-triangular part of matrix.&quot;&quot;&quot;</span>
+    <span class="n">i_upper</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">j_upper</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># for 4 x 4, this would give [4, 7, 9, 11]</span>
+    <span class="n">cutoffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">flat_indices</span><span class="p">:</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">idx</span> <span class="o">&lt;</span> <span class="n">cutoffs</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="n">idx</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">-</span> <span class="n">cutoffs</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">i</span>
+        <span class="n">i_upper</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">j_upper</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">i_upper</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">j_upper</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ravel_multi_index_triu">
+<a class="viewcode-back" href="../../../api/utils.html#popr.utils.common.ravel_multi_index_triu">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ravel_multi_index_triu</span><span class="p">(</span><span class="n">index_tuple</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Equivalent of np.multi_index_triu, but using only the upper-triangular part of matrix.&quot;&quot;&quot;</span>
+    <span class="n">ii</span><span class="p">,</span> <span class="n">jj</span> <span class="o">=</span> <span class="n">index_tuple</span>
+
+    <span class="n">triu_mask</span> <span class="o">=</span> <span class="n">jj</span> <span class="o">&gt;=</span> <span class="n">ii</span>
+    <span class="n">i_upper</span> <span class="o">=</span> <span class="n">ii</span><span class="p">[</span><span class="n">triu_mask</span><span class="p">]</span>
+    <span class="n">j_upper</span> <span class="o">=</span> <span class="n">jj</span><span class="p">[</span><span class="n">triu_mask</span><span class="p">]</span>
+    <span class="n">flat_indices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">i_upper</span><span class="p">,</span> <span class="n">j_upper</span><span class="p">):</span>
+        <span class="c1"># for i == 0: idx = j</span>
+        <span class="c1"># for i == 1: idx = shape[0] + j</span>
+        <span class="c1"># for i == 2: idx = shape[0] + shape[0]-1 + j</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">i</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="o">+</span> <span class="n">j</span>
+        <span class="n">flat_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">flat_indices</span></div>
+
+
+
+<div class="viewcode-block" id="create_symmetric">
+<a class="viewcode-back" href="../../../api/utils.html#popr.utils.common.create_symmetric">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_symmetric</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="n">eps_sparse</span><span class="p">,</span> <span class="n">correct</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sparse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a symmetric matrix from the vectorized elements of the upper half&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dim_x</span><span class="p">(</span><span class="n">len_vec</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">len_vec</span><span class="p">)))</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># vec is dense</span>
+        <span class="n">len_vec</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vec</span><span class="p">)</span>
+        <span class="n">dim_x</span> <span class="o">=</span> <span class="n">get_dim_x</span><span class="p">(</span><span class="n">len_vec</span><span class="p">)</span>
+        <span class="n">triu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">triu_indices</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">dim_x</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">vec</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">eps_sparse</span>
+        <span class="n">triu_i_nnz</span> <span class="o">=</span> <span class="n">triu</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">mask</span><span class="p">]</span>
+        <span class="n">triu_j_nnz</span> <span class="o">=</span> <span class="n">triu</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">mask</span><span class="p">]</span>
+        <span class="n">vec_nnz</span> <span class="o">=</span> <span class="n">vec</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="c1"># vec is sparse</span>
+        <span class="n">len_vec</span> <span class="o">=</span> <span class="n">vec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">dim_x</span> <span class="o">=</span> <span class="n">get_dim_x</span><span class="p">(</span><span class="n">len_vec</span><span class="p">)</span>
+        <span class="n">vec</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">vec</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">eps_sparse</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">vec</span><span class="o">.</span><span class="n">eliminate_zeros</span><span class="p">()</span>
+        <span class="n">ii</span><span class="p">,</span> <span class="n">jj</span> <span class="o">=</span> <span class="n">vec</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()</span>  <span class="c1"># vec is 1 x jj</span>
+        <span class="n">triu_i_nnz</span><span class="p">,</span> <span class="n">triu_j_nnz</span> <span class="o">=</span> <span class="n">unravel_multi_index_triu</span><span class="p">(</span><span class="n">jj</span><span class="p">,</span> <span class="p">(</span><span class="n">dim_x</span><span class="p">,</span> <span class="n">dim_x</span><span class="p">))</span>
+        <span class="n">vec_nnz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vec</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">])</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="c1"># assert dim_x == self.get_dim_x(var_dict)</span>
+
+    <span class="k">if</span> <span class="n">sparse</span><span class="p">:</span>
+        <span class="n">offdiag</span> <span class="o">=</span> <span class="n">triu_i_nnz</span> <span class="o">!=</span> <span class="n">triu_j_nnz</span>
+        <span class="n">diag</span> <span class="o">=</span> <span class="n">triu_i_nnz</span> <span class="o">==</span> <span class="n">triu_j_nnz</span>
+        <span class="n">triu_i</span> <span class="o">=</span> <span class="n">triu_i_nnz</span><span class="p">[</span><span class="n">offdiag</span><span class="p">]</span>
+        <span class="n">triu_j</span> <span class="o">=</span> <span class="n">triu_j_nnz</span><span class="p">[</span><span class="n">offdiag</span><span class="p">]</span>
+        <span class="n">diag_i</span> <span class="o">=</span> <span class="n">triu_i_nnz</span><span class="p">[</span><span class="n">diag</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">correct</span><span class="p">:</span>
+            <span class="c1"># divide off-diagonal elements by sqrt(2)</span>
+            <span class="n">vec_nnz_off</span> <span class="o">=</span> <span class="n">vec_nnz</span><span class="p">[</span><span class="n">offdiag</span><span class="p">]</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vec_nnz_off</span> <span class="o">=</span> <span class="n">vec_nnz</span><span class="p">[</span><span class="n">offdiag</span><span class="p">]</span>
+        <span class="n">vec_nnz_diag</span> <span class="o">=</span> <span class="n">vec_nnz</span><span class="p">[</span><span class="n">diag</span><span class="p">]</span>
+        <span class="n">Ai</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">csr_array</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">vec_nnz_diag</span><span class="p">,</span> <span class="n">vec_nnz_off</span><span class="p">,</span> <span class="n">vec_nnz_off</span><span class="p">],</span>
+                <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">diag_i</span><span class="p">,</span> <span class="n">triu_i</span><span class="p">,</span> <span class="n">triu_j</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">diag_i</span><span class="p">,</span> <span class="n">triu_j</span><span class="p">,</span> <span class="n">triu_i</span><span class="p">]),</span>
+            <span class="p">),</span>
+            <span class="p">(</span><span class="n">dim_x</span><span class="p">,</span> <span class="n">dim_x</span><span class="p">),</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Ai</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim_x</span><span class="p">,</span> <span class="n">dim_x</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">correct</span><span class="p">:</span>
+            <span class="c1"># divide all elements by sqrt(2)</span>
+            <span class="n">Ai</span><span class="p">[</span><span class="n">triu_i_nnz</span><span class="p">,</span> <span class="n">triu_j_nnz</span><span class="p">]</span> <span class="o">=</span> <span class="n">vec_nnz</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">Ai</span><span class="p">[</span><span class="n">triu_j_nnz</span><span class="p">,</span> <span class="n">triu_i_nnz</span><span class="p">]</span> <span class="o">=</span> <span class="n">vec_nnz</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="c1"># undo operation for diagonal</span>
+            <span class="n">Ai</span><span class="p">[</span><span class="nb">range</span><span class="p">(</span><span class="n">dim_x</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim_x</span><span class="p">)]</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Ai</span><span class="p">[</span><span class="n">triu_i_nnz</span><span class="p">,</span> <span class="n">triu_j_nnz</span><span class="p">]</span> <span class="o">=</span> <span class="n">vec_nnz</span>
+            <span class="n">Ai</span><span class="p">[</span><span class="n">triu_j_nnz</span><span class="p">,</span> <span class="n">triu_i_nnz</span><span class="p">]</span> <span class="o">=</span> <span class="n">vec_nnz</span>
+    <span class="k">return</span> <span class="n">Ai</span></div>
+
+
+
+<div class="viewcode-block" id="get_vec">
+<a class="viewcode-back" href="../../../api/utils.html#popr.utils.common.get_vec">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_vec</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">correct</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sparse</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">sp</span><span class="o">.</span><span class="n">csr_matrix</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert NxN Symmetric matrix to (N+1)N/2 vectorized version that preserves inner product.</span>
+
+<span class="sd">    :param mat: (spmatrix or ndarray) symmetric matrix</span>
+<span class="sd">    :return: ndarray</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+
+    <span class="n">mat</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">correct</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">sp</span><span class="o">.</span><span class="n">csc_matrix</span><span class="p">):</span>
+            <span class="n">ii</span><span class="p">,</span> <span class="n">jj</span> <span class="o">=</span> <span class="n">mat</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()</span>
+            <span class="n">mat</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">]</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+            <span class="n">diag</span> <span class="o">=</span> <span class="n">ii</span> <span class="o">==</span> <span class="n">jj</span>
+            <span class="n">mat</span><span class="p">[</span><span class="n">ii</span><span class="p">[</span><span class="n">diag</span><span class="p">],</span> <span class="n">jj</span><span class="p">[</span><span class="n">diag</span><span class="p">]]</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mat</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+            <span class="n">mat</span><span class="p">[</span><span class="nb">range</span><span class="p">(</span><span class="n">mat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">range</span><span class="p">(</span><span class="n">mat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sparse</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">sp</span><span class="o">.</span><span class="n">csc_matrix</span><span class="p">)</span>
+        <span class="n">ii</span><span class="p">,</span> <span class="n">jj</span> <span class="o">=</span> <span class="n">mat</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ii</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># got an empty matrix -- this can happen depending on the parameter values.</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">triu_mask</span> <span class="o">=</span> <span class="n">jj</span> <span class="o">&gt;=</span> <span class="n">ii</span>
+
+        <span class="n">flat_indices</span> <span class="o">=</span> <span class="n">ravel_multi_index_triu</span><span class="p">([</span><span class="n">ii</span><span class="p">[</span><span class="n">triu_mask</span><span class="p">],</span> <span class="n">jj</span><span class="p">[</span><span class="n">triu_mask</span><span class="p">]],</span> <span class="n">mat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mat</span><span class="p">[</span><span class="n">ii</span><span class="p">[</span><span class="n">triu_mask</span><span class="p">],</span> <span class="n">jj</span><span class="p">[</span><span class="n">triu_mask</span><span class="p">]])</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
+        <span class="n">vec_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">mat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">mat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="k">return</span> <span class="n">sp</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">flat_indices</span><span class="p">),</span> <span class="n">flat_indices</span><span class="p">)),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">vec_size</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mat</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">triu_indices</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">mat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>  <span class="c1"># type: ignore</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_labels</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">zi</span><span class="p">,</span> <span class="n">zj</span><span class="p">,</span> <span class="n">var_dict</span><span class="p">):</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">size_i</span> <span class="o">=</span> <span class="n">var_dict</span><span class="p">[</span><span class="n">zi</span><span class="p">]</span>
+    <span class="n">size_j</span> <span class="o">=</span> <span class="n">var_dict</span><span class="p">[</span><span class="n">zj</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">zi</span> <span class="o">==</span> <span class="n">zj</span><span class="p">:</span>
+        <span class="c1"># only upper diagonal for i == j</span>
+        <span class="n">key_pairs</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations_with_replacement</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">size_i</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">key_pairs</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">size_i</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">size_j</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">key_pairs</span><span class="p">:</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s2">-&quot;</span>
+        <span class="n">label</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">zi</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">.&quot;</span> <span class="k">if</span> <span class="n">size_i</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">zi</span><span class="si">}</span><span class="s2">.&quot;</span>
+        <span class="n">label</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">zj</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">size_j</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">zj</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">labels</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, POPR Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
