@@ -34,6 +34,18 @@
 
 - [Study](https://skoge.folk.ntnu.no/prost/proceedings/focapo-cpc-2023/Oral%20Talks/56_Oral.pdf) comparing Pyomo and JuMP, from CMU. This study provides a detailed comparison of modeling capabilities, performance, and user experience between two leading open-source algebraic modeling languages.
 
+## What this tool can and cannot do
+
+This tool can be seen as a bridge between the mathematical problem formulation and the algebraic modeling languages (AMLs). AMLs take as an input the *mathematical problem* written by a user, and convert it to a standard form [`[1]`](https://arxiv.org/pdf/2002.03447). One of the most well-known AMLs is for example shipped with [CVXPY](https://www.cvxpy.org/). However, coming up with the *mathematical problem* is sometimes a challenge in itself.
+
+In certifiable optimization, for example, we typically solve an SDP that was derived as the rank relaxation or Lagrangian dual of an original, non-convex problem. Finding the correct SDP can be however quite difficult! For example, one might have to add many constraints to the SDP that are redundant for the original non-convex problem but change the solution of the relaxation, making it more "tight". 
+
+Currently, this tool is focused on tightening relaxations by finding redundant constraints. There are however numerous extensions that a powerful "bridge" should also include and that are topics of ongoing research. For example, interesting features to this toolbox would be:
+
+- Problem conditioning: applying a coordinate transform to improve the convergence properties of the problem.
+- Data-driven modeling: deriving the correct problem formulation directly from data.
+
+
 ## Citations
 
 [1] https://wangjie212.github.io/jiewang/research/tssos.pdf

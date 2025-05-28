@@ -14,16 +14,16 @@
 import os
 import sys
 
-import popr
+import popcor
 
 # The module you're documenting (assumes you've added the project root dir to sys.path)
 sys.path.insert(0, os.path.abspath("../.."))
 
 # -- Project information -----------------------------------------------------
 
-project = "POPR"
-copyright = "2025, POPR Contributors"
-author = "POPR Contributors, adopted from PEPit"
+project = "POPCOR"
+copyright = "2025, POPCOR Contributors"
+author = "POPCOR Contributors"
 
 # The full version, including alpha/beta/rc tags
 release = "0.0.1"
@@ -54,7 +54,7 @@ napoleon_custom_sections = [("Returns", "params_style"), ("Attributes", "params_
 
 autodocgen_config = [
     {
-        "modules": [popr],
+        "modules": [popcor],
         "generated_source_dir": "./autodocgen-output/",
         # if module matches this then it and any of its submodules will be skipped
         "skip_module_regex": "(.*[.]__|myskippedmodule)",
@@ -92,6 +92,12 @@ exclude_patterns = []
 #
 html_theme = "sphinx_rtd_theme"
 
+# Make sure we display the logo in top-left.
+html_logo = "_static/logo2.png"
+html_theme_options = {
+    "logo_only": True,
+}
+
 # # Make the copy paste possible for any example code in documentation
 # import easydev
 #
@@ -107,4 +113,12 @@ html_theme = "sphinx_rtd_theme"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = []
+html_static_path = ["_static"]
+
+
+# Do not show "View Page Source"
+html_show_sourcelink = False
+
+
+def setup(app):
+    app.add_css_file("custom_css")

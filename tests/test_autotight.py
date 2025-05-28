@@ -1,8 +1,8 @@
 import numpy as np
 
-from popr import AutoTight
-from popr.examples import Stereo1DLifter, Stereo2DLifter, Stereo3DLifter
-from popr.utils.test_tools import (
+from popcor import AutoTight
+from popcor.examples import Stereo1DLifter, Stereo2DLifter, Stereo3DLifter
+from popcor.utils.test_tools import (
     all_lifters,
     constraints_test_with_tol,
     example_lifters,
