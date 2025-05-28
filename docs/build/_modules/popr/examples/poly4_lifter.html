@@ -82,7 +82,7 @@
 
 
 <div class="viewcode-block" id="Poly4Lifter">
-<a class="viewcode-back" href="../../../examples/a.html#popr.examples.Poly4Lifter">[docs]</a>
+<a class="viewcode-back" href="../../../examples/toy.html#popr.examples.Poly4Lifter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Poly4Lifter</span><span class="p">(</span><span class="n">PolyLifter</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Fourth-degree polynomial examples.</span>
 
@@ -105,19 +105,21 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">get_Q</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">poly_type</span> <span class="o">==</span> <span class="s2">&quot;A&quot;</span><span class="p">:</span>
             <span class="c1"># fmt: off</span>
+            <span class="c1"># noqa</span>
             <span class="n">Q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> 
-                <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">3</span><span class="p">],</span> 
+                <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">3</span><span class="p">],</span>
                 <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">4</span><span class="p">]</span>
             <span class="p">]</span>
             <span class="c1"># fmt: on</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">poly_type</span> <span class="o">==</span> <span class="s2">&quot;B&quot;</span><span class="p">:</span>
             <span class="c1"># below is constructed such that f&#39;(t) = (t-1)*(t-2)*(t-3)</span>
             <span class="c1"># fmt: off</span>
+            <span class="c1"># noqa</span>
             <span class="n">Q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> 
-                <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">11</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> 
-                <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">]</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">11</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">4</span><span class="p">]</span>
             <span class="p">]</span>
             <span class="c1"># fmt: on</span>
         <span class="k">return</span> <span class="n">Q</span>

@@ -57,6 +57,8 @@
 <li class="toctree-l3"><a class="reference internal" href="#adding-new-functionalities">Adding new functionalities</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#resources">Resources</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#testing">Testing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#setting-up-mosek-license-on-server">Setting up mosek license on server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#testing-github-actions-locally">Testing Github actions locally</a></li>
 </ul>
 </li>
 </ul>
@@ -124,6 +126,51 @@
 </pre></div>
 </div>
 <p>to make sure there are no errors. There is also the possibility to just use literal includes from test files inside the documentation. See <a class="reference internal" href="#./docs/source/quickstart.rst"><span class="xref myst">docs/source/quickstart.rst</span></a> for an example.</p>
+</section>
+<section id="setting-up-mosek-license-on-server">
+<h4>Setting up mosek license on server<a class="headerlink" href="#setting-up-mosek-license-on-server" title="Link to this heading"></a></h4>
+<p>This has already been done – just keeping track of the process here to make it is easy to redo this in the future. TAken from <a class="reference external" href="https://docs.mosek.com/11.0/faq.pdf">here</a>, page 11.</p>
+<ol class="arabic simple">
+<li><p>Go to Settings -&gt; Security -&gt; Secrets and variables -&gt; Actions (<a class="reference external" href="https://github.com/duembgen/popr/settings/secrets/actions">direct link</a>)</p></li>
+<li><p>Create secret called MSK_LICENSE with content</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">START_LICENSE</span>\<span class="n">n</span>
+<span class="n">FEATURE</span> <span class="n">PTS</span> <span class="o">....</span>
+<span class="o">...</span>
+<span class="o">...</span> <span class="n">here</span> <span class="n">copy</span> <span class="n">the</span> <span class="n">text</span> <span class="n">of</span> <span class="n">the</span> <span class="s2">&quot;FEATURE&quot;</span> <span class="n">sections</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">license</span> <span class="o">...</span>
+<span class="o">...</span>
+<span class="o">...</span> <span class="o">...</span> <span class="mi">5</span><span class="n">FE1</span> <span class="mi">5</span><span class="n">DBC</span><span class="s2">&quot;</span>
+<span class="n">END_LICENSE</span>\<span class="n">n</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>Add the following to the workflow file:</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>- name: Setup MOSEK &amp; Run Tests
+    env:
+      MOSEKLM_LICENSE_FILE: ${{ secrets.MSK_LICENSE }}
+    run: |
+      pytest -sv
+</pre></div>
+</div>
+</section>
+<section id="testing-github-actions-locally">
+<h4>Testing Github actions locally<a class="headerlink" href="#testing-github-actions-locally" title="Link to this heading"></a></h4>
+<p>It can be super useful to run github actions locally for debugging!
+I did this by using <a class="reference external" href="https://nektosact.com/installation/index.html">this</a> tool. Basically, it came down to:</p>
+<ul class="simple">
+<li><p>Installing docker</p></li>
+<li><p>From this repo, running:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">curl</span> <span class="o">--</span><span class="n">proto</span> <span class="s1">&#39;=https&#39;</span> <span class="o">--</span><span class="n">tlsv1</span><span class="mf">.2</span> <span class="o">-</span><span class="n">sSf</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">raw</span><span class="o">.</span><span class="n">githubusercontent</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">nektos</span><span class="o">/</span><span class="n">act</span><span class="o">/</span><span class="n">master</span><span class="o">/</span><span class="n">install</span><span class="o">.</span><span class="n">sh</span> <span class="o">|</span> <span class="n">sudo</span> <span class="n">bash</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Also from this repo, running:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="o">./</span><span class="nb">bin</span><span class="o">/</span><span class="n">act</span>
+</pre></div>
+</div>
 </section>
 </section>
 </section>

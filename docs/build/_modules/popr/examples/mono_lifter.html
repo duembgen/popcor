@@ -98,7 +98,7 @@
 
 
 <div class="viewcode-block" id="MonoLifter">
-<a class="viewcode-back" href="../../../examples/c.html#popr.examples.MonoLifter">[docs]</a>
+<a class="viewcode-back" href="../../../examples/robust.html#popr.examples.MonoLifter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MonoLifter</span><span class="p">(</span><span class="n">RobustPoseLifter</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;This example is treated in more details in `this paper &lt;https://arxiv.org/abs/2308.05783&gt;`_,</span>
 <span class="sd">    under the name &quot;PLR&quot; (point-to-line registration).</span>
@@ -148,7 +148,7 @@
             <span class="k">return</span> <span class="p">[]</span>
 
         <span class="n">default</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_B_known</span><span class="p">()</span>
-        <span class="c1">## B2 and B3 enforce that tan(FOV/2)*t3 &gt;= sqrt(t1**2 + t2**2)</span>
+        <span class="c1"># B2 and B3 enforce that tan(FOV/2)*t3 &gt;= sqrt(t1**2 + t2**2)</span>
         <span class="c1"># 0 &lt;= - tan**2(FOV/2)*t3**2 + t1**2 + t2**2</span>
         <span class="n">B3</span> <span class="o">=</span> <span class="n">PolyMatrix</span><span class="p">(</span><span class="n">symmetric</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">constraint</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">))</span>

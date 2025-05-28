@@ -128,6 +128,8 @@
         <span class="s2">&quot;uxT&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="se">\\</span><span class="s2">boldsymbol</span><span class="si">{u}</span><span class="se">\\</span><span class="s2">boldsymbol</span><span class="si">{x}</span><span class="s2">^</span><span class="se">\\</span><span class="s2">top_n$&quot;</span><span class="p">,</span>
     <span class="p">}</span>
 
+    <span class="n">EPS_ERROR</span> <span class="o">=</span> <span class="mf">1e-7</span>  <span class="c1"># for constraints test. default is 1e-8</span>
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">n_landmarks</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;no&quot;</span><span class="p">,</span> <span class="n">param_level</span><span class="o">=</span><span class="s2">&quot;no&quot;</span><span class="p">,</span> <span class="n">variable_list</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">):</span>
