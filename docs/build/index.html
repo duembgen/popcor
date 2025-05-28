@@ -6,10 +6,11 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome to POPR’s documentation! &mdash; POPR 0.0.1 documentation</title>
+  <title>Welcome to POPCOR! &mdash; POPCOR 0.0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/custom_css" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
@@ -23,7 +24,20 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Quick Start Guide" href="quickstart.html" /> 
+    <link rel="next" title="Quick Start Guide" href="quickstart.html" />
+   
+  <style>
+    .github-link {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+    .github-link img {
+      height: 32px;
+      width: 32px;
+    }
+  </style>
+
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -34,8 +48,9 @@
 
           
           
-          <a href="#" class="icon icon-home">
-            POPR
+          <a href="#">
+            
+              <img src="_static/logo2.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -46,7 +61,7 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Welcome to POPR’s documentation!</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Welcome to POPCOR!</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API and modules</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
@@ -60,39 +75,28 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">POPR</a>
+          <a href="#">POPCOR</a>
       </nav>
 
       <div class="wy-nav-content">
         <div class="rst-content">
-          <div role="navigation" aria-label="Page navigation">
-  <ul class="wy-breadcrumbs">
-      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Welcome to POPR’s documentation!</li>
-      <li class="wy-breadcrumbs-aside">
-            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
-      </li>
-  </ul>
-  <hr/>
-</div>
+          <!-- Empty override file which replaces the top nav breadcrumbs -->
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="welcome-to-popr-s-documentation">
-<h1>Welcome to POPR’s documentation!<a class="headerlink" href="#welcome-to-popr-s-documentation" title="Link to this heading"></a></h1>
-<figure class="align-center">
-<a class="reference internal image-reference" href="_images/overview.webp"><img alt="_images/overview.webp" src="_images/overview.webp" style="width: 500px;" />
-</a>
-</figure>
-<div class="admonition warning">
+  <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>This package is currently in pre-release state. You are welcome to try it out,
 and please get in touch via github or e-mail if you have any questions, suggestions or issues.</p>
 </div>
-<p><a class="reference external" href="https://github.com/duembgen/popr/actions/workflows/python-package-conda.yml"><img alt="Python Package using Conda" src="https://github.com/duembgen/popr/actions/workflows/python-package-conda.yml/badge.svg" /></a>
-<a class="reference external" href="https://github.com/duembgen/popr/actions/workflows/documentation.yml"><img alt="Documentation" src="https://github.com/duembgen/popr/actions/workflows/documentation.yml/badge.svg" /></a></p>
-<section id="popr-polynomial-optimization-for-robotics">
-<h2>POPR: Polynomial OPtimization for Robotics<a class="headerlink" href="#popr-polynomial-optimization-for-robotics" title="Link to this heading"></a></h2>
+<section id="welcome-to-popcor">
+<h1>Welcome to POPCOR!<a class="headerlink" href="#welcome-to-popcor" title="Link to this heading"></a></h1>
+<figure class="align-center">
+<a class="reference internal image-reference" href="_images/overview.webp"><img alt="_images/overview.webp" src="_images/overview.webp" style="width: 500px;" />
+</a>
+</figure>
+<section id="popcor-polynomial-optimization-for-certifiably-optimal-robotics">
+<h2>POPCOR: Polynomial Optimization for Certifiably Optimal Robotics<a class="headerlink" href="#popcor-polynomial-optimization-for-certifiably-optimal-robotics" title="Link to this heading"></a></h2>
 <p>A toolbox for setting up and solving polynomial optimization problems in robotics with certifiable optimality.</p>
 <section id="purpose">
 <h3>Purpose<a class="headerlink" href="#purpose" title="Link to this heading"></a></h3>
@@ -122,16 +126,6 @@ These algorithms are described in detail in <a class="reference external" href="
 <h3>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading"></a></h3>
 <p>Besides the automatically installed dependencies when using the above instructions, you need to also have a valid MOSEK license in order to use this repository. If you are an academic, you can get a license for free <a class="reference external" href="https://www.mosek.com/license/request/?i=acp">here</a>.</p>
 </section>
-<section id="what-this-tool-can-and-cannot-do">
-<h3>What this tool can and cannot do<a class="headerlink" href="#what-this-tool-can-and-cannot-do" title="Link to this heading"></a></h3>
-<p>This tool can be seen as a bridge between the mathematical problem formulation and the algebraic modeling languages (AMLs). AMLs take as an input the <em>mathematical problem</em> written by a user, and convert it to a standard form <a class="reference external" href="https://arxiv.org/pdf/2002.03447"><code class="docutils literal notranslate"><span class="pre">[1]</span></code></a>. One of the most well-known AMLs is for example shipped with <a class="reference external" href="https://www.cvxpy.org/">CVXPY</a>. However, coming up with the <em>mathematical problem</em> is sometimes a challenge in itself.</p>
-<p>In certifiable optimization, for example, we typically solve an SDP that was derived as the rank relaxation or Lagrangian dual of an original, non-convex problem. Finding the correct SDP can be however quite difficult! For example, one might have to add many constraints to the SDP that are redundant for the original non-convex problem but change the solution of the relaxation, making it more “tight”.</p>
-<p>Currently, this tool is focused on tightening relaxations by finding redundant constraints. There are however numerous extensions that a powerful “bridge” should also include and that are topics of ongoing research. For example, interesting features to this toolbox would be:</p>
-<ul class="simple">
-<li><p>Problem conditioning: applying a coordinate transform to improve the convergence properties of the problem.</p></li>
-<li><p>Data-driven modeling: deriving the correct problem formulation directly from data.</p></li>
-</ul>
-</section>
 <section id="credits">
 <h3>Credits<a class="headerlink" href="#credits" title="Link to this heading"></a></h3>
 <p>The design of this toolbox, in particular the documentation, is inspired by the nice work of the creators of <a class="reference external" href="https://github.com/PerformanceEstimation/PEPit?tab=readme-ov-file">PEPit</a>.</p>
@@ -151,7 +145,7 @@ These algorithms are described in detail in <a class="reference external" href="
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, POPR Contributors.</p>
+    <p>&#169; Copyright 2025, POPCOR Contributors.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
@@ -168,7 +162,12 @@ These algorithms are described in detail in <a class="reference external" href="
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+   
+  <a class="github-link" href="https://github.com/duembgen/popr" target="_blank" title="View on GitHub">
+    <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub logo">
+  </a>
+
 
 </body>
 </html>

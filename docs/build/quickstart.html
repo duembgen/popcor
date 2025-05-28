@@ -6,10 +6,11 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quick Start Guide &mdash; POPR 0.0.1 documentation</title>
+  <title>Quick Start Guide &mdash; POPCOR 0.0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/custom_css" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
@@ -24,7 +25,20 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="API and modules" href="api.html" />
-    <link rel="prev" title="Welcome to POPR’s documentation!" href="index.html" /> 
+    <link rel="prev" title="Welcome to POPCOR!" href="index.html" />
+   
+  <style>
+    .github-link {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+    .github-link img {
+      height: 32px;
+      width: 32px;
+    }
+  </style>
+
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -35,8 +49,9 @@
 
           
           
-          <a href="index.html" class="icon icon-home">
-            POPR
+          <a href="index.html">
+            
+              <img src="_static/logo2.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -47,7 +62,7 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="index.html">Welcome to POPR’s documentation!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Welcome to POPCOR!</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Quick Start Guide</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#problem-formulation">Problem Formulation</a><ul>
@@ -81,21 +96,12 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">POPR</a>
+          <a href="index.html">POPCOR</a>
       </nav>
 
       <div class="wy-nav-content">
         <div class="rst-content">
-          <div role="navigation" aria-label="Page navigation">
-  <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Quick Start Guide</li>
-      <li class="wy-breadcrumbs-aside">
-            <a href="_sources/quickstart.rst.txt" rel="nofollow"> View page source</a>
-      </li>
-  </ul>
-  <hr/>
-</div>
+          <!-- Empty override file which replaces the top nav breadcrumbs -->
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
@@ -141,13 +147,13 @@ This class should inherit from <a class="reference internal" href="api/lifters.h
 Lifter class is provided in <a class="reference internal" href="examples/templates.html#example-for-autotight"><span class="std std-ref">Example for AutoTight</span></a>. The main purpose of this class is
 that it provides all basic operations related to the problem formulation, such as:</p>
 <ul class="simple">
-<li><p>to sample feasible states (<code class="xref py py-meth docutils literal notranslate"><span class="pre">popr.lifters.StateLifter.sample_theta()</span></code>),</p></li>
-<li><p>to get the lifted vector (<code class="xref py py-meth docutils literal notranslate"><span class="pre">popr.lifters.StateLifter.get_x()</span></code>),</p></li>
+<li><p>to sample feasible states (<a class="reference internal" href="api/lifters.html#popr.base_lifters.StateLifter.sample_theta" title="popr.base_lifters.StateLifter.sample_theta"><code class="xref py py-meth docutils literal notranslate"><span class="pre">popr.base_lifters.StateLifter.sample_theta()</span></code></a>),</p></li>
+<li><p>to get the lifted vector (<a class="reference internal" href="api/lifters.html#popr.base_lifters.StateLifter.get_x" title="popr.base_lifters.StateLifter.get_x"><code class="xref py py-meth docutils literal notranslate"><span class="pre">popr.base_lifters.StateLifter.get_x()</span></code></a>),</p></li>
 </ul>
 <p>For a bit more advanced functionality (for example for the <a class="reference internal" href="#sdp-relaxation"><span class="std std-ref">SDP Relaxation</span></a> in the next section), you also need to define functions such as</p>
 <ul class="simple">
-<li><p>get the cost matrix (<code class="xref py py-meth docutils literal notranslate"><span class="pre">popr.lifters.StateLifter.get_Q()</span></code>),</p></li>
-<li><p>get known constraint matrices (<code class="xref py py-meth docutils literal notranslate"><span class="pre">popr.lifters.StateLifter.get_A_known()</span></code>, <code class="xref py py-meth docutils literal notranslate"><span class="pre">popr.lifters.StateLifter.get_B_known()</span></code>).</p></li>
+<li><p>get the cost matrix (<a class="reference internal" href="api/lifters.html#popr.base_lifters.StateLifter.get_Q" title="popr.base_lifters.StateLifter.get_Q"><code class="xref py py-meth docutils literal notranslate"><span class="pre">popr.base_lifters.StateLifter.get_Q()</span></code></a>),</p></li>
+<li><p>get known constraint matrices (<a class="reference internal" href="api/lifters.html#popr.base_lifters.StateLifter.get_A_known" title="popr.base_lifters.StateLifter.get_A_known"><code class="xref py py-meth docutils literal notranslate"><span class="pre">popr.base_lifters.StateLifter.get_A_known()</span></code></a>, <a class="reference internal" href="api/lifters.html#popr.base_lifters.StateLifter.get_B_known" title="popr.base_lifters.StateLifter.get_B_known"><code class="xref py py-meth docutils literal notranslate"><span class="pre">popr.base_lifters.StateLifter.get_B_known()</span></code></a>).</p></li>
 </ul>
 <p>Many example lifters are provided, you can find them under <a class="reference internal" href="examples.html#examples"><span class="std std-ref">Examples</span></a>.</p>
 <section id="example-instantiating-and-using-lifter">
@@ -328,14 +334,14 @@ If successful, the output is a set of constraints that leads to a tight SDP rela
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to POPR’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to POPCOR!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="api.html" class="btn btn-neutral float-right" title="API and modules" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, POPR Contributors.</p>
+    <p>&#169; Copyright 2025, POPCOR Contributors.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
@@ -352,7 +358,12 @@ If successful, the output is a set of constraints that leads to a tight SDP rela
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+   
+  <a class="github-link" href="https://github.com/duembgen/popr" target="_blank" title="View on GitHub">
+    <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub logo">
+  </a>
+
 
 </body>
 </html>

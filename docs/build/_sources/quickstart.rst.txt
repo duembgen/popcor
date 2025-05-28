@@ -52,13 +52,13 @@ This class should inherit from :ref:`StateLifter`. A basic skeleton of such a
 Lifter class is provided in :ref:`Example for AutoTight`. The main purpose of this class is 
 that it provides all basic operations related to the problem formulation, such as:
 
-- to sample feasible states (:meth:`popr.lifters.StateLifter.sample_theta`),
-- to get the lifted vector (:meth:`popr.lifters.StateLifter.get_x`),
+- to sample feasible states (:meth:`popr.base_lifters.StateLifter.sample_theta`),
+- to get the lifted vector (:meth:`popr.base_lifters.StateLifter.get_x`),
 
 For a bit more advanced functionality (for example for the :ref:`SDP Relaxation` in the next section), you also need to define functions such as
 
-- get the cost matrix (:py:meth:`popr.lifters.StateLifter.get_Q`), 
-- get known constraint matrices (:meth:`popr.lifters.StateLifter.get_A_known`, :meth:`popr.lifters.StateLifter.get_B_known`).
+- get the cost matrix (:py:meth:`popr.base_lifters.StateLifter.get_Q`), 
+- get known constraint matrices (:meth:`popr.base_lifters.StateLifter.get_A_known`, :meth:`popr.base_lifters.StateLifter.get_B_known`).
 
 Many example lifters are provided, you can find them under :ref:`Examples`.
 

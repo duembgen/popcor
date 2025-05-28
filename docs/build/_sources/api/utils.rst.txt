@@ -14,13 +14,13 @@ Constraints and templates
 
 
 Helpers for matrix and vector operations
-----------------------------
+----------------------------------------
 
 .. automodule:: popr.utils.common
    :members:
 
 
-.. comment::
+.. ::
 
    Geometry: lie algebra etc.
    --------------------------
