@@ -1,0 +1,501 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>popcor.base_lifters.state_lifter &mdash; POPCOR 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom_css" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <style>
+    .github-link {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+    .github-link img {
+      height: 32px;
+      width: 32px;
+    }
+  </style>
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html">
+            
+              <img src="../../../_static/logo2.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Welcome to POPCOR!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#problem-formulation">Problem Formulation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../quickstart.html#example-instantiating-and-using-lifter"><strong>Example: instantiating and using lifter</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#sdp-relaxation">SDP Relaxation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../quickstart.html#example-solving-the-qcqp-using-rank-relaxation"><strong>Example: solving the QCQP using rank relaxation</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#autotight-method">AutoTight Method</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../quickstart.html#example-tightening-the-sdp-relaxation-using-autotight"><strong>Example: tightening the SDP relaxation using AutoTight</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#autotemplate-method">AutoTemplate Method</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../quickstart.html#example-tightening-a-different-problem-using-autotemplate"><strong>Example: tightening a different problem using AutoTemplate</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API and modules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/algorithms.html">Core Algorithms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/algorithms.html#autotight">AutoTight</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/algorithms.html#popcor.AutoTight"><code class="docutils literal notranslate"><span class="pre">AutoTight</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/algorithms.html#autotemplate">AutoTemplate</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/algorithms.html#popcor.AutoTemplate"><code class="docutils literal notranslate"><span class="pre">AutoTemplate</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/lifters.html">Base Lifters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/lifters.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/lifters.html#basics">Basics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/lifters.html#statelifter">StateLifter</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/lifters.html#popcor.base_lifters.StateLifter"><code class="docutils literal notranslate"><span class="pre">StateLifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/lifters.html#stereolifter">StereoLifter</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/lifters.html#popcor.base_lifters.StereoLifter"><code class="docutils literal notranslate"><span class="pre">StereoLifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/lifters.html#robustposelifter">RobustPoseLifter</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/lifters.html#popcor.base_lifters.RobustPoseLifter"><code class="docutils literal notranslate"><span class="pre">RobustPoseLifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/lifters.html#polylifter">PolyLifter</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/lifters.html#popcor.base_lifters.PolyLifter"><code class="docutils literal notranslate"><span class="pre">PolyLifter</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/utils.html">Utils</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/utils.html#constraints-and-templates">Constraints and templates</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#popcor.utils.constraint.Constraint"><code class="docutils literal notranslate"><span class="pre">Constraint</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/utils.html#module-popcor.utils.common">Helpers for matrix and vector operations</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#popcor.utils.common.create_symmetric"><code class="docutils literal notranslate"><span class="pre">create_symmetric()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#popcor.utils.common.diag_indices"><code class="docutils literal notranslate"><span class="pre">diag_indices()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#popcor.utils.common.get_vec"><code class="docutils literal notranslate"><span class="pre">get_vec()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#popcor.utils.common.ravel_multi_index_triu"><code class="docutils literal notranslate"><span class="pre">ravel_multi_index_triu()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#popcor.utils.common.unravel_multi_index_triu"><code class="docutils literal notranslate"><span class="pre">unravel_multi_index_triu()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#popcor.utils.common.upper_triangular"><code class="docutils literal notranslate"><span class="pre">upper_triangular()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/templates.html">1. Templates</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/templates.html#example-for-autotight">1.1. Example for AutoTight</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../examples/templates.html#popcor.examples.ExampleLifter"><code class="docutils literal notranslate"><span class="pre">ExampleLifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/templates.html#example-for-autotemplate">1.2. Example for AutoTemplate</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/toy.html">2. Toy Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/toy.html#univariate-polynomials">2.1. Univariate Polynomials</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../examples/toy.html#popcor.examples.Poly4Lifter"><code class="docutils literal notranslate"><span class="pre">Poly4Lifter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../examples/toy.html#popcor.examples.Poly6Lifter"><code class="docutils literal notranslate"><span class="pre">Poly6Lifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/toy.html#other-toy-examples">2.2. Other Toy Examples</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../examples/toy.html#popcor.examples.Stereo1DLifter"><code class="docutils literal notranslate"><span class="pre">Stereo1DLifter</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/standard.html">3. Standard Estimation Problems</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/standard.html#range-only-localization">3.1. Range-Only Localization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../examples/standard.html#popcor.examples.RangeOnlyLocLifter"><code class="docutils literal notranslate"><span class="pre">RangeOnlyLocLifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/standard.html#stereo-camera-localization">3.2. Stereo-Camera Localization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../examples/standard.html#popcor.examples.Stereo2DLifter"><code class="docutils literal notranslate"><span class="pre">Stereo2DLifter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../examples/standard.html#popcor.examples.Stereo3DLifter"><code class="docutils literal notranslate"><span class="pre">Stereo3DLifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/standard.html#rotation-averaging">3.3. Rotation Averaging</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../examples/standard.html#popcor.examples.RotationLifter"><code class="docutils literal notranslate"><span class="pre">RotationLifter</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/robust.html">4. Robust Estimation Problems</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/robust.html#robust-registration-problems">4.1. Robust Registration Problems</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../examples/robust.html#popcor.examples.MonoLifter"><code class="docutils literal notranslate"><span class="pre">MonoLifter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../examples/robust.html#popcor.examples.WahbaLifter"><code class="docutils literal notranslate"><span class="pre">WahbaLifter</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../whatsnew.html">What’s new</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../whatsnew.html#change-log">Change Log</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../whatsnew.html#unreleased-yyyy-mm-dd">[Unreleased] – YYYY-MM-DD</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../whatsnew.html#added">Added</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../whatsnew.html#changed">Changed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../whatsnew.html#fixed">Fixed</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../whatsnew.html#id1">[0.0.1] - 2025-05-25</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../contributing.html#how-to-contribute-to-popr">How to contribute to POPR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../contributing.html#general-guidelines">General guidelines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../contributing.html#adding-a-new-lifter-class">Adding a new lifter class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../contributing.html#adding-new-functionalities">Adding new functionalities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../contributing.html#resources">Resources</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../contributing.html#testing">Testing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../contributing.html#setting-up-mosek-license-on-server">Setting up mosek license on server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../contributing.html#testing-github-actions-locally">Testing Github actions locally</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">POPCOR</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <!-- Empty override file which replaces the top nav breadcrumbs -->
+<a href="https://github.com/duembgen/popcor">
+  <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub logo">
+  Go to GitHub source code
+</a>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for popcor.base_lifters.state_lifter</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">abstractmethod</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">._base_class</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseClass</span>
+
+
+<div class="viewcode-block" id="StateLifter">
+<a class="viewcode-back" href="../../../api/lifters.html#popcor.base_lifters.StateLifter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">StateLifter</span><span class="p">(</span><span class="n">BaseClass</span><span class="p">):</span>
+    <span class="c1"># sparse hierarchy: define the levels that are implemented</span>
+    <span class="n">LEVELS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;no&quot;</span><span class="p">]</span>
+
+    <span class="c1"># used for AutoTemplate</span>
+    <span class="n">VARIABLE_LIST</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">&quot;h&quot;</span><span class="p">]]</span>
+    <span class="n">TIGHTNESS</span> <span class="o">=</span> <span class="s2">&quot;cost&quot;</span>
+
+    <span class="c1"># to be overwritten by inheriting class</span>
+    <span class="n">NOISE</span> <span class="o">=</span> <span class="mf">1e-2</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">level</span><span class="o">=</span><span class="s2">&quot;no&quot;</span><span class="p">,</span>
+        <span class="n">param_level</span><span class="o">=</span><span class="s2">&quot;no&quot;</span><span class="p">,</span>
+        <span class="n">d</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">variable_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">robust</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">n_outliers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">n_parameters</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">):</span>
+
+        <span class="c1"># variables that get overwritten upon initialization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters_</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">theta_</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var_dict_</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">robust</span> <span class="o">=</span> <span class="n">robust</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_outliers</span> <span class="o">=</span> <span class="n">n_outliers</span>
+
+        <span class="k">assert</span> <span class="n">level</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">LEVELS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="n">level</span>
+
+        <span class="k">if</span> <span class="n">variable_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">variable_list</span> <span class="o">=</span> <span class="n">variable_list</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">variable_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">VARIABLE_LIST</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">param_level</span> <span class="o">!=</span> <span class="s2">&quot;no&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">n_parameters</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: make sure to give the correct n_parameters for the level.&quot;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">param_level</span><span class="p">,</span> <span class="n">n_parameters</span><span class="p">)</span>
+
+    <span class="c1"># MUST OVERWRITE THESE</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">var_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Inheriting class must implement this!&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="StateLifter.sample_theta">
+<a class="viewcode-back" href="../../../api/lifters.html#popcor.base_lifters.StateLifter.sample_theta">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample_theta</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Randomly sample a feasible state theta. This function must be</span>
+<span class="sd">        implemented by the inheriting class.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;need to implement sample_theta&quot;</span><span class="p">)</span></div>
+
+
+    <span class="c1"># MUST OVERWRITE THESE FOR TIGHTNESS CHECKS</span>
+
+<div class="viewcode-block" id="StateLifter.get_Q">
+<a class="viewcode-back" href="../../../api/lifters.html#popcor.base_lifters.StateLifter.get_Q">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_Q</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_poly</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct the cost matrix Q.</span>
+
+<span class="sd">        :param noise: set the noise level, if appropriate.</span>
+<span class="sd">        :param output_poly: if True, return the matrix in PolyMatrix format.</span>
+
+<span class="sd">        :returns: the cost matrix as a sparse matrix or PolyMatrix.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;Need to impelement get_Q in inheriting class if you want to use it.&quot;</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_Q_from_y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;Need to impelement get_Q_from_y in inheriting class if you want to use it.&quot;</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="StateLifter.get_A_known">
+<a class="viewcode-back" href="../../../api/lifters.html#popcor.base_lifters.StateLifter.get_A_known">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_A_known</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">add_redundant</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">var_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">output_poly</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct the matrices defining the known equality constraints.</span>
+
+<span class="sd">        :param add_redundant: if True, add redundant constraints.</span>
+<span class="sd">        :param var_dict: if provided, return only the matrices that involve these variables.</span>
+<span class="sd">        :param output_poly: if True, return the matrices in PolyMatrix format.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[]</span></div>
+
+
+<div class="viewcode-block" id="StateLifter.get_B_known">
+<a class="viewcode-back" href="../../../api/lifters.html#popcor.base_lifters.StateLifter.get_B_known">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_B_known</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct the matrices defining the known inequality constraints.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[]</span></div>
+
+
+    <span class="c1"># MUST OVERWRITE THESE FOR ADDING PARAMETERS</span>
+
+<div class="viewcode-block" id="StateLifter.sample_parameters">
+<a class="viewcode-back" href="../../../api/lifters.html#popcor.base_lifters.StateLifter.sample_parameters">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create random set of parameters. By default, there are no parameters</span>
+<span class="sd">        so this function just returns `{self.HOM: 1.0}`.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">param_level</span> <span class="o">==</span> <span class="s2">&quot;no&quot;</span>
+        <span class="p">),</span> <span class="s2">&quot;Need to overwrite sample_parameters to use level different than &#39;no&#39;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">}</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">param_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">param_level</span> <span class="o">==</span> <span class="s2">&quot;no&quot;</span>
+        <span class="p">),</span> <span class="s2">&quot;Need to overwrite param_dict to use level different than &#39;no&#39;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_involved_param_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_subset</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Find which parameters to include, given the current var_subset. Here we implicitly assume</span>
+<span class="sd">        that each parameter is associated with a variable. This is true for parameters that involve</span>
+<span class="sd">        substitution variables.&quot;&quot;&quot;</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">var_subset</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;p_</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+                    <span class="n">keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_dict</span><span class="p">}</span>
+
+    <span class="c1"># CAN OPTINALLY OVERWRITE THESE FOR BETTER PERFORMANCE</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;must define get_grad if you want to use it.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_hess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;must define get_hess if you want to use it.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="StateLifter.get_cost">
+<a class="viewcode-back" href="../../../api/lifters.html#popcor.base_lifters.StateLifter.get_cost">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the cost of the given state theta. This uses the simple form</span>
+<span class="sd">        x.T @ Q @ x. Consider overwriting this for more efficient computations.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot;Warning: using default get_cost, which may be less efficient than a custom one.&quot;</span>
+        <span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_x</span><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_Q_from_y</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_Q</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">Q</span> <span class="o">@</span> <span class="n">x</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="StateLifter.local_solver">
+<a class="viewcode-back" href="../../../api/lifters.html#popcor.base_lifters.StateLifter.local_solver">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">local_solver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Default local solver that uses IPOPT to solve the QCQP problem defined by Q and the constraints matrices.</span>
+<span class="sd">        Consider overwriting this for more efficient solvers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot;Warning: using default local_solver, which may be less efficient than a custom one.&quot;</span>
+        <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Ignoring args and kwargs:&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">cert_tools.sdp_solvers</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve_low_rank_sdp</span>
+
+        <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_Q_from_y</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_Q</span><span class="p">()</span>
+
+        <span class="n">B</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_B_known</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">B</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;Inequality constraints are not currently considered by default solver. Must implement your own.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">Constraints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_A_b_list</span><span class="p">(</span><span class="n">A_list</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_A_known</span><span class="p">())</span>
+        <span class="n">x0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_x</span><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="n">t0</span><span class="p">)</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">solve_low_rank_sdp</span><span class="p">(</span>
+            <span class="n">Q</span><span class="p">,</span> <span class="n">Constraints</span><span class="o">=</span><span class="n">Constraints</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">x_cand</span><span class="o">=</span><span class="n">x0</span>
+        <span class="p">)</span>
+        <span class="c1"># TODO(FD) identify when the solve is not successful.</span>
+        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;success&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_theta</span><span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="mi">1</span> <span class="p">:</span> <span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">theta</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;cost&quot;</span><span class="p">]</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">param_dict_landmarks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_parameters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+        <span class="n">param_dict</span> <span class="o">=</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_level</span> <span class="o">==</span> <span class="s2">&quot;no&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">param_dict</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_level</span> <span class="o">==</span> <span class="s2">&quot;p&quot;</span><span class="p">:</span>
+            <span class="n">param_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="sa">f</span><span class="s2">&quot;p_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_parameters</span><span class="p">)})</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_level</span> <span class="o">==</span> <span class="s2">&quot;ppT&quot;</span><span class="p">:</span>
+            <span class="c1"># Note that ppT is actually</span>
+            <span class="c1"># [p; vech(ppT)] (linear and quadratic terms)</span>
+            <span class="c1"># TODO(FD): rename ppT to quadratic</span>
+            <span class="n">param_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="sa">f</span><span class="s2">&quot;p_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_parameters</span><span class="p">)</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">param_dict</span>
+
+<div class="viewcode-block" id="StateLifter.get_theta">
+<a class="viewcode-back" href="../../../api/lifters.html#popcor.base_lifters.StateLifter.get_theta">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_theta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Inverse of get_x: given lifted vector x, extract elements corresponding to theta.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="mi">1</span> <span class="p">:</span> <span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">]</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, POPCOR Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+   
+
+
+</body>
+</html>

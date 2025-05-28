@@ -6,7 +6,7 @@ import pytest
 
 def test_setup_problem():
     """Test the problem setup example from the documentation."""
-    from popr.examples import Poly4Lifter
+    from popcor.examples import Poly4Lifter
 
     lifter = Poly4Lifter()
 
@@ -28,7 +28,7 @@ def test_solve_sdp():
     from cert_tools.linalg_tools import rank_project
     from cert_tools.sdp_solvers import solve_sdp
 
-    from popr.examples import Poly4Lifter
+    from popcor.examples import Poly4Lifter
 
     lifter = Poly4Lifter()
 
@@ -59,8 +59,8 @@ def test_autotight():
     """Test the AutoTight example from the documentation."""
     from cert_tools.sdp_solvers import solve_sdp
 
-    from popr.auto_tight import AutoTight
-    from popr.examples.stereo1d_lifter import Stereo1DLifter
+    from popcor.auto_tight import AutoTight
+    from popcor.examples.stereo1d_lifter import Stereo1DLifter
 
     lifter = Stereo1DLifter(n_landmarks=5)
 
@@ -105,9 +105,9 @@ def test_autotemplate():
     """Test the AutoTemplate example from the documentation."""
     from cert_tools.sdp_solvers import solve_sdp
 
-    from popr.auto_template import AutoTemplate
-    from popr.auto_tight import AutoTight
-    from popr.examples.stereo1d_lifter import Stereo1DLifter
+    from popcor.auto_template import AutoTemplate
+    from popcor.auto_tight import AutoTight
+    from popcor.examples.stereo1d_lifter import Stereo1DLifter
 
     # important: we need to use param_level="p", otherwise the parameters
     # are not factored out and the constraints are not generalizable.
@@ -139,8 +139,8 @@ def test_autotemplate_literal():
     """Here, we used AutoTemplate to interpret the templates (i.e., implemented get_A_known_redundant)"""
     from cert_tools.sdp_solvers import solve_sdp
 
-    from popr.auto_tight import AutoTight
-    from popr.examples.stereo1d_lifter import Stereo1DLifter
+    from popcor.auto_tight import AutoTight
+    from popcor.examples.stereo1d_lifter import Stereo1DLifter
 
     new_lifter = Stereo1DLifter(n_landmarks=5, param_level="p")
 

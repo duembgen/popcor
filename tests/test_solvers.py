@@ -1,11 +1,11 @@
 import numpy as np
 
-from popr.base_lifters import PolyLifter, RobustPoseLifter
+from popcor.base_lifters import PolyLifter, RobustPoseLifter
 
 # from lifters.matweight_lifter import MatWeightLifter
-from popr.examples import MonoLifter
-from popr.utils.geometry import get_C_r_from_theta
-from popr.utils.test_tools import all_lifters
+from popcor.examples import MonoLifter
+from popcor.utils.geometry import get_C_r_from_theta
+from popcor.utils.test_tools import all_lifters
 
 NOISE = 1e-2
 
@@ -159,7 +159,7 @@ def test_cost(noise=0.0):
 
                 try:
                     assert abs(cost - np.sum(w < 0)) < 1e-10
-                except:
+                except AssertionError:
                     lifter.plot_setup()
 
 

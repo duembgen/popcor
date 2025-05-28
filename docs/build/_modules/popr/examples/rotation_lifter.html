@@ -1,0 +1,330 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>popr.examples.rotation_lifter &mdash; POPR 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            POPR
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Welcome to POPR’s documentation!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API and modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../whatsnew.html">What’s new</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">POPR</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">popr.examples.rotation_lifter</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for popr.examples.rotation_lifter</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">poly_matrix.poly_matrix</span><span class="w"> </span><span class="kn">import</span> <span class="n">PolyMatrix</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial.transform</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rotation</span> <span class="k">as</span> <span class="n">R</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">popr.base_lifters</span><span class="w"> </span><span class="kn">import</span> <span class="n">StateLifter</span>
+
+<span class="n">METHOD</span> <span class="o">=</span> <span class="s2">&quot;CG&quot;</span>
+<span class="n">SOLVER_KWARGS</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">min_gradient_norm</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">min_step_size</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="mi">1</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="RotationLifter">
+<a class="viewcode-back" href="../../../examples/standard.html#popr.examples.RotationLifter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RotationLifter</span><span class="p">(</span><span class="n">StateLifter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Rotation averaging problem.&quot;&quot;&quot;</span>
+
+    <span class="n">LEVELS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;no&quot;</span><span class="p">]</span>
+    <span class="n">HOM</span> <span class="o">=</span> <span class="s2">&quot;h&quot;</span>
+    <span class="n">VARIABLE_LIST</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">&quot;h&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">]]</span>
+
+    <span class="c1"># whether or not to include the determinant constraints in the known constraints.</span>
+    <span class="n">ADD_DETERMINANT</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">NOISE</span> <span class="o">=</span> <span class="mf">1e-3</span>
+
+    <span class="c1"># Add any parameters here that describe the problem (e.g. number of landmarks etc.)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;no&quot;</span><span class="p">,</span> <span class="n">param_level</span><span class="o">=</span><span class="s2">&quot;no&quot;</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">n_meas</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_meas</span> <span class="o">=</span> <span class="n">n_meas</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="n">level</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">,</span>
+            <span class="n">param_level</span><span class="o">=</span><span class="n">param_level</span><span class="p">,</span>
+            <span class="n">d</span><span class="o">=</span><span class="n">d</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">var_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="o">**</span><span class="mi">2</span><span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample_theta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate a random new feasible point.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+            <span class="n">C</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">from_euler</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="n">angle</span><span class="p">)</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()[:</span><span class="mi">2</span><span class="p">,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">C</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">random</span><span class="p">()</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">C</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">var_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the lifted vector x given theta and parameters.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">theta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span>
+        <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">parameters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span>
+        <span class="k">if</span> <span class="n">var_subset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">var_subset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+        <span class="n">x_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">var_subset</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">:</span>
+                <span class="n">x_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;c&quot;</span><span class="p">:</span>
+                <span class="n">x_data</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">theta</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">))</span>
+        <span class="n">dim_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dim_x</span><span class="p">(</span><span class="n">var_subset</span><span class="o">=</span><span class="n">var_subset</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_data</span><span class="p">)</span> <span class="o">==</span> <span class="n">dim_x</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x_data</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_theta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="n">C_flat</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span> <span class="p">:</span> <span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="o">**</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">C_flat</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_Q</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">noise</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">noise</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">NOISE</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y_</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_meas</span><span class="p">):</span>
+                <span class="c1"># noise model: R_i = R.T @ Rnoise</span>
+                <span class="k">if</span> <span class="n">noise</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># Generate a random small rotation as noise and apply it</span>
+                    <span class="n">noise_rotvec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="n">noise</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">,))</span>
+                    <span class="n">Rnoise</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">R</span><span class="o">.</span><span class="n">from_rotvec</span><span class="p">(</span><span class="n">noise_rotvec</span><span class="p">)</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">==</span> <span class="mi">3</span>
+                        <span class="k">else</span> <span class="n">R</span><span class="o">.</span><span class="n">from_euler</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="n">noise_rotvec</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()[:</span><span class="mi">2</span><span class="p">,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+                    <span class="p">)</span>
+                    <span class="n">Ri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">Rnoise</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">Ri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="o">.</span><span class="n">T</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">y_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Ri</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_Q_from_y</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_Q_from_y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">output_poly</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># f(R) = sum_i || R @ R_i - I ||_F^2</span>
+        <span class="c1"># argmin f(R) = argmin sum_i || R_i.T @ R_i ||^2 - 2 tr(R.T @ R_i) + ||I||_F^2</span>
+        <span class="c1">#             = argmin sum_i -2 tr(R.T @ R_i) + sum_i d</span>
+        <span class="c1">#             = argmin sum_i -2 vec(R).T @ vec(R_i.T) + N * d</span>
+        <span class="c1"># sanity check for zero noise:</span>
+        <span class="c1">#              || R @ R.T - I ||_F^2 = 0</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;param y: list of noisy rotation matrices.&quot;&quot;&quot;</span>
+        <span class="n">Q</span> <span class="o">=</span> <span class="n">PolyMatrix</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">Ri</span> <span class="ow">in</span> <span class="n">y</span><span class="p">:</span>
+            <span class="n">Q</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">]</span> <span class="o">-=</span> <span class="n">Ri</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">Q</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span>
+        <span class="k">if</span> <span class="n">output_poly</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Q</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Q</span><span class="o">.</span><span class="n">get_matrix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">local_solver_old</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">METHOD</span><span class="p">,</span> <span class="n">solver_kwargs</span><span class="o">=</span><span class="n">SOLVER_KWARGS</span>
+    <span class="p">):</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">pymanopt</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pymanopt.manifolds</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpecialOrthogonalGroup</span>
+
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;CG&quot;</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">pymanopt.optimizers</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConjugateGradient</span> <span class="k">as</span> <span class="n">Optimizer</span>  <span class="c1"># fastest</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;SD&quot;</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">pymanopt.optimizers</span><span class="w"> </span><span class="kn">import</span> <span class="n">SteepestDescent</span> <span class="k">as</span> <span class="n">Optimizer</span>  <span class="c1"># slow</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;TR&quot;</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">pymanopt.optimizers</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrustRegions</span> <span class="k">as</span> <span class="n">Optimizer</span>  <span class="c1"># okay</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">solver_kwargs</span><span class="p">[</span><span class="s2">&quot;verbosity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">solver_kwargs</span><span class="p">[</span><span class="s2">&quot;verbosity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">manifold</span> <span class="o">=</span> <span class="n">SpecialOrthogonalGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="nd">@pymanopt</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">autograd</span><span class="p">(</span><span class="n">manifold</span><span class="p">)</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">cost</span><span class="p">(</span><span class="n">R</span><span class="p">):</span>
+            <span class="n">cost</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">Ri</span> <span class="ow">in</span> <span class="n">y</span><span class="p">:</span>
+                <span class="n">cost</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">R</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">Ri</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">cost</span>
+
+        <span class="n">euclidean_gradient</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">problem</span> <span class="o">=</span> <span class="n">pymanopt</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span>
+            <span class="n">manifold</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">euclidean_gradient</span><span class="o">=</span><span class="n">euclidean_gradient</span>
+        <span class="p">)</span>
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">Optimizer</span><span class="p">(</span><span class="o">**</span><span class="n">solver_kwargs</span><span class="p">)</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">initial_point</span><span class="o">=</span><span class="n">t0</span><span class="p">)</span>
+        <span class="n">theta_hat</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">point</span>
+
+        <span class="n">success</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;min step_size&quot;</span> <span class="ow">in</span> <span class="n">res</span><span class="o">.</span><span class="n">stopping_criterion</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+            <span class="s2">&quot;min grad norm&quot;</span> <span class="ow">in</span> <span class="n">res</span><span class="o">.</span><span class="n">stopping_criterion</span>
+        <span class="p">)</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">success</span><span class="p">,</span>
+            <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="n">res</span><span class="o">.</span><span class="n">stopping_criterion</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">theta_hat</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span> <span class="n">cost</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_and_add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A_list</span><span class="p">,</span> <span class="n">Ai</span><span class="p">,</span> <span class="n">output_poly</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_x</span><span class="p">()</span>
+        <span class="n">Ai_sparse</span> <span class="o">=</span> <span class="n">Ai</span><span class="o">.</span><span class="n">get_matrix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span><span class="p">)</span>
+        <span class="n">err</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">Ai_sparse</span> <span class="o">@</span> <span class="n">x</span>
+        <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">err</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="n">err</span>
+        <span class="k">if</span> <span class="n">output_poly</span><span class="p">:</span>
+            <span class="n">A_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Ai</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">A_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Ai_sparse</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_A_known</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_poly</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">add_redundant</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">A_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">var_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">var_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span>
+
+        <span class="k">if</span> <span class="s2">&quot;c&quot;</span> <span class="ow">in</span> <span class="n">var_dict</span><span class="p">:</span>
+            <span class="c1"># enforce diagonal == 1</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">):</span>
+                <span class="n">Ei</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">))</span>
+                <span class="n">Ei</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="n">constraint</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">Ei</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">))</span>
+                <span class="n">Ai</span> <span class="o">=</span> <span class="n">PolyMatrix</span><span class="p">(</span><span class="n">symmetric</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">Ai</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">constraint</span>
+                <span class="n">Ai</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">test_and_add</span><span class="p">(</span><span class="n">A_list</span><span class="p">,</span> <span class="n">Ai</span><span class="p">,</span> <span class="n">output_poly</span><span class="o">=</span><span class="n">output_poly</span><span class="p">)</span>
+
+            <span class="c1"># enforce off-diagonal == 0</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">):</span>
+                    <span class="n">Ei</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">))</span>
+                    <span class="n">Ei</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+                    <span class="n">Ei</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+                    <span class="n">constraint</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">Ei</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">))</span>
+                    <span class="n">Ai</span> <span class="o">=</span> <span class="n">PolyMatrix</span><span class="p">(</span><span class="n">symmetric</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">Ai</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">constraint</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">test_and_add</span><span class="p">(</span><span class="n">A_list</span><span class="p">,</span> <span class="n">Ai</span><span class="p">,</span> <span class="n">output_poly</span><span class="o">=</span><span class="n">output_poly</span><span class="p">)</span>
+
+            <span class="c1"># enforce that determinant is one.</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">ADD_DETERMINANT</span><span class="p">:</span>
+                <span class="c1"># C = [a b; c d]; ad - bc - 1 = 0</span>
+                <span class="c1">#    a b c d</span>
+                <span class="c1"># a        1</span>
+                <span class="c1"># b     -1</span>
+                <span class="c1"># c   -1</span>
+                <span class="c1"># d 1</span>
+                <span class="n">Ai</span> <span class="o">=</span> <span class="n">PolyMatrix</span><span class="p">(</span><span class="n">symmetric</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">constraint</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+                <span class="n">constraint</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">constraint</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="n">constraint</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">constraint</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+                <span class="n">Ai</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span>
+                <span class="n">Ai</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">constraint</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">test_and_add</span><span class="p">(</span><span class="n">A_list</span><span class="p">,</span> <span class="n">Ai</span><span class="p">,</span> <span class="n">output_poly</span><span class="o">=</span><span class="n">output_poly</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">ADD_DETERMINANT</span><span class="p">:</span>
+                <span class="c1">#      c11  c12  c13                  c21 * c32 - c31 * c22 = c13</span>
+                <span class="c1"># C = [c21, c22, c23]; c1 x c2 = c3:  c31 * c12 - c11 * c12 = c23</span>
+                <span class="c1">#      c31  c32  c33                  c11 * c22 - c21 * c12 = c33</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="s2">&quot;Warning: consider implementing the determinant constraint for RobustPoseLifter, d=3&quot;</span>
+                <span class="p">)</span>
+        <span class="k">return</span> <span class="n">A_list</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, POPR Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

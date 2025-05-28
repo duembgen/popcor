@@ -2,10 +2,10 @@ import numpy as np
 import pytest
 import scipy.sparse as sp
 
-from popr.base_lifters import StateLifter, StereoLifter
-from popr.examples import Stereo2DLifter, Stereo3DLifter
-from popr.utils.common import get_vec, ravel_multi_index_triu, unravel_multi_index_triu
-from popr.utils.test_tools import all_lifters, constraints_test_with_tol
+from popcor.base_lifters import StateLifter, StereoLifter
+from popcor.examples import Stereo2DLifter, Stereo3DLifter
+from popcor.utils.common import get_vec, ravel_multi_index_triu, unravel_multi_index_triu
+from popcor.utils.test_tools import all_lifters, constraints_test_with_tol
 
 
 def pytest_configure():
@@ -109,8 +109,6 @@ def test_levels():
 pytest_configure()
 
 if __name__ == "__main__":
-    import pytest
-
     # pytest.main([__file__, "-s"])
     # print("all tests passed")
 

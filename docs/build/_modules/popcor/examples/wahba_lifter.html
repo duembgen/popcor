@@ -1,0 +1,496 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>popcor.examples.wahba_lifter &mdash; POPCOR 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom_css" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <style>
+    .github-link {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+    .github-link img {
+      height: 32px;
+      width: 32px;
+    }
+  </style>
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html">
+            
+              <img src="../../../_static/logo2.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Welcome to POPCOR!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#problem-formulation">Problem Formulation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../quickstart.html#example-instantiating-and-using-lifter"><strong>Example: instantiating and using lifter</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#sdp-relaxation">SDP Relaxation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../quickstart.html#example-solving-the-qcqp-using-rank-relaxation"><strong>Example: solving the QCQP using rank relaxation</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#autotight-method">AutoTight Method</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../quickstart.html#example-tightening-the-sdp-relaxation-using-autotight"><strong>Example: tightening the SDP relaxation using AutoTight</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#autotemplate-method">AutoTemplate Method</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../quickstart.html#example-tightening-a-different-problem-using-autotemplate"><strong>Example: tightening a different problem using AutoTemplate</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API and modules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/algorithms.html">Core Algorithms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/algorithms.html#autotight">AutoTight</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/algorithms.html#popcor.AutoTight"><code class="docutils literal notranslate"><span class="pre">AutoTight</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/algorithms.html#autotemplate">AutoTemplate</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/algorithms.html#popcor.AutoTemplate"><code class="docutils literal notranslate"><span class="pre">AutoTemplate</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/lifters.html">Base Lifters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/lifters.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/lifters.html#basics">Basics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/lifters.html#statelifter">StateLifter</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/lifters.html#popcor.base_lifters.StateLifter"><code class="docutils literal notranslate"><span class="pre">StateLifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/lifters.html#stereolifter">StereoLifter</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/lifters.html#popcor.base_lifters.StereoLifter"><code class="docutils literal notranslate"><span class="pre">StereoLifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/lifters.html#robustposelifter">RobustPoseLifter</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/lifters.html#popcor.base_lifters.RobustPoseLifter"><code class="docutils literal notranslate"><span class="pre">RobustPoseLifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/lifters.html#polylifter">PolyLifter</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/lifters.html#popcor.base_lifters.PolyLifter"><code class="docutils literal notranslate"><span class="pre">PolyLifter</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/utils.html">Utils</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/utils.html#constraints-and-templates">Constraints and templates</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#popcor.utils.constraint.Constraint"><code class="docutils literal notranslate"><span class="pre">Constraint</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/utils.html#module-popcor.utils.common">Helpers for matrix and vector operations</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#popcor.utils.common.create_symmetric"><code class="docutils literal notranslate"><span class="pre">create_symmetric()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#popcor.utils.common.diag_indices"><code class="docutils literal notranslate"><span class="pre">diag_indices()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#popcor.utils.common.get_vec"><code class="docutils literal notranslate"><span class="pre">get_vec()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#popcor.utils.common.ravel_multi_index_triu"><code class="docutils literal notranslate"><span class="pre">ravel_multi_index_triu()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#popcor.utils.common.unravel_multi_index_triu"><code class="docutils literal notranslate"><span class="pre">unravel_multi_index_triu()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#popcor.utils.common.upper_triangular"><code class="docutils literal notranslate"><span class="pre">upper_triangular()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/templates.html">1. Templates</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/templates.html#example-for-autotight">1.1. Example for AutoTight</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../examples/templates.html#popcor.examples.ExampleLifter"><code class="docutils literal notranslate"><span class="pre">ExampleLifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/templates.html#example-for-autotemplate">1.2. Example for AutoTemplate</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/toy.html">2. Toy Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/toy.html#univariate-polynomials">2.1. Univariate Polynomials</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../examples/toy.html#popcor.examples.Poly4Lifter"><code class="docutils literal notranslate"><span class="pre">Poly4Lifter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../examples/toy.html#popcor.examples.Poly6Lifter"><code class="docutils literal notranslate"><span class="pre">Poly6Lifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/toy.html#other-toy-examples">2.2. Other Toy Examples</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../examples/toy.html#popcor.examples.Stereo1DLifter"><code class="docutils literal notranslate"><span class="pre">Stereo1DLifter</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/standard.html">3. Standard Estimation Problems</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/standard.html#range-only-localization">3.1. Range-Only Localization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../examples/standard.html#popcor.examples.RangeOnlyLocLifter"><code class="docutils literal notranslate"><span class="pre">RangeOnlyLocLifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/standard.html#stereo-camera-localization">3.2. Stereo-Camera Localization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../examples/standard.html#popcor.examples.Stereo2DLifter"><code class="docutils literal notranslate"><span class="pre">Stereo2DLifter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../examples/standard.html#popcor.examples.Stereo3DLifter"><code class="docutils literal notranslate"><span class="pre">Stereo3DLifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/standard.html#rotation-averaging">3.3. Rotation Averaging</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../examples/standard.html#popcor.examples.RotationLifter"><code class="docutils literal notranslate"><span class="pre">RotationLifter</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/robust.html">4. Robust Estimation Problems</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/robust.html#robust-registration-problems">4.1. Robust Registration Problems</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../examples/robust.html#popcor.examples.MonoLifter"><code class="docutils literal notranslate"><span class="pre">MonoLifter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../examples/robust.html#popcor.examples.WahbaLifter"><code class="docutils literal notranslate"><span class="pre">WahbaLifter</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../whatsnew.html">What’s new</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../whatsnew.html#change-log">Change Log</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../whatsnew.html#unreleased-yyyy-mm-dd">[Unreleased] – YYYY-MM-DD</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../whatsnew.html#added">Added</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../whatsnew.html#changed">Changed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../whatsnew.html#fixed">Fixed</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../whatsnew.html#id1">[0.0.1] - 2025-05-25</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../contributing.html#how-to-contribute-to-popr">How to contribute to POPR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../contributing.html#general-guidelines">General guidelines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../contributing.html#adding-a-new-lifter-class">Adding a new lifter class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../contributing.html#adding-new-functionalities">Adding new functionalities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../contributing.html#resources">Resources</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../contributing.html#testing">Testing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../contributing.html#setting-up-mosek-license-on-server">Setting up mosek license on server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../contributing.html#testing-github-actions-locally">Testing Github actions locally</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">POPCOR</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <!-- Empty override file which replaces the top nav breadcrumbs -->
+<a href="https://github.com/duembgen/popcor">
+  <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub logo">
+  Go to GitHub source code
+</a>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for popcor.examples.wahba_lifter</h1><div class="highlight"><pre>
+<span></span><span class="c1"># import autograd.numpy as np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">popcor.base_lifters</span><span class="w"> </span><span class="kn">import</span> <span class="n">RobustPoseLifter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">popcor.utils.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_C_r_from_theta</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">popcor.utils.plotting_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_frame</span>
+
+<span class="n">N_TRYS</span> <span class="o">=</span> <span class="mi">10</span>
+
+<span class="c1"># TODO(FD) for some reason this is not required as opposed to what is stated in Heng&#39;s paper</span>
+<span class="c1"># and it currently breaks tightness (might be a bug in my implementation though)</span>
+<span class="n">USE_INEQ</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="n">NORMALIZE</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<div class="viewcode-block" id="WahbaLifter">
+<a class="viewcode-back" href="../../../examples/robust.html#popcor.examples.WahbaLifter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WahbaLifter</span><span class="p">(</span><span class="n">RobustPoseLifter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This example is treated in more details in `this paper &lt;https://arxiv.org/abs/2308.05783&gt;`_,</span>
+<span class="sd">    under the name &quot;PPR&quot; (point-to-point registration).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NOISE</span> <span class="o">=</span> <span class="mf">1e-2</span>  <span class="c1"># inlier noise</span>
+    <span class="n">NOISE_OUT</span> <span class="o">=</span> <span class="mf">1.0</span>  <span class="c1"># outlier noise</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">h_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        We want to inforce that</span>
+<span class="sd">        - norm(t) &lt;= 10 (default)</span>
+<span class="sd">        as constraints h_j(t)&lt;=0</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">default</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">h_list</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">default</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_random_position</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span>
+            <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">MAX_DIST</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">),</span>
+            <span class="mf">0.5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">MAX_DIST</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">),</span>
+            <span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_B_known</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get inequality constraints of the form x.T @ B @ x &lt;= 0&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">USE_INEQ</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="n">default</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_B_known</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">default</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">term_in_norm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">pi</span><span class="p">,</span> <span class="n">ui</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">R</span> <span class="o">@</span> <span class="n">pi</span> <span class="o">+</span> <span class="n">t</span> <span class="o">-</span> <span class="n">ui</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">residual_sq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">pi</span><span class="p">,</span> <span class="n">ui</span><span class="p">):</span>
+        <span class="c1"># TODO: can easily extend below to matrix-weighted</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">)</span>
+        <span class="n">res_sq</span> <span class="o">=</span> <span class="p">(</span><span class="n">R</span> <span class="o">@</span> <span class="n">pi</span> <span class="o">+</span> <span class="n">t</span> <span class="o">-</span> <span class="n">ui</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">W</span> <span class="o">@</span> <span class="p">(</span><span class="n">R</span> <span class="o">@</span> <span class="n">pi</span> <span class="o">+</span> <span class="n">t</span> <span class="o">-</span> <span class="n">ui</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">NORMALIZE</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">res_sq</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_landmarks</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="n">res_sq</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Plotting currently only supported for d=2&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pylab</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+
+        <span class="c1"># R, t = get_C_r_from_theta(self.theta, self.d)</span>
+        <span class="c1"># ax.scatter(*t, color=&quot;k&quot;, label=&quot;pose&quot;)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;equal&quot;</span><span class="p">)</span>
+        <span class="n">t_wc_w</span><span class="p">,</span> <span class="n">C_cw</span> <span class="o">=</span> <span class="n">plot_frame</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;pose&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">landmarks</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;C</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;landmarks&quot;</span><span class="p">)</span>
+
+                <span class="c1"># this vector is in camera coordinates</span>
+                <span class="n">t_cpi_c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="c1"># t_cpi_w: vector from camera to pi in world coordinates</span>
+
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">t_wc_w</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">landmarks</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]],</span>
+                    <span class="p">[</span><span class="n">t_wc_w</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">landmarks</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]],</span>
+                    <span class="n">color</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;C</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;:&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">C_cw</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">t_cpi_w</span> <span class="o">=</span> <span class="n">C_cw</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">t_cpi_c</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                        <span class="p">[</span><span class="n">t_wc_w</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t_wc_w</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">t_cpi_w</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+                        <span class="p">[</span><span class="n">t_wc_w</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">t_wc_w</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">t_cpi_w</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+                        <span class="n">color</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;r&quot;</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_outliers</span> <span class="k">else</span> <span class="s2">&quot;g&quot;</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_Q</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">noise</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">output_poly</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">use_cliques</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[],</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="n">noise</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">NOISE</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="o">**</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">outlier_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_outlier_index</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">y_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_landmarks</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">))</span>
+            <span class="n">R</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="n">get_C_r_from_theta</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_landmarks</span><span class="p">):</span>
+                <span class="n">valid_measurement</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N_TRYS</span><span class="p">):</span>
+                    <span class="n">outlier</span> <span class="o">=</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">outlier_index</span>
+                    <span class="n">y_i</span> <span class="o">=</span> <span class="n">R</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">landmarks</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">t</span>
+                    <span class="k">if</span> <span class="n">outlier</span><span class="p">:</span>
+                        <span class="n">y_i</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span>
+                            <span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">NOISE_OUT</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span>
+                        <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">y_i</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="n">noise</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">)</span>
+
+                    <span class="n">residual</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">residual_sq</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">landmarks</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">y_i</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">robust</span><span class="p">:</span>
+                        <span class="n">valid_measurement</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">outlier</span><span class="p">:</span>
+                            <span class="n">valid_measurement</span> <span class="o">=</span> <span class="n">residual</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">valid_measurement</span> <span class="o">=</span> <span class="n">residual</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span>
+                    <span class="k">if</span> <span class="n">valid_measurement</span><span class="p">:</span>
+                        <span class="k">break</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">valid_measurement</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">robust</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">plot_setup</span><span class="p">()</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;did not find a valid measurement.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">y_</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_i</span>
+        <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_Q_from_y</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_</span><span class="p">,</span> <span class="n">output_poly</span><span class="o">=</span><span class="n">output_poly</span><span class="p">,</span> <span class="n">use_cliques</span><span class="o">=</span><span class="n">use_cliques</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Q</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_Q_from_y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">output_poly</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_cliques</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        every cost term can be written as</span>
+<span class="sd">        (1 + wi)/b^2  r^2(x, zi) + (1 - wi)</span>
+
+<span class="sd">        residual term:</span>
+<span class="sd">        (Rpi + t - ui).T Wi (Rpi + t - ui) =</span>
+<span class="sd">        [t&#39;, vec(R)&#39;] @ [I (pi x I)]&#39; @ Wi @ [I (pi x I)] @ [t ; vec(R)]</span>
+<span class="sd">        ------x&#39;-----   -----Pi&#39;-----</span>
+<span class="sd">        - 2 [t&#39;, vec(R)&#39;] @ [I (pi x I)]&#39; Wi @ ui</span>
+<span class="sd">            -----x&#39;------   ---------Pi_xl--------</span>
+<span class="sd">        + ui.T @ Wi @ ui</span>
+<span class="sd">        -----Pi_ll------</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">use_cliques</span><span class="p">):</span>
+            <span class="n">js</span> <span class="o">=</span> <span class="n">use_cliques</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">js</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_landmarks</span><span class="p">))</span>
+
+        <span class="kn">from</span><span class="w"> </span><span class="nn">poly_matrix</span><span class="w"> </span><span class="kn">import</span> <span class="n">PolyMatrix</span>
+
+        <span class="n">Q</span> <span class="o">=</span> <span class="n">PolyMatrix</span><span class="p">(</span><span class="n">symmetric</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">NORMALIZE</span><span class="p">:</span>
+            <span class="n">norm</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_landmarks</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+
+        <span class="n">Wi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">js</span><span class="p">:</span>
+            <span class="n">pi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">landmarks</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">ui</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">Pi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">))]</span>
+
+            <span class="n">Pi_ll</span> <span class="o">=</span> <span class="n">ui</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">Wi</span> <span class="o">@</span> <span class="n">ui</span>
+            <span class="n">Pi_xl</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">Pi</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">Wi</span> <span class="o">@</span> <span class="n">ui</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+            <span class="n">Qi</span> <span class="o">=</span> <span class="n">Pi</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">Wi</span> <span class="o">@</span> <span class="n">Pi</span>
+            <span class="k">if</span> <span class="n">NORMALIZE</span><span class="p">:</span>
+                <span class="n">Pi_ll</span> <span class="o">/=</span> <span class="n">norm</span>
+                <span class="n">Pi_xl</span> <span class="o">/=</span> <span class="n">norm</span>
+                <span class="n">Qi</span> <span class="o">/=</span> <span class="n">norm</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">robust</span><span class="p">:</span>
+                <span class="n">Qi</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="o">**</span><span class="mi">2</span>
+                <span class="n">Pi_ll</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="o">**</span><span class="mi">2</span>
+                <span class="n">Pi_xl</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="o">**</span><span class="mi">2</span>
+                <span class="c1"># Q[&quot;x&quot;, &quot;x&quot;] += Qi</span>
+                <span class="n">Q</span><span class="p">[</span><span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;t&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">Qi</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">]</span>
+                <span class="n">Q</span><span class="p">[</span><span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">Qi</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="p">:]</span>
+                <span class="n">Q</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">Qi</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="p">:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="p">:]</span>
+
+                <span class="c1"># Q[&quot;x&quot;, self.HOM] += Pi_xl</span>
+                <span class="n">Q</span><span class="p">[</span><span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">]</span> <span class="o">+=</span> <span class="n">Pi_xl</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="p">:]</span>
+                <span class="n">Q</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">]</span> <span class="o">+=</span> <span class="n">Pi_xl</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="p">:,</span> <span class="p">:]</span>
+                <span class="n">Q</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span>
+                    <span class="mi">1</span> <span class="o">+</span> <span class="n">Pi_ll</span>
+                <span class="p">)</span>  <span class="c1"># 1 from (1 - wi), Pi_ll from first term.</span>
+                <span class="n">Q</span><span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;w_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">]</span> <span class="o">+=</span> <span class="o">-</span><span class="mf">0.5</span>  <span class="c1"># from (1 - wi), 0.5 cause on off-diagonal</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">level</span> <span class="o">==</span> <span class="s2">&quot;xwT&quot;</span><span class="p">:</span>
+                    <span class="c1"># Q[f&quot;z_{i}&quot;, &quot;x&quot;] += 0.5 * Qi</span>
+                    <span class="n">Q</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;z_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;t&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">Qi</span><span class="p">[:,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">]</span>
+                    <span class="n">Q</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;z_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">Qi</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="p">:]</span>
+
+                    <span class="n">Q</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;w_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">Pi_ll</span>  <span class="c1"># from first term</span>
+
+                    <span class="n">Q</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;z_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">]</span> <span class="o">+=</span> <span class="n">Pi_xl</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">level</span> <span class="o">==</span> <span class="s2">&quot;xxT&quot;</span><span class="p">:</span>
+                    <span class="n">Q</span><span class="p">[</span><span class="s2">&quot;z_0&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;w_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">Qi</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[:,</span> <span class="kc">None</span><span class="p">]</span>
+
+                    <span class="c1"># Q[&quot;x&quot;, f&quot;w_{i}&quot;] += Pi_xl</span>
+                    <span class="n">Q</span><span class="p">[</span><span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;w_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">Pi_xl</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="p">:]</span>
+                    <span class="n">Q</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;w_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">Pi_xl</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="p">:,</span> <span class="p">:]</span>
+
+                    <span class="n">Q</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;w_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">Pi_ll</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Q[&quot;x&quot;, &quot;x&quot;] += Qi</span>
+                <span class="n">Q</span><span class="p">[</span><span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;t&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">Qi</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">]</span>
+                <span class="n">Q</span><span class="p">[</span><span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">Qi</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="p">:]</span>
+                <span class="n">Q</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">Qi</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="p">:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="p">:]</span>
+
+                <span class="c1"># Q[&quot;x&quot;, self.HOM] += Pi_xl</span>
+                <span class="n">Q</span><span class="p">[</span><span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">]</span> <span class="o">+=</span> <span class="n">Pi_xl</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="p">:]</span>
+                <span class="n">Q</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">]</span> <span class="o">+=</span> <span class="n">Pi_xl</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="p">:,</span> <span class="p">:]</span>
+                <span class="n">Q</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">]</span> <span class="o">+=</span> <span class="n">Pi_ll</span>  <span class="c1"># on diagonal</span>
+        <span class="k">if</span> <span class="n">output_poly</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">Q</span>
+        <span class="n">Q_sparse</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">Q</span><span class="o">.</span><span class="n">get_matrix</span><span class="p">(</span><span class="n">variables</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Q_sparse</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">appendix</span> <span class="o">=</span> <span class="s2">&quot;_robust&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">robust</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;wahba_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="si">}</span><span class="s2">d_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">level</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">param_level</span><span class="si">}{</span><span class="n">appendix</span><span class="si">}</span><span class="s2">&quot;</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, POPCOR Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+   
+
+
+</body>
+</html>

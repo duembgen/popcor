@@ -14,17 +14,19 @@
 import os
 import sys
 
+import popcor
+
 # The module you're documenting (assumes you've added the project root dir to sys.path)
-sys.path.insert(0, os.path.abspath('../..'))
+sys.path.insert(0, os.path.abspath("../.."))
 
 # -- Project information -----------------------------------------------------
 
-project = 'POPR'
-copyright = '2025, POPR Contributors'
-author = 'POPR Contributors, adopted from PEPit'
+project = "POPCOR"
+copyright = "2025, POPCOR Contributors"
+author = "POPCOR Contributors"
 
 # The full version, including alpha/beta/rc tags
-release = '0.0.1'
+release = "0.0.1"
 
 # -- General configuration ---------------------------------------------------
 
@@ -32,53 +34,51 @@ release = '0.0.1'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.doctest',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.todo',
-    'sphinx.ext.coverage',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.ifconfig',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.autosectionlabel',
-    'myst_parser',
-    'sphinx_copybutton',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.doctest",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.todo",
+    "sphinx.ext.coverage",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.ifconfig",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.autosectionlabel",
+    "myst_parser",
+    "sphinx_copybutton",
 ]
 
-napoleon_custom_sections = [('Returns', 'params_style'),
-                            ('Attributes', 'params_style')]
+napoleon_custom_sections = [("Returns", "params_style"), ("Attributes", "params_style")]
 
-import popr
 
-autodocgen_config = [{
-    'modules': [popr],
-    'generated_source_dir': './autodocgen-output/',
+autodocgen_config = [
+    {
+        "modules": [popcor],
+        "generated_source_dir": "./autodocgen-output/",
+        # if module matches this then it and any of its submodules will be skipped
+        "skip_module_regex": "(.*[.]__|myskippedmodule)",
+        # produce a text file containing a list of everything documented. you can use this in a test to notice
+        # when you've intentionally added/removed/changed a documented API
+        "write_documented_items_output_file": "autodocgen_documented_items.txt",
+        # customize autodoc on a per-module basis
+        "autodoc_options_decider": {
+            "mymodule.FooBar": {"inherited-members": True},
+        },
+        # choose a different title for specific modules, e.g. the toplevel one
+        "module_title_decider": lambda modulename: (
+            "API Reference" if modulename == "mymodule" else modulename
+        ),
+    }
+]
 
-    # if module matches this then it and any of its submodules will be skipped
-    'skip_module_regex': '(.*[.]__|myskippedmodule)',
-
-    # produce a text file containing a list of everything documented. you can use this in a test to notice
-    # when you've intentionally added/removed/changed a documented API
-    'write_documented_items_output_file': 'autodocgen_documented_items.txt',
-
-    # customize autodoc on a per-module basis
-    'autodoc_options_decider': {
-        'mymodule.FooBar': {'inherited-members': True},
-    },
-
-    # choose a different title for specific modules, e.g. the toplevel one
-    'module_title_decider': lambda modulename: 'API Reference' if modulename == 'mymodule' else modulename,
-}]
-
-autoclass_content = 'both'
+autoclass_content = "both"
 
 # Include or not the special methods
 napoleon_include_special_with_doc = False
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -90,7 +90,14 @@ exclude_patterns = []
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
+html_theme = "sphinx_rtd_theme"
+
+# Make sure we display the logo in top-left.
+html_logo = "_static/logo2.png"
+html_theme_options = {
+    "collapse_navigation": False,
+    "logo_only": True,
+}
 
 # # Make the copy paste possible for any example code in documentation
 # import easydev
@@ -107,4 +114,12 @@ html_theme = 'sphinx_rtd_theme'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = []
+html_static_path = ["_static"]
+
+
+# Do not show "View Page Source"
+html_show_sourcelink = False
+
+
+def setup(app):
+    app.add_css_file("custom_css")

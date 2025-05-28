@@ -1,7 +1,7 @@
 import numpy as np
 
-from popr import AutoTemplate
-from popr.examples import RangeOnlyLocLifter, Stereo1DLifter
+from popcor import AutoTemplate
+from popcor.examples import RangeOnlyLocLifter, Stereo1DLifter
 
 # random seed, for reproducibility
 SEED = 3
@@ -20,7 +20,7 @@ def test_stereo_1d():
     )
     try:
         assert success
-    except:
+    except AssertionError:
         learner.save_matrices_poly()
 
 
