@@ -1,5 +1,11 @@
 [![Python Package using Conda](https://github.com/duembgen/popr/actions/workflows/python-package-conda.yml/badge.svg)](https://github.com/duembgen/popr/actions/workflows/python-package-conda.yml)
-[![Documentation](https://github.com/duembgen/popr/actions/workflows/documentation.yml/badge.svg)](https://github.com/duembgen/popr/actions/workflows/documentation.yml)
+[![Documentation build](https://github.com/duembgen/popr/actions/workflows/documentation.yml/badge.svg)](https://duembgen.github.io/popcor)
+[![Documentation deploy](https://github.com/duembgen/popcor/actions/workflows/static.yml/badge.svg)](https://duembgen.github.io/popcor)
+
+![](./docs/source/_static/overview.png)
+
+> [!WARNING]  
+> This package is currently in pre-release state. You are welcome to try it out, and please get in touch via github or e-mail if you have any questions, suggestions or issues.
 
 .. start-doc
 
