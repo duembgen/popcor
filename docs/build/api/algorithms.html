@@ -6,10 +6,11 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Core Algorithms &mdash; POPR 0.0.1 documentation</title>
+  <title>Core Algorithms &mdash; POPCOR 0.0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom_css" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -23,7 +24,20 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Base Lifters" href="lifters.html" />
-    <link rel="prev" title="API and modules" href="../api.html" /> 
+    <link rel="prev" title="API and modules" href="../api.html" />
+   
+  <style>
+    .github-link {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+    .github-link img {
+      height: 32px;
+      width: 32px;
+    }
+  </style>
+
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -34,8 +48,9 @@
 
           
           
-          <a href="../index.html" class="icon icon-home">
-            POPR
+          <a href="../index.html">
+            
+              <img src="../_static/logo2.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -46,16 +61,16 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../index.html">Welcome to POPR’s documentation!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Welcome to POPCOR!</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start Guide</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API and modules</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Core Algorithms</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#autotight">AutoTight</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#popr.AutoTight"><code class="docutils literal notranslate"><span class="pre">AutoTight</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#popcor.AutoTight"><code class="docutils literal notranslate"><span class="pre">AutoTight</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#autotemplate">AutoTemplate</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#popr.AutoTemplate"><code class="docutils literal notranslate"><span class="pre">AutoTemplate</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#popcor.AutoTemplate"><code class="docutils literal notranslate"><span class="pre">AutoTemplate</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -75,22 +90,12 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">POPR</a>
+          <a href="../index.html">POPCOR</a>
       </nav>
 
       <div class="wy-nav-content">
         <div class="rst-content">
-          <div role="navigation" aria-label="Page navigation">
-  <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="../api.html">API and modules</a></li>
-      <li class="breadcrumb-item active">Core Algorithms</li>
-      <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/api/algorithms.rst.txt" rel="nofollow"> View page source</a>
-      </li>
-  </ul>
-  <hr/>
-</div>
+          <!-- Empty override file which replaces the top nav breadcrumbs -->
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
@@ -105,12 +110,12 @@
 <section id="autotight">
 <h2><a class="toc-backref" href="#id1" role="doc-backlink">AutoTight</a><a class="headerlink" href="#autotight" title="Link to this heading"></a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="popr.AutoTight">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">popr.</span></span><span class="sig-name descname"><span class="pre">AutoTight</span></span><a class="reference internal" href="../_modules/popr/auto_tight.html#AutoTight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#popr.AutoTight" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="popcor.AutoTight">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">popcor.</span></span><span class="sig-name descname"><span class="pre">AutoTight</span></span><a class="reference internal" href="../_modules/popcor/auto_tight.html#AutoTight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#popcor.AutoTight" title="Link to this definition"></a></dt>
 <dd><p>Class for automatic constraint generation.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="popr.AutoTight.get_A_learned">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_A_learned</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lifter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A_known</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'qrp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="../_modules/popr/auto_tight.html#AutoTight.get_A_learned"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#popr.AutoTight.get_A_learned" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="popcor.AutoTight.get_A_learned">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_A_learned</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lifter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A_known</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'qrp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="../_modules/popcor/auto_tight.html#AutoTight.get_A_learned"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#popcor.AutoTight.get_A_learned" title="Link to this definition"></a></dt>
 <dd><p>Generate list of learned constraints by sampling the lifter.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -129,8 +134,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="popr.AutoTight.get_duality_gap">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_duality_gap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cost_local</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost_sdp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/popr/auto_tight.html#AutoTight.get_duality_gap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#popr.AutoTight.get_duality_gap" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="popcor.AutoTight.get_duality_gap">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_duality_gap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cost_local</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost_sdp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/popcor/auto_tight.html#AutoTight.get_duality_gap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#popcor.AutoTight.get_duality_gap" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -139,18 +144,18 @@
 <section id="autotemplate">
 <h2><a class="toc-backref" href="#id2" role="doc-backlink">AutoTemplate</a><a class="headerlink" href="#autotemplate" title="Link to this heading"></a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="popr.AutoTemplate">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">popr.</span></span><span class="sig-name descname"><span class="pre">AutoTemplate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lifter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="lifters.html#popr.base_lifters.StateLifter" title="popr.base_lifters.state_lifter.StateLifter"><span class="pre">StateLifter</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/popr/auto_template.html#AutoTemplate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#popr.AutoTemplate" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="popcor.AutoTemplate">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">popcor.</span></span><span class="sig-name descname"><span class="pre">AutoTemplate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lifter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="lifters.html#popcor.base_lifters.StateLifter" title="popcor.base_lifters.state_lifter.StateLifter"><span class="pre">StateLifter</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/popcor/auto_template.html#AutoTemplate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#popcor.AutoTemplate" title="Link to this definition"></a></dt>
 <dd><p>Class to incrementally learn and augment constraint templates until we reach tightness.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="popr.AutoTemplate.apply">
-<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lifter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="lifters.html#popr.base_lifters.StateLifter" title="popr.base_lifters.state_lifter.StateLifter"><span class="pre">StateLifter</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_known</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="../_modules/popr/auto_template.html#AutoTemplate.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#popr.AutoTemplate.apply" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="popcor.AutoTemplate.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lifter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="lifters.html#popcor.base_lifters.StateLifter" title="popcor.base_lifters.state_lifter.StateLifter"><span class="pre">StateLifter</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_known</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="../_modules/popcor/auto_template.html#AutoTemplate.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#popcor.AutoTemplate.apply" title="Link to this definition"></a></dt>
 <dd><p>Apply the learned templates to a new lifter.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="popr.AutoTemplate.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_known</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_incremental</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/popr/auto_template.html#AutoTemplate.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#popr.AutoTemplate.run" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="popcor.AutoTemplate.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_known</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_incremental</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/popcor/auto_template.html#AutoTemplate.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#popcor.AutoTemplate.run" title="Link to this definition"></a></dt>
 <dd><p>Run the template learning algorithm until we reach tightness, or run out of variables to add.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -179,7 +184,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, POPR Contributors.</p>
+    <p>&#169; Copyright 2025, POPCOR Contributors.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
@@ -196,7 +201,12 @@
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+   
+  <a class="github-link" href="https://github.com/duembgen/popr" target="_blank" title="View on GitHub">
+    <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub logo">
+  </a>
+
 
 </body>
 </html>

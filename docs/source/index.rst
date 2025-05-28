@@ -1,16 +1,20 @@
-Welcome to POPR's documentation!
-=================================
-
-.. figure:: ../../docs/source/figures/overview.webp
-   :align: center
-   :width: 500px
 
 .. warning::
 
    This package is currently in pre-release state. You are welcome to try it out, 
    and please get in touch via github or e-mail if you have any questions, suggestions or issues. 
 
+Welcome to POPCOR!
+==================
+
+.. figure:: _static/overview.png
+   :align: center
+   :width: 500px
+
+
 .. include:: ../../README.md
+   :start-after: .. start-doc
+   :end-before: .. end-doc
    :parser: myst_parser.sphinx_
 
 

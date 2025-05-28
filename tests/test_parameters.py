@@ -3,9 +3,9 @@ import numpy as np
 import scipy.sparse as sp
 from poly_matrix import PolyMatrix
 
-from popr import AutoTight
-from popr.examples import Stereo2DLifter
-from popr.utils.common import get_vec
+from popcor import AutoTight
+from popcor.examples import Stereo2DLifter
+from popcor.utils.common import get_vec
 
 
 def test_canonical_operations():

@@ -8,12 +8,12 @@ Core Algorithms
 
 AutoTight
 ---------
-.. autoclass:: popr.AutoTight
+.. autoclass:: popcor.AutoTight
    :undoc-members:
    :members: get_A_learned, get_duality_gap
 
 AutoTemplate
 ------------
-.. autoclass:: popr.AutoTemplate
+.. autoclass:: popcor.AutoTemplate
    :undoc-members:
    :members: run, apply

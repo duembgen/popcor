@@ -4,10 +4,10 @@ Robust Estimation Problems
 Robust Registration Problems
 ----------------------------
 
-.. autoclass:: popr.examples.MonoLifter
+.. autoclass:: popcor.examples.MonoLifter
    :undoc-members:
    :show-inheritance:
 
-.. autoclass:: popr.examples.WahbaLifter
+.. autoclass:: popcor.examples.WahbaLifter
    :undoc-members:
    :show-inheritance:
