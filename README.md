@@ -4,6 +4,9 @@
 
 ![](./docs/source/_static/overview.png)
 
+> [!WARNING]  
+> This package is currently in pre-release state. You are welcome to try it out, and please get in touch via github or e-mail if you have any questions, suggestions or issues.
+
 .. start-doc
 
 # POPCOR: Polynomial Optimization for Certifiably Optimal Robotics
