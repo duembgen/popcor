@@ -1,9 +1,6 @@
 name: popr_small
 channels:
-    - defaults
     - conda-forge
-    - anaconda
-    - mosek
 
 dependencies:
     - python=3.10

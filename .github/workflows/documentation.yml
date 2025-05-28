@@ -1,9 +1,10 @@
 name: Documentation
 
-on: [push]
-
-permissions:
-  contents: write
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   docs:
@@ -12,7 +13,7 @@ jobs:
       max-parallel: 5
       
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v3
     - name: Set up Python 3.10
       uses: actions/setup-python@v3
       with:
@@ -23,7 +24,6 @@ jobs:
         echo $CONDA/bin >> $GITHUB_PATH
     - name: Install dependencies
       run: |
-        sudo apt-get update && sudo apt-get install -y libsuitesparse-dev
         conda env update --file environment_small.yml --name base
         pip install -r docs/requirements.txt
     - name: Sphinx build
