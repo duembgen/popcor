@@ -1,7 +1,7 @@
 [![Python Package using Conda](https://github.com/duembgen/popr/actions/workflows/python-package-conda.yml/badge.svg)](https://github.com/duembgen/popr/actions/workflows/python-package-conda.yml)
 [![Documentation](https://github.com/duembgen/popr/actions/workflows/documentation.yml/badge.svg)](https://github.com/duembgen/popr/actions/workflows/documentation.yml)
 
-<img source="https://github.com/duembgen/popcor/docs/source/_static/overview.png" width="500" height="100">
+![](./docs/source/_static/overview.png)
 
 .. start-doc
 
