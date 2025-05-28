@@ -109,8 +109,6 @@ def test_levels():
 pytest_configure()
 
 if __name__ == "__main__":
-    import pytest
-
     # pytest.main([__file__, "-s"])
     # print("all tests passed")
 

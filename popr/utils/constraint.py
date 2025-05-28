@@ -1,4 +1,3 @@
-import matplotlib.pylab as plt
 import numpy as np
 import scipy.sparse as sp
 from poly_matrix.poly_matrix import PolyMatrix

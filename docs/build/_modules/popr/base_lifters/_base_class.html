@@ -1,0 +1,884 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>popr.base_lifters._base_class &mdash; POPR 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            POPR
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Welcome to POPR’s documentation!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API and modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../whatsnew.html">What’s new</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">POPR</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">popr.base_lifters._base_class</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for popr.base_lifters._base_class</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The BaseClass contains all the functionalities that are required by StateLifter but that</span>
+<span class="sd">are tedious and uninteresting, such as converting between different formats.</span>
+
+<span class="sd">Ideally, the user never has to look at this code.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.sparse</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">poly_matrix</span><span class="w"> </span><span class="kn">import</span> <span class="n">PolyMatrix</span><span class="p">,</span> <span class="n">unroll</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">popr.utils.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_symmetric</span><span class="p">,</span> <span class="n">get_labels</span><span class="p">,</span> <span class="n">get_vec</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">popr.utils.constraint</span><span class="w"> </span><span class="kn">import</span> <span class="n">Constraint</span><span class="p">,</span> <span class="n">remove_dependent_constraints</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseClass</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="c1"># Homogenization variable name</span>
+    <span class="n">HOM</span> <span class="o">=</span> <span class="s2">&quot;h&quot;</span>
+
+    <span class="c1"># set elements below this threshold to zero.</span>
+    <span class="n">EPS_SPARSE</span> <span class="o">=</span> <span class="mf">1e-9</span>
+
+    <span class="c1"># properties of template scaling</span>
+    <span class="n">ALL_PAIRS</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="c1"># Below only have effect if ALL_PAIRS is False.</span>
+    <span class="c1"># Then, they determine the clique size hierarchy.</span>
+    <span class="n">CLIQUE_SIZE</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">STEP_SIZE</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># tolerance for feasibility error of learned constraints</span>
+    <span class="n">EPS_ERROR</span> <span class="o">=</span> <span class="mf">1e-8</span>
+
+    <span class="n">PARAM_LEVELS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;no&quot;</span><span class="p">,</span> <span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;ppT&quot;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">var_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">param_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample_theta</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_variable_indices</span><span class="p">(</span><span class="n">var_subset</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="s2">&quot;z&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span>
+            <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">var_subset</span> <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">variable</span><span class="si">}</span><span class="s2">_&quot;</span><span class="p">)]</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">param_level</span><span class="p">,</span> <span class="n">n_parameters</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">param_level</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">PARAM_LEVELS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">param_level</span> <span class="o">=</span> <span class="n">param_level</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">=</span> <span class="n">d</span>
+
+        <span class="k">if</span> <span class="n">param_level</span> <span class="o">==</span> <span class="s2">&quot;no&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_parameters</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">param_level</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;ppT&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_parameters</span> <span class="o">=</span> <span class="n">n_parameters</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown param_level: </span><span class="si">{</span><span class="n">param_level</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># n_parameters * (self.d + (self.d * (self.d + 1)) // 2)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_random_setup</span><span class="p">()</span>
+
+    <span class="c1">### Functionalities related to var_dict</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_var_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unroll_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">var_subset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">var_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">var_subset</span><span class="p">}</span>
+            <span class="k">if</span> <span class="n">unroll_keys</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">unroll</span><span class="p">(</span><span class="n">var_dict</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">var_dict</span>
+        <span class="k">if</span> <span class="n">unroll_keys</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">unroll</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_param_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">param_subset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">param_subset</span><span class="p">}</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_dict</span>
+
+    <span class="c1">### Functionalities related to random setups</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">theta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">theta_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_theta</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta_</span>
+
+    <span class="nd">@theta</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">theta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">theta_</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="p">),</span> <span class="s2">&quot;The property self.theta is only meant to be set once!&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">theta_</span> <span class="o">=</span> <span class="n">t</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameters_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_parameters</span><span class="p">()</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters_</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters_</span>  <span class="c1"># type: ignore</span>
+
+    <span class="nd">@parameters</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameters_</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="p">),</span> <span class="s2">&quot;The property self.parameters is only meant to be set once!&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters_</span> <span class="o">=</span> <span class="n">p</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">extract_A_known</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A_known</span><span class="p">,</span> <span class="n">var_subset</span><span class="p">,</span> <span class="n">output_type</span><span class="o">=</span><span class="s2">&quot;csc&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract from the list of constraint matrices only the ones that</span>
+<span class="sd">        touch only a subset of var_subset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">output_type</span> <span class="o">==</span> <span class="s2">&quot;dense&quot;</span><span class="p">:</span>
+            <span class="n">sub_A_known</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dim_Y</span><span class="p">(</span><span class="n">var_subset</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sub_A_known</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">A</span> <span class="ow">in</span> <span class="n">A_known</span><span class="p">:</span>
+            <span class="n">A_poly</span><span class="p">,</span> <span class="n">var_dict</span> <span class="o">=</span> <span class="n">PolyMatrix</span><span class="o">.</span><span class="n">init_from_sparse</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span><span class="p">)</span>
+
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">A_poly</span><span class="o">.</span><span class="n">get_variables</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+            <span class="c1"># if all of the non-zero elements of A_poly are in var_subset,</span>
+            <span class="c1"># we can use this matrix.</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="n">v</span> <span class="ow">in</span> <span class="n">var_subset</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">A_poly</span><span class="o">.</span><span class="n">get_variables</span><span class="p">()]):</span>
+                <span class="n">Ai</span> <span class="o">=</span> <span class="n">A_poly</span><span class="o">.</span><span class="n">get_matrix</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">get_var_dict</span><span class="p">(</span><span class="n">var_subset</span><span class="p">),</span> <span class="n">output_type</span><span class="o">=</span><span class="n">output_type</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">output_type</span> <span class="o">==</span> <span class="s2">&quot;dense&quot;</span><span class="p">:</span>
+                    <span class="n">ai</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">augment_using_zero_padding</span><span class="p">(</span>
+                        <span class="n">get_vec</span><span class="p">(</span><span class="n">Ai</span><span class="p">,</span> <span class="n">correct</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">var_subset</span>
+                    <span class="p">)</span>
+                    <span class="n">sub_A_known</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">sub_A_known</span><span class="p">,</span> <span class="n">ai</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sub_A_known</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+                    <span class="n">sub_A_known</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Ai</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sub_A_known</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_param_idx_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Give the current subset of variables, extract the parameter dictionary to use.</span>
+<span class="sd">        Example:</span>
+<span class="sd">            var_subset = [&#39;z_0&#39;, &#39;x_1&#39;]</span>
+<span class="sd">            -&gt; Parameters to include:  self.HOM (always), p_0, p_1</span>
+<span class="sd">        - if param_level == &#39;no&#39;: {&#39;l&#39;: 0}</span>
+<span class="sd">        - if param_level == &#39;p&#39;: {&#39;l&#39;: 0, &#39;p_0:0&#39;: 1, ..., &#39;p_0:d-1&#39;: d}</span>
+<span class="sd">        - if param_level == &#39;ppT&#39;: {&#39;l&#39;: 0, &#39;p_0:0.p_0:0&#39;: 1, ..., &#39;p_0:d-1:.p_0:d-1&#39;: 1}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO(FD) change to use  param_subset instead.</span>
+        <span class="n">param_subset</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span>
+            <span class="sa">f</span><span class="s2">&quot;p_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_variable_indices</span><span class="p">(</span><span class="n">var_subset</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">unroll</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_param_dict</span><span class="p">(</span><span class="n">param_subset</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_mat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vec</span><span class="p">,</span> <span class="n">sparse</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">var_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">correct</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert (N+1)N/2 vectorized matrix to NxN Symmetric matrix in a way that preserves inner products.</span>
+
+<span class="sd">        In particular, this means that we divide the off-diagonal elements by sqrt(2).</span>
+
+<span class="sd">        :param vec (ndarray): vector of upper-diagonal elements</span>
+<span class="sd">        :return: symmetric matrix filled with vec.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># len(vec) = k = n(n+1)/2 -&gt; dim_x = n =</span>
+        <span class="k">if</span> <span class="n">var_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">var_dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">var_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">var_dict</span><span class="p">}</span>
+
+        <span class="n">Ai</span> <span class="o">=</span> <span class="n">create_symmetric</span><span class="p">(</span>
+            <span class="n">vec</span><span class="p">,</span> <span class="n">correct</span><span class="o">=</span><span class="n">correct</span><span class="p">,</span> <span class="n">sparse</span><span class="o">=</span><span class="n">sparse</span><span class="p">,</span> <span class="n">eps_sparse</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">EPS_SPARSE</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">var_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Ai</span>
+
+        <span class="c1"># if var_dict is not None, then Ai corresponds to the subblock</span>
+        <span class="c1"># defined by var_dict, of the full constraint matrix.</span>
+        <span class="n">Ai_poly</span><span class="p">,</span> <span class="n">__</span> <span class="o">=</span> <span class="n">PolyMatrix</span><span class="o">.</span><span class="n">init_from_sparse</span><span class="p">(</span><span class="n">Ai</span><span class="p">,</span> <span class="n">var_dict</span><span class="p">,</span> <span class="n">unfold</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">poly_matrix.poly_matrix</span><span class="w"> </span><span class="kn">import</span> <span class="n">augment</span>
+
+        <span class="n">augment_var_dict</span> <span class="o">=</span> <span class="n">augment</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span><span class="p">)</span>
+        <span class="n">all_var_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">augment_var_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
+        <span class="k">return</span> <span class="n">Ai_poly</span><span class="o">.</span><span class="n">get_matrix</span><span class="p">(</span><span class="n">all_var_dict</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">var_list_row</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">var_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">param_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_parameters_off</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="n">var_subset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">var_subset</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">var_subset</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">var_subset</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">var_subset</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="n">param_subset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">param_subset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_dict</span>
+
+        <span class="n">label_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">force_parameters_off</span><span class="p">:</span>
+            <span class="n">param_dict</span> <span class="o">=</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">param_dict</span> <span class="o">=</span> <span class="n">unroll</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">get_param_dict</span><span class="p">(</span><span class="n">param_subset</span><span class="p">)</span>
+            <span class="p">)</span>  <span class="c1"># self.get_param_idx_dict(var_subset)</span>
+
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">param_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">var_subset</span><span class="p">)):</span>
+                <span class="n">zi</span> <span class="o">=</span> <span class="n">var_subset</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">sizei</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span><span class="p">[</span><span class="n">zi</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">di</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sizei</span><span class="p">):</span>
+                    <span class="n">keyi</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">zi</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">di</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">sizei</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">zi</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">var_subset</span><span class="p">)):</span>
+                        <span class="n">zj</span> <span class="o">=</span> <span class="n">var_subset</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                        <span class="n">sizej</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span><span class="p">[</span><span class="n">zj</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">zi</span> <span class="o">==</span> <span class="n">zj</span><span class="p">:</span>
+                            <span class="n">djs</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">di</span><span class="p">,</span> <span class="n">sizej</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">djs</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">sizej</span><span class="p">)</span>
+
+                        <span class="k">for</span> <span class="n">dj</span> <span class="ow">in</span> <span class="n">djs</span><span class="p">:</span>
+                            <span class="n">keyj</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">zj</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">dj</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">sizej</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">zj</span><span class="si">}</span><span class="s2">&quot;</span>
+                            <span class="n">label_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">keyi</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">keyj</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># for zi, zj in vectorized_var_list:</span>
+            <span class="c1"># label_list += self.get_labels(key, zi, zj)</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">label_list</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dim_X</span><span class="p">(</span><span class="n">var_subset</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">label_list</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">var_dict_row</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_parameters_off</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="n">label</span><span class="p">:</span> <span class="mi">1</span>
+            <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_list_row</span><span class="p">(</span>
+                <span class="n">var_subset</span><span class="p">,</span> <span class="n">force_parameters_off</span><span class="o">=</span><span class="n">force_parameters_off</span>
+            <span class="p">)</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_basis_from_poly_rows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">basis_poly_list</span><span class="p">,</span> <span class="n">var_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">var_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_var_dict</span><span class="p">(</span><span class="n">var_subset</span><span class="o">=</span><span class="n">var_subset</span><span class="p">)</span>
+
+        <span class="n">all_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">label</span><span class="p">:</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_list_row</span><span class="p">(</span><span class="n">var_subset</span><span class="p">)}</span>
+        <span class="n">basis_reduced</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_dict</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">bi_poly</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">basis_poly_list</span><span class="p">):</span>
+            <span class="c1"># test that this constraint holds</span>
+
+            <span class="n">bi</span> <span class="o">=</span> <span class="n">bi_poly</span><span class="o">.</span><span class="n">get_matrix</span><span class="p">(([</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">],</span> <span class="n">all_dict</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">bi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dim_X</span><span class="p">(</span><span class="n">var_subset</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dim_P</span><span class="p">():</span>
+                <span class="n">ai</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_reduced_a</span><span class="p">(</span><span class="n">bi</span><span class="p">,</span> <span class="n">var_subset</span><span class="o">=</span><span class="n">var_subset</span><span class="p">)</span>
+                <span class="n">Ai</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mat</span><span class="p">(</span><span class="n">ai</span><span class="p">,</span> <span class="n">var_dict</span><span class="o">=</span><span class="n">var_dict</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">bi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dim_X</span><span class="p">():</span>
+                <span class="n">Ai</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mat</span><span class="p">(</span><span class="n">bi</span><span class="p">,</span> <span class="n">var_dict</span><span class="o">=</span><span class="n">var_subset</span><span class="p">)</span>
+
+            <span class="n">err</span><span class="p">,</span> <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_constraints</span><span class="p">([</span><span class="n">Ai</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;print&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;found b</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> has error: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># test that this constraint is lin. independent of previous ones.</span>
+            <span class="n">basis_reduced_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">basis_reduced</span><span class="p">,</span> <span class="n">bi</span><span class="o">.</span><span class="n">toarray</span><span class="p">()])</span>
+            <span class="n">rank</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_rank</span><span class="p">(</span><span class="n">basis_reduced_test</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="n">basis_reduced_test</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">basis_reduced</span> <span class="o">=</span> <span class="n">basis_reduced_test</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;b</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> is linearly dependant after factoring out parameters.&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;left with </span><span class="si">{</span><span class="n">basis_reduced</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> total constraints&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">basis_reduced</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">convert_polyrow_to_Apoly</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">poly_row</span><span class="p">,</span> <span class="n">correct</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert poly-row to reduced a.</span>
+
+<span class="sd">        poly-row has elements with keys &quot;pk:l.xi:m.xj:n&quot;,</span>
+<span class="sd">        meaning this element corresponds to the l-th element of parameter i,</span>
+<span class="sd">        and the m-n-th element of xj times xk.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_p</span><span class="p">()</span>
+        <span class="n">param_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unroll</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param_dict</span><span class="p">),</span> <span class="n">parameters</span><span class="p">))</span>
+
+        <span class="n">poly_mat</span> <span class="o">=</span> <span class="n">PolyMatrix</span><span class="p">(</span><span class="n">symmetric</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">poly_row</span><span class="o">.</span><span class="n">variable_dict_j</span><span class="p">:</span>
+            <span class="n">param</span><span class="p">,</span> <span class="n">var_keys</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
+            <span class="n">param_val</span> <span class="o">=</span> <span class="n">param_dict</span><span class="p">[</span><span class="n">param</span><span class="p">]</span>
+
+            <span class="n">keyi_m</span><span class="p">,</span> <span class="n">keyj_n</span> <span class="o">=</span> <span class="n">var_keys</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">keyi_m</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">keyj_n</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="c1"># divide off-diagonal elements by sqrt(2)</span>
+            <span class="n">newval</span> <span class="o">=</span> <span class="n">poly_row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">,</span> <span class="n">key</span><span class="p">]</span> <span class="o">*</span> <span class="n">param_val</span>
+            <span class="k">if</span> <span class="n">correct</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">((</span><span class="n">keyi_m</span> <span class="o">==</span> <span class="n">keyj_n</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">m</span> <span class="o">==</span> <span class="n">n</span><span class="p">)):</span>
+                <span class="n">newval</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+            <span class="n">poly_mat</span><span class="p">[</span><span class="n">keyi_m</span><span class="p">,</span> <span class="n">keyj_n</span><span class="p">]</span> <span class="o">+=</span> <span class="n">newval</span>
+        <span class="k">return</span> <span class="n">poly_mat</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">convert_polyrow_to_Asparse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">poly_row</span><span class="p">,</span> <span class="n">var_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">poly_mat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_polyrow_to_Apoly</span><span class="p">(</span><span class="n">poly_row</span><span class="p">,</span> <span class="n">correct</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">var_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_var_dict</span><span class="p">(</span><span class="n">var_subset</span><span class="p">)</span>
+        <span class="n">mat_var_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">var</span><span class="p">,</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">var_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">mat_var_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mat_var_list</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">size</span><span class="p">)]</span>
+        <span class="n">mat_sparse</span> <span class="o">=</span> <span class="n">poly_mat</span><span class="o">.</span><span class="n">get_matrix</span><span class="p">({</span><span class="n">m</span><span class="p">:</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">mat_var_list</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">mat_sparse</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">convert_polyrow_to_a</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">poly_row</span><span class="p">,</span> <span class="n">var_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sparse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert poly-row to reduced a.</span>
+
+<span class="sd">        poly-row has elements with keys &quot;pk:l.xi:m.xj:n&quot;,</span>
+<span class="sd">        meaning this element corresponds to the l-th element of parameter i,</span>
+<span class="sd">        and the m-n-th element of xj times xk.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mat_sparse</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_polyrow_to_Asparse</span><span class="p">(</span><span class="n">poly_row</span><span class="p">,</span> <span class="n">var_subset</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">get_vec</span><span class="p">(</span><span class="n">mat_sparse</span><span class="p">,</span> <span class="n">correct</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sparse</span><span class="o">=</span><span class="n">sparse</span><span class="p">)</span>
+
+    <span class="c1"># TODO(FD) consider removing this cause only used in tests.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">convert_a_to_polyrow</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">a</span><span class="p">,</span>
+        <span class="n">var_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PolyMatrix</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert a array to poly-row.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">var_subset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">var_subset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span>
+        <span class="n">var_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_var_dict</span><span class="p">(</span><span class="n">var_subset</span><span class="p">)</span>
+        <span class="n">dim_X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dim_X</span><span class="p">(</span><span class="n">var_subset</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">dim_a</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">dim_a</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">dim_a</span> <span class="o">==</span> <span class="n">dim_X</span>
+
+        <span class="n">mat</span> <span class="o">=</span> <span class="n">create_symmetric</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">sparse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eps_sparse</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">EPS_SPARSE</span><span class="p">)</span>
+        <span class="n">poly_mat</span><span class="p">,</span> <span class="n">__</span> <span class="o">=</span> <span class="n">PolyMatrix</span><span class="o">.</span><span class="n">init_from_sparse</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">var_dict</span><span class="p">)</span>
+        <span class="n">poly_row</span> <span class="o">=</span> <span class="n">PolyMatrix</span><span class="p">(</span><span class="n">symmetric</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">keyi</span><span class="p">,</span> <span class="n">keyj</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations_with_replacement</span><span class="p">(</span><span class="n">var_dict</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">keyi</span> <span class="ow">in</span> <span class="n">poly_mat</span><span class="o">.</span><span class="n">matrix</span> <span class="ow">and</span> <span class="n">keyj</span> <span class="ow">in</span> <span class="n">poly_mat</span><span class="o">.</span><span class="n">matrix</span><span class="p">[</span><span class="n">keyi</span><span class="p">]:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">poly_mat</span><span class="o">.</span><span class="n">matrix</span><span class="p">[</span><span class="n">keyi</span><span class="p">][</span><span class="n">keyj</span><span class="p">]</span>
+                <span class="n">labels</span> <span class="o">=</span> <span class="n">get_labels</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">,</span> <span class="n">keyi</span><span class="p">,</span> <span class="n">keyj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">keyi</span> <span class="o">!=</span> <span class="n">keyj</span><span class="p">:</span>
+                    <span class="n">vals</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># TODO: use get_vec instead?</span>
+                    <span class="n">vals</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">triu_indices</span><span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+                <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">vals</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">EPS_SPARSE</span><span class="p">):</span>
+                        <span class="n">poly_row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">,</span> <span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+        <span class="k">return</span> <span class="n">poly_row</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">convert_b_to_polyrow</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">var_subset</span><span class="p">,</span> <span class="n">param_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-10</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PolyMatrix</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert (augmented) b array to poly-row.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">PolyMatrix</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;can&#39;t call convert_b_to_polyrow with PolyMatrix yet.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dim_Y</span><span class="p">(</span><span class="n">var_subset</span><span class="p">,</span> <span class="n">param_subset</span><span class="p">)</span>
+        <span class="n">poly_row</span> <span class="o">=</span> <span class="n">PolyMatrix</span><span class="p">(</span><span class="n">symmetric</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">tol</span>
+
+        <span class="c1"># get the variable names such as p_0:0-x:0.x:4 whch corresponds to p_0[0]*x[0]*x[4]</span>
+        <span class="n">var_list_row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_list_row</span><span class="p">(</span><span class="n">var_subset</span><span class="p">,</span> <span class="n">param_subset</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">var_list_row</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">poly_row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">,</span> <span class="n">var_list_row</span><span class="p">[</span><span class="n">idx</span><span class="p">]]</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">poly_row</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dim_x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">var_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_var_dict</span><span class="p">(</span><span class="n">var_subset</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">val</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">var_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dim_p</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">param_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_param_dict</span><span class="p">(</span><span class="n">param_subset</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">val</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">param_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dim_Y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">param_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">dim_X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dim_X</span><span class="p">(</span><span class="n">var_subset</span><span class="o">=</span><span class="n">var_subset</span><span class="p">)</span>
+        <span class="n">dim_P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dim_P</span><span class="p">(</span><span class="n">param_subset</span><span class="o">=</span><span class="n">param_subset</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">dim_X</span> <span class="o">*</span> <span class="n">dim_P</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dim_X</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">dim_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dim_x</span><span class="p">(</span><span class="n">var_subset</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">dim_x</span> <span class="o">*</span> <span class="p">(</span><span class="n">dim_x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dim_P</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_p</span><span class="p">(</span><span class="n">param_subset</span><span class="o">=</span><span class="n">param_subset</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_reduced_a</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">bi</span><span class="p">,</span> <span class="n">param_here</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">var_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">param_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sparse</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract first block of bi by summing over other blocks times the parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">param_here</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">param_here</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_p</span><span class="p">(</span><span class="n">param_subset</span><span class="o">=</span><span class="n">param_subset</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">len_b</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bi</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bi</span><span class="p">,</span> <span class="n">PolyMatrix</span><span class="p">):</span>
+            <span class="n">bi</span> <span class="o">=</span> <span class="n">bi</span><span class="o">.</span><span class="n">get_matrix</span><span class="p">(([</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_dict_row</span><span class="p">(</span><span class="n">var_subset</span><span class="p">)))</span>
+            <span class="n">len_b</span> <span class="o">=</span> <span class="n">bi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># bi can be a scipy sparse matrix,</span>
+            <span class="n">len_b</span> <span class="o">=</span> <span class="n">bi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">n_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dim_P</span><span class="p">(</span><span class="n">param_subset</span><span class="o">=</span><span class="n">param_subset</span><span class="p">)</span>
+        <span class="n">dim_X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dim_X</span><span class="p">(</span><span class="n">var_subset</span><span class="p">)</span>
+        <span class="n">n_parts</span> <span class="o">=</span> <span class="n">len_b</span> <span class="o">/</span> <span class="n">dim_X</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="n">n_parts</span> <span class="o">==</span> <span class="n">n_params</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">len_b</span><span class="si">}</span><span class="s2"> does not not split in dim_P=</span><span class="si">{</span><span class="n">n_params</span><span class="si">}</span><span class="s2"> parts of size dim_X=</span><span class="si">{</span><span class="n">dim_X</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="n">ai</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dim_X</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">param_here</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="n">ai</span> <span class="o">+=</span> <span class="n">p</span> <span class="o">*</span> <span class="n">bi</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">dim_X</span> <span class="p">:</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">dim_X</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bi</span><span class="p">,</span> <span class="n">sp</span><span class="o">.</span><span class="n">csc_array</span><span class="p">):</span>
+                <span class="n">ai</span> <span class="o">+=</span> <span class="n">p</span> <span class="o">*</span> <span class="n">bi</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span> <span class="o">*</span> <span class="n">dim_X</span> <span class="p">:</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">dim_X</span><span class="p">]</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;untreated case:&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">bi</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">sparse</span><span class="p">:</span>
+            <span class="n">ai_sparse</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">csr_array</span><span class="p">(</span><span class="n">ai</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])</span>
+            <span class="n">ai_sparse</span><span class="o">.</span><span class="n">eliminate_zeros</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">ai_sparse</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ai</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">augment_using_zero_padding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ai</span><span class="p">,</span> <span class="n">param_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">n_parameters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dim_P</span><span class="p">(</span><span class="n">param_subset</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">ai</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_parameters</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">ai</span><span class="p">))])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">augment_using_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">param_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_p</span><span class="p">(</span><span class="n">param_subset</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_Ai</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">templates</span><span class="p">,</span> <span class="n">var_dict</span><span class="p">,</span> <span class="n">param_dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Take all elements from the list of templates and apply them</span>
+<span class="sd">        to the given pair of var_list and param_list.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">A_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">template</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">templates</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="n">template</span><span class="o">.</span><span class="n">b_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">Constraint</span><span class="p">)</span>
+            <span class="c1"># First, we find the current parameters, so that we can factor</span>
+            <span class="c1"># them into b and compute a from it.</span>
+            <span class="n">p_here</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_p</span><span class="p">(</span><span class="n">param_subset</span><span class="o">=</span><span class="n">param_dict</span><span class="p">)</span>
+
+            <span class="c1"># We need to partition the vector b into its subblocks</span>
+            <span class="c1"># so that we can compute a from it.</span>
+            <span class="n">X_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dim_X</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">mat_var_dict</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dim_X</span><span class="p">(</span><span class="n">var_dict</span><span class="p">)</span> <span class="o">==</span> <span class="n">X_dim</span>
+            <span class="n">p_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dim_p</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">mat_param_dict</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dim_p</span><span class="p">(</span><span class="n">param_dict</span><span class="p">)</span> <span class="o">==</span> <span class="n">p_dim</span>
+            <span class="n">n_blocks</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">b_</span><span class="p">)</span> <span class="o">/</span> <span class="n">X_dim</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">n_blocks</span> <span class="o">==</span> <span class="n">p_dim</span>
+
+            <span class="n">a</span> <span class="o">=</span> <span class="n">p_here</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">template</span><span class="o">.</span><span class="n">b_</span><span class="p">[:</span><span class="n">X_dim</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_blocks</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">a</span> <span class="o">+=</span> <span class="n">p_here</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">template</span><span class="o">.</span><span class="n">b_</span><span class="p">[(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">X_dim</span> <span class="p">:</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">X_dim</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">EPS_SPARSE</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;matrix </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> is zero&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="n">a_test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_reduced_a</span><span class="p">(</span>
+                <span class="n">template</span><span class="o">.</span><span class="n">b_</span><span class="p">,</span>
+                <span class="n">var_subset</span><span class="o">=</span><span class="n">template</span><span class="o">.</span><span class="n">mat_var_dict</span><span class="p">,</span>
+                <span class="n">param_subset</span><span class="o">=</span><span class="n">template</span><span class="o">.</span><span class="n">mat_param_dict</span><span class="p">,</span>
+                <span class="n">param_here</span><span class="o">=</span><span class="n">p_here</span><span class="p">,</span>
+                <span class="n">sparse</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a_test</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_allclose</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">a_test</span><span class="p">)</span>
+
+            <span class="c1"># Get a symmetric matrix where the upper and lower parts have been filled with a,</span>
+            <span class="c1"># and applying the correction to the diagonal.</span>
+            <span class="c1"># Note that we do not set var_dict because otherwise A would already</span>
+            <span class="c1"># be the zero-padded large matrix.</span>
+            <span class="n">A</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mat</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">sparse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">correct</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="c1"># Get the corresponding PolyMatrix.</span>
+            <span class="n">A_poly</span><span class="p">,</span> <span class="n">__</span> <span class="o">=</span> <span class="n">PolyMatrix</span><span class="o">.</span><span class="n">init_from_sparse</span><span class="p">(</span>
+                <span class="n">A</span><span class="p">,</span>
+                <span class="n">var_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_var_dict</span><span class="p">(</span><span class="n">var_dict</span><span class="p">),</span>
+                <span class="n">symmetric</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">unfold</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">A_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">A_poly</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">A_list</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_constraint_rank</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A_list_poly</span><span class="p">,</span> <span class="n">output_sorted</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Find the number of independent constraints when they are of the form A_i @ x = 0.</span>
+
+<span class="sd">        :param A_list_poly: list of constraints matrices</span>
+
+<span class="sd">        :return: rank (int) and sorted matrices (list, if output_sorted=True) where the first rank matrices correspond to</span>
+<span class="sd">                 linearly independent matrices.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_x</span><span class="p">()</span>
+
+        <span class="n">current_rank</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">independent_indices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dependent_indices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">basis_incremental</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">Ai</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">A_list_poly</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Ai</span><span class="p">,</span> <span class="n">PolyMatrix</span><span class="p">):</span>
+                <span class="n">new_candidate</span> <span class="o">=</span> <span class="p">(</span><span class="n">Ai</span><span class="o">.</span><span class="n">get_matrix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span><span class="p">)</span> <span class="o">@</span> <span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_candidate</span> <span class="o">=</span> <span class="p">(</span><span class="n">Ai</span> <span class="o">@</span> <span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">basis_candidate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">basis_incremental</span><span class="p">,</span> <span class="n">new_candidate</span><span class="p">])</span>
+            <span class="n">new_rank</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_rank</span><span class="p">(</span><span class="n">basis_candidate</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">new_rank</span> <span class="o">==</span> <span class="n">current_rank</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">independent_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">basis_incremental</span> <span class="o">=</span> <span class="n">basis_candidate</span>
+                <span class="n">current_rank</span> <span class="o">=</span> <span class="n">new_rank</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dependent_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">output_sorted</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">current_rank</span>
+        <span class="n">A_list_sorted</span> <span class="o">=</span> <span class="p">[</span><span class="n">A_list_poly</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">independent_indices</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span>
+            <span class="n">A_list_poly</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dependent_indices</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">current_rank</span><span class="p">,</span> <span class="n">A_list_sorted</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bi_poly</span><span class="p">,</span> <span class="n">n_parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">n_parameters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">n_parameters</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+
+        <span class="n">new_poly_rows</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># find the number of variables that this constraint touches.</span>
+        <span class="n">unique_idx</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">bi_poly</span><span class="o">.</span><span class="n">variable_dict_j</span><span class="p">:</span>
+            <span class="n">param</span><span class="p">,</span> <span class="n">var_keys</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
+            <span class="nb">vars</span> <span class="o">=</span> <span class="n">var_keys</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+            <span class="nb">vars</span> <span class="o">+=</span> <span class="n">param</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">:</span>
+                <span class="n">var_base</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="s2">&quot;_&quot;</span> <span class="ow">in</span> <span class="n">var_base</span><span class="p">:</span>
+                    <span class="n">i</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">var_base</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">unique_idx</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_idx</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">bi_poly</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_idx</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;unexpected triple dependencies!&quot;</span><span class="p">)</span>
+
+        <span class="n">variable_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_variable_indices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span><span class="p">)</span>
+        <span class="c1"># if z_0 is in this constraint, repeat the constraint for each landmark.</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">variable_indices</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_idx</span><span class="p">)):</span>
+            <span class="n">new_poly_row</span> <span class="o">=</span> <span class="n">PolyMatrix</span><span class="p">(</span><span class="n">symmetric</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">bi_poly</span><span class="o">.</span><span class="n">variable_dict_j</span><span class="p">:</span>
+                <span class="c1"># need intermediate variables cause otherwise z_0 -&gt; z_1 -&gt; z_2 etc. can happen.</span>
+                <span class="n">key_ij</span> <span class="o">=</span> <span class="n">key</span>
+                <span class="k">for</span> <span class="n">from_</span><span class="p">,</span> <span class="n">to_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">unique_idx</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+                    <span class="n">key_ij</span> <span class="o">=</span> <span class="n">key_ij</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x_</span><span class="si">{</span><span class="n">from_</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;xi_</span><span class="si">{</span><span class="n">to_</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">key_ij</span> <span class="o">=</span> <span class="n">key_ij</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;w_</span><span class="si">{</span><span class="n">from_</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;wi_</span><span class="si">{</span><span class="n">to_</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">key_ij</span> <span class="o">=</span> <span class="n">key_ij</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;z_</span><span class="si">{</span><span class="n">from_</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;zi_</span><span class="si">{</span><span class="n">to_</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">key_ij</span> <span class="o">=</span> <span class="n">key_ij</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;p_</span><span class="si">{</span><span class="n">from_</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;pi_</span><span class="si">{</span><span class="n">to_</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">key_ij</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">key_ij</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;zi&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;pi&quot;</span><span class="p">,</span> <span class="s2">&quot;p&quot;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;xi&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;wi&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="p">(</span><span class="n">key</span> <span class="o">!=</span> <span class="n">key_ij</span><span class="p">):</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;changed&quot;</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="s2">&quot;to&quot;</span><span class="p">,</span> <span class="n">key_ij</span><span class="p">)</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">params</span> <span class="o">=</span> <span class="n">key_ij</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">pi</span><span class="p">,</span> <span class="n">pj</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+                    <span class="n">pi</span><span class="p">,</span> <span class="n">di</span> <span class="o">=</span> <span class="n">pi</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+                    <span class="n">pj</span><span class="p">,</span> <span class="n">dj</span> <span class="o">=</span> <span class="n">pj</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">pi</span> <span class="o">==</span> <span class="n">pj</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">dj</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">int</span><span class="p">(</span><span class="n">di</span><span class="p">)):</span>
+                            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span>
+                                <span class="s2">&quot;something went wrong in augment_basis_list&quot;</span>
+                            <span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                <span class="n">new_poly_row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">,</span> <span class="n">key_ij</span><span class="p">]</span> <span class="o">=</span> <span class="n">bi_poly</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">,</span> <span class="n">key</span><span class="p">]</span>
+            <span class="n">new_poly_rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_poly_row</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">new_poly_rows</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_templates</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">templates</span><span class="p">,</span> <span class="n">starting_index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">var_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">all_pairs</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">all_pairs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">all_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ALL_PAIRS</span>
+        <span class="k">if</span> <span class="n">var_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">var_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span>
+
+        <span class="n">new_constraints</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">starting_index</span>
+        <span class="k">for</span> <span class="n">template</span> <span class="ow">in</span> <span class="n">templates</span><span class="p">:</span>
+            <span class="n">constraints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_template</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">polyrow_b_</span><span class="p">)</span>
+            <span class="n">template</span><span class="o">.</span><span class="n">applied_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">new_constraint</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+                <span class="n">template</span><span class="o">.</span><span class="n">applied_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">Constraint</span><span class="o">.</span><span class="n">init_from_polyrow_b</span><span class="p">(</span>
+                        <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
+                        <span class="n">polyrow_b</span><span class="o">=</span><span class="n">new_constraint</span><span class="p">,</span>
+                        <span class="n">lifter</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+                        <span class="n">template_idx</span><span class="o">=</span><span class="n">template</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+                        <span class="n">known</span><span class="o">=</span><span class="n">template</span><span class="o">.</span><span class="n">known</span><span class="p">,</span>
+                        <span class="n">mat_var_dict</span><span class="o">=</span><span class="n">var_dict</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">new_constraints</span> <span class="o">+=</span> <span class="n">template</span><span class="o">.</span><span class="n">applied_list</span>
+                <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_constraints</span><span class="p">):</span>
+            <span class="n">remove_dependent_constraints</span><span class="p">(</span><span class="n">new_constraints</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">new_constraints</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_vec_around_gt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sample around ground truth.</span>
+<span class="sd">        :param delta: sample from gt + std(delta) (set to 0 to start from gt.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">delta</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A_list</span><span class="p">,</span> <span class="n">errors</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;raise&quot;</span><span class="p">,</span> <span class="n">n_seeds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param A_list: can be either list of sparse matrices, or poly matrices</span>
+<span class="sd">        :param errors: &quot;raise&quot; or &quot;print&quot; detected violations.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">max_violation</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="n">j_bad</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">A</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">A_list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">PolyMatrix</span><span class="p">):</span>
+                <span class="n">A</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">get_matrix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_var_dict</span><span class="p">(</span><span class="n">unroll_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_seeds</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_x</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                    <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_theta</span><span class="p">()</span>
+                    <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_parameters</span><span class="p">()</span>
+                    <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_x</span><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+                <span class="n">constraint_violation</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">A</span> <span class="o">@</span> <span class="n">x</span><span class="p">))</span>
+                <span class="n">max_violation</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_violation</span><span class="p">,</span> <span class="n">constraint_violation</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">constraint_violation</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">EPS_ERROR</span><span class="p">:</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;big violation at </span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">constraint_violation</span><span class="si">:</span><span class="s2">.1e</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="n">j_bad</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">errors</span> <span class="o">==</span> <span class="s2">&quot;raise&quot;</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">errors</span> <span class="o">==</span> <span class="s2">&quot;print&quot;</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">errors</span> <span class="o">==</span> <span class="s2">&quot;ignore&quot;</span><span class="p">:</span>
+                        <span class="k">pass</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">max_violation</span><span class="p">,</span> <span class="n">j_bad</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_A0</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">var_subset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">var_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">var_subset</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">var_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span>
+        <span class="n">A0</span> <span class="o">=</span> <span class="n">PolyMatrix</span><span class="p">()</span>
+        <span class="n">A0</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">return</span> <span class="n">A0</span><span class="o">.</span><span class="n">get_matrix</span><span class="p">(</span><span class="n">var_dict</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_A_b_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A_list</span><span class="p">,</span> <span class="n">var_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_A0</span><span class="p">(</span><span class="n">var_subset</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[(</span><span class="n">A</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="k">for</span> <span class="n">A</span> <span class="ow">in</span> <span class="n">A_list</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample_parameters_landmarks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">landmarks</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Used by RobustPoseLifter, RangeOnlyLocLifter: the default way of adding landmarks to parameters.&quot;&quot;&quot;</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">}</span>
+        <span class="n">n_landmarks</span> <span class="o">=</span> <span class="n">landmarks</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_level</span> <span class="o">==</span> <span class="s2">&quot;no&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">parameters</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_landmarks</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_level</span> <span class="o">==</span> <span class="s2">&quot;p&quot;</span><span class="p">:</span>
+                <span class="n">parameters</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;p_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">landmarks</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_level</span> <span class="o">==</span> <span class="s2">&quot;ppT&quot;</span><span class="p">:</span>
+                <span class="n">parameters</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;p_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span>  <span class="c1"># type: ignore</span>
+                    <span class="p">[</span>
+                        <span class="n">landmarks</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">get_vec</span><span class="p">(</span>  <span class="c1"># type: ignore</span>
+                            <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">landmarks</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">landmarks</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span>
+                            <span class="n">correct</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                            <span class="n">sparse</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="p">),</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+        <span class="k">return</span> <span class="n">parameters</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="n">err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="o">.</span><span class="n">size</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;MSE&quot;</span><span class="p">:</span> <span class="n">err</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="n">err</span><span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_random_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_parameters</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_theta</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_x</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">var_subset</span><span class="p">:</span> <span class="n">Iterable</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the lifted state vector x.</span>
+
+<span class="sd">        :param theta: if given, use this theta instead of the ground truth one.</span>
+<span class="sd">        :param var_subset: list of parameter keys to use. If None, use all.</span>
+
+<span class="sd">        :returns: lifted vector x</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">theta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span>
+        <span class="k">if</span> <span class="n">var_subset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">var_subset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span>
+
+        <span class="k">assert</span> <span class="n">theta</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+        <span class="n">x_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">var_subset</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">:</span>
+                <span class="n">x_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="s2">&quot;Warning: just using theta in x because there is no specific implementation.&quot;</span>
+                <span class="p">)</span>
+                <span class="n">x_data</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">x_data</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_p</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">param_subset</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="nb">list</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">parameters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span>
+        <span class="k">if</span> <span class="n">param_subset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">param_subset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_dict</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+
+        <span class="n">p_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">param_subset</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">HOM</span><span class="p">:</span>
+                <span class="n">p_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">param</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">param</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">p_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">p_data</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p_data</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, POPR Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

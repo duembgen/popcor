@@ -48,6 +48,8 @@ class StereoLifter(StateLifter, ABC):
         "uxT": "$\\boldsymbol{u}\\boldsymbol{x}^\\top_n$",
     }
 
+    EPS_ERROR = 1e-7  # for constraints test. default is 1e-8
+
     def __init__(
         self, n_landmarks, d, level="no", param_level="no", variable_list=None
     ):

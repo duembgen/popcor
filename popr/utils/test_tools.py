@@ -24,7 +24,7 @@ Lifters = [
     (MonoLifter, dict(n_landmarks=5, d=2, robust=False, level="no", n_outliers=0)),
     (WahbaLifter, dict(n_landmarks=5, d=2, robust=True, level="xwT", n_outliers=1)),
     (MonoLifter, dict(n_landmarks=6, d=2, robust=True, level="xwT", n_outliers=1)),
-    (RangeOnlyLocLifter,  dict(n_positions=n_poses, n_landmarks=n_landmarks, d=d, level="no")),
+    (RangeOnlyLocLifter, dict(n_positions=n_poses, n_landmarks=n_landmarks, d=d, level="no")),
     (RangeOnlyLocLifter, dict(n_positions=n_poses, n_landmarks=n_landmarks, d=d, level="quad")),
     (Stereo1DLifter, dict(n_landmarks=n_landmarks)),
     (Stereo1DLifter, dict(n_landmarks=n_landmarks, param_level="p")),

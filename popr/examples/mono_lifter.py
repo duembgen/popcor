@@ -68,7 +68,7 @@ class MonoLifter(RobustPoseLifter):
             return []
 
         default = super().get_B_known()
-        ## B2 and B3 enforce that tan(FOV/2)*t3 >= sqrt(t1**2 + t2**2)
+        # B2 and B3 enforce that tan(FOV/2)*t3 >= sqrt(t1**2 + t2**2)
         # 0 <= - tan**2(FOV/2)*t3**2 + t1**2 + t2**2
         B3 = PolyMatrix(symmetric=True)
         constraint = np.zeros((self.d, self.d))

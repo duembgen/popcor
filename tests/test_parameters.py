@@ -24,11 +24,11 @@ def test_canonical_operations():
             [0, 0, 0, 0, 0, 0],
         ]
     )
+    # fmt: on
     Ai_poly = PolyMatrix(symmetric=True)
-    Ai_poly["x", "x"] = Ai_sub 
+    Ai_poly["x", "x"] = Ai_sub
     Ai = Ai_poly.get_matrix(lifter.var_dict)
 
-    # fmt: on
     ai = get_vec(Ai_sub)
     # zero-pad to emulate an augmented basis vector
     bi = lifter.augment_using_zero_padding(ai)

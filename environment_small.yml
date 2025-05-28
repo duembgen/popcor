@@ -1,0 +1,14 @@
+name: popr_small
+channels:
+    - conda-forge
+
+dependencies:
+    - python=3.10
+    - pip=22.3
+    - flake8
+    - pytest
+    - black>=23.1
+
+    - suitesparse # used by sparseqr
+    - pip:
+      - -e .

@@ -1,0 +1,209 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contributing &mdash; POPR 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="What’s new" href="whatsnew.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            POPR
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Welcome to POPR’s documentation!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API and modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="whatsnew.html">What’s new</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-contribute-to-popr">How to contribute to POPR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#general-guidelines">General guidelines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adding-a-new-lifter-class">Adding a new lifter class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adding-new-functionalities">Adding new functionalities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#resources">Resources</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#testing">Testing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#setting-up-mosek-license-on-server">Setting up mosek license on server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#testing-github-actions-locally">Testing Github actions locally</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">POPR</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Contributing</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/contributing.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="contributing">
+<h1>Contributing<a class="headerlink" href="#contributing" title="Link to this heading"></a></h1>
+<p>Below is a rendering of the CONTRIBUTING.md file.</p>
+<section id="how-to-contribute-to-popr">
+<h2>How to contribute to POPR<a class="headerlink" href="#how-to-contribute-to-popr" title="Link to this heading"></a></h2>
+<p>We welcome any contributions to POPR! Contributions are done through pull requests.</p>
+<section id="general-guidelines">
+<h3>General guidelines<a class="headerlink" href="#general-guidelines" title="Link to this heading"></a></h3>
+<p>Please try to the best of your abilities to:</p>
+<ul class="simple">
+<li><p>use black and isort for formatting your code</p></li>
+<li><p>provide at least minimal documentation</p></li>
+<li><p>tests for core functionalities.</p></li>
+<li><p>add your information to the CHANGELOG.</p></li>
+</ul>
+</section>
+<section id="adding-a-new-lifter-class">
+<h3>Adding a new lifter class<a class="headerlink" href="#adding-a-new-lifter-class" title="Link to this heading"></a></h3>
+<p>You can start with the <a class="reference internal" href="#../popr/examples/ExampleLifter.py"><span class="xref myst">ExampleLifter</span></a> skeleton, and feel free to add more functionalities depending on the nature of the problem. You can also consider adding a new base class similar to <a class="reference internal" href="#../popr/base_lifters/RobustPoseLifter.py"><span class="xref myst">RobustPoseLifter</span></a> or <a class="reference internal" href="#../popr/base_lifters/StereoLifter.py"><span class="xref myst">StereoLifter</span></a> if you want to create multiple new lifters that all share similar functionalities.</p>
+</section>
+<section id="adding-new-functionalities">
+<h3>Adding new functionalities<a class="headerlink" href="#adding-new-functionalities" title="Link to this heading"></a></h3>
+<p>We welcome new functionalities / solvers / tools that facilitate problem formulation as well. If you add something general please make sure it is tested on all examples, as done for example in <em>tests/test_autotight.py</em>.</p>
+</section>
+<section id="resources">
+<h3>Resources<a class="headerlink" href="#resources" title="Link to this heading"></a></h3>
+<p>Below are a couple of guidelines and useful resources. This is a living document aimed to contain a list of useful resources for developers. Feel free to extend it.</p>
+<section id="testing">
+<h4>Testing<a class="headerlink" href="#testing" title="Link to this heading"></a></h4>
+<p>Added functionality should include passing unit tests. Please follow the available examples in the <code class="docutils literal notranslate"><span class="pre">tests</span></code> folder.</p>
+<p>It is also encouraged that added functionality is added as testable code to the documentation. To do that, create <code class="docutils literal notranslate"><span class="pre">..</span> <span class="pre">doctest:</span></code> blocks and run</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">doctest</span>
+</pre></div>
+</div>
+<p>to make sure there are no errors. There is also the possibility to just use literal includes from test files inside the documentation. See <a class="reference internal" href="#./docs/source/quickstart.rst"><span class="xref myst">docs/source/quickstart.rst</span></a> for an example.</p>
+</section>
+<section id="setting-up-mosek-license-on-server">
+<h4>Setting up mosek license on server<a class="headerlink" href="#setting-up-mosek-license-on-server" title="Link to this heading"></a></h4>
+<p>This has already been done – just keeping track of the process here to make it is easy to redo this in the future. TAken from <a class="reference external" href="https://docs.mosek.com/11.0/faq.pdf">here</a>, page 11.</p>
+<ol class="arabic simple">
+<li><p>Go to Settings -&gt; Security -&gt; Secrets and variables -&gt; Actions (<a class="reference external" href="https://github.com/duembgen/popr/settings/secrets/actions">direct link</a>)</p></li>
+<li><p>Create secret called MSK_LICENSE with content</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">START_LICENSE</span>\<span class="n">n</span>
+<span class="n">FEATURE</span> <span class="n">PTS</span> <span class="o">....</span>
+<span class="o">...</span>
+<span class="o">...</span> <span class="n">here</span> <span class="n">copy</span> <span class="n">the</span> <span class="n">text</span> <span class="n">of</span> <span class="n">the</span> <span class="s2">&quot;FEATURE&quot;</span> <span class="n">sections</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">license</span> <span class="o">...</span>
+<span class="o">...</span>
+<span class="o">...</span> <span class="o">...</span> <span class="mi">5</span><span class="n">FE1</span> <span class="mi">5</span><span class="n">DBC</span><span class="s2">&quot;</span>
+<span class="n">END_LICENSE</span>\<span class="n">n</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>Add the following to the workflow file:</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>- name: Setup MOSEK &amp; Run Tests
+    env:
+      MOSEKLM_LICENSE_FILE: ${{ secrets.MSK_LICENSE }}
+    run: |
+      pytest -sv
+</pre></div>
+</div>
+</section>
+<section id="testing-github-actions-locally">
+<h4>Testing Github actions locally<a class="headerlink" href="#testing-github-actions-locally" title="Link to this heading"></a></h4>
+<p>It can be super useful to run github actions locally for debugging!
+I did this by using <a class="reference external" href="https://nektosact.com/installation/index.html">this</a> tool. Basically, it came down to:</p>
+<ul class="simple">
+<li><p>Installing docker</p></li>
+<li><p>From this repo, running:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">curl</span> <span class="o">--</span><span class="n">proto</span> <span class="s1">&#39;=https&#39;</span> <span class="o">--</span><span class="n">tlsv1</span><span class="mf">.2</span> <span class="o">-</span><span class="n">sSf</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">raw</span><span class="o">.</span><span class="n">githubusercontent</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">nektos</span><span class="o">/</span><span class="n">act</span><span class="o">/</span><span class="n">master</span><span class="o">/</span><span class="n">install</span><span class="o">.</span><span class="n">sh</span> <span class="o">|</span> <span class="n">sudo</span> <span class="n">bash</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Also from this repo, running:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="o">./</span><span class="nb">bin</span><span class="o">/</span><span class="n">act</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="whatsnew.html" class="btn btn-neutral float-left" title="What’s new" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, POPR Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

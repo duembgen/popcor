@@ -6,11 +6,7 @@ from cert_tools.linalg_tools import find_dependent_columns, get_nullspace
 
 from popr.utils.common import get_vec
 from popr.utils.constraint import Constraint
-from popr.utils.plotting_tools import (
-    add_colorbar,
-    initialize_discrete_cbar,
-    plot_singular_values,
-)
+from popr.utils.plotting_tools import add_colorbar, initialize_discrete_cbar
 
 
 class AutoTight(object):
@@ -108,7 +104,7 @@ class AutoTight(object):
 
     @staticmethod
     def get_A_learned(
-        lifter,  #:StateLifter,
+        lifter,
         A_known=[],
         var_dict=None,
         method=METHOD,
@@ -142,7 +138,7 @@ class AutoTight(object):
 
     @staticmethod
     def get_A_learned_simple(
-        lifter,  #:StateLifter,
+        lifter,
         A_known=[],
         var_dict=None,
         method=METHOD,
