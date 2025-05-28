@@ -118,7 +118,7 @@ class StereoLifter(StateLifter, ABC):
         else:
             return np.random.rand(self.n_landmarks, self.d)
 
-    def sample_parameters(self, theta=None):
+    def sample_parameters(self, theta: np.ndarray | None = None) -> dict:
         landmarks = self.generate_random_landmarks(theta=self.theta)
         return self.sample_parameters_landmarks(landmarks)
 
@@ -205,7 +205,7 @@ class StereoLifter(StateLifter, ABC):
         assert len(x_data) == dim_x
         return np.array(x_data)
 
-    def get_A_known(self, var_dict=None, output_poly=False):
+    def get_A_known(self, var_dict=None, output_poly=False, add_redundant=False):
         """
         T = |   cx'   tx |
             |   cy'   ty |

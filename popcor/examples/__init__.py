@@ -8,3 +8,16 @@ from .stereo1d_lifter import Stereo1DLifter
 from .stereo2d_lifter import Stereo2DLifter
 from .stereo3d_lifter import Stereo3DLifter
 from .wahba_lifter import WahbaLifter
+
+__all__ = [  # type: ignore
+    ExampleLifter,
+    MonoLifter,
+    Poly4Lifter,
+    Poly6Lifter,
+    RangeOnlyLocLifter,
+    RotationLifter,
+    Stereo1DLifter,
+    Stereo2DLifter,
+    Stereo3DLifter,
+    WahbaLifter,
+]

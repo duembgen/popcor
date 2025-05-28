@@ -60,13 +60,13 @@ class Stereo2DLifter(StereoLifter):
         b = 0.24
         return np.array([[f_u, c_u, f_u * b / 2], [f_u, c_u, -f_u * b / 2]])
 
-    def get_cost(self, t, y, W=None):
+    def get_cost(self, theta, y, W=None):
 
         if W is None:
             W = self.W
         a = self.landmarks
 
-        phi = convert_theta_to_phi(t)
+        phi = convert_theta_to_phi(theta)
         p_w, y, phi = change_dimensions(a, y, phi)
         cost = _cost(phi, p_w, y, W, self.M_matrix)
         if StereoLifter.NORMALIZE:
@@ -74,13 +74,13 @@ class Stereo2DLifter(StereoLifter):
         else:
             return cost
 
-    def local_solver(self, t_init, y, W=None, verbose=False, **kwargs):
+    def local_solver(self, t0, y, W=None, verbose=False, **kwargs):
 
         if W is None:
             W = self.W
         a = self.landmarks
 
-        init_phi = convert_theta_to_phi(t_init)
+        init_phi = convert_theta_to_phi(t0)
         p_w, y, __ = change_dimensions(a, y, init_phi)
         success, phi_hat, cost = local_solver(
             p_w=p_w, y=y, W=W, init_phi=init_phi, log=verbose, gtol=GTOL

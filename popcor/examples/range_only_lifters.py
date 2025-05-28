@@ -128,7 +128,7 @@ class RangeOnlyLocLifter(StateLifter):
     def sample_theta(self):
         return np.random.rand(self.n_positions, self.d).flatten()
 
-    def get_A_known(self, var_dict=None, output_poly=False):
+    def get_A_known(self, var_dict=None, output_poly=False, add_redundant=False):
         from poly_matrix.poly_matrix import PolyMatrix
 
         if var_dict is None:
@@ -274,14 +274,14 @@ class RangeOnlyLocLifter(StateLifter):
         )
         return self.W * (y - y_current)
 
-    def get_cost(self, t, y, sub_idx=None):
+    def get_cost(self, theta, y, sub_idx=None):
         """
         get cost for given positions, landmarks and noise.
 
         :param t: flattened positions of length Nd
         :param y: N x K distance measurements
         """
-        residuals = self.get_residuals(t, y)
+        residuals = self.get_residuals(theta, y)
         if sub_idx is None:
             cost = np.sum(residuals**2)
         else:
@@ -326,7 +326,7 @@ class RangeOnlyLocLifter(StateLifter):
             hess += 2 * factor * h
         return hess
 
-    def get_Q_from_y(self, y):
+    def get_Q_from_y(self, y, output_poly: bool = False):
         import itertools
 
         self.ls_problem = LeastSquaresProblem()
@@ -354,7 +354,10 @@ class RangeOnlyLocLifter(StateLifter):
                         f"z_{n}": mat,
                     }
                     self.ls_problem.add_residual(res_dict)
-        Q = self.ls_problem.get_Q().get_matrix(self.var_dict)
+        if output_poly:
+            Q = self.ls_problem.get_Q()
+        else:
+            Q = self.ls_problem.get_Q().get_matrix(self.var_dict)
         if NORMALIZE:
             return Q / np.sum(self.W > 0)
         return Q
@@ -371,10 +374,10 @@ class RangeOnlyLocLifter(StateLifter):
         )
         return y_gt + np.random.normal(loc=0, scale=noise, size=y_gt.shape)
 
-    def get_Q(self, noise: float | None = None) -> tuple:
+    def get_Q(self, noise: float | None = None, output_poly: bool = False) -> tuple:
         if self.y_ is None:
             self.y_ = self.simulate_y(noise=noise)
-        Q = self.get_Q_from_y(self.y_)
+        Q = self.get_Q_from_y(self.y_, output_poly=output_poly)
 
         # DEBUGGING
         x = self.get_x()
@@ -414,13 +417,17 @@ class RangeOnlyLocLifter(StateLifter):
         if theta is not None:
             return theta.reshape(self.n_positions, self.d)
 
-    def get_error(self, that):
-        err = np.sqrt(np.mean((self.theta - that) ** 2))
-        return {"total error": err, "error": err}
+    def get_error(self, that, error_type="rmse"):
+        if error_type == "rmse":
+            return np.sqrt(np.mean((self.theta - that) ** 2))
+        elif error_type == "mse":
+            return np.mean((self.theta - that) ** 2)
+        else:
+            raise ValueError(f"Unkwnon error_type {error_type}")
 
     def local_solver(
         self,
-        t_init,
+        t0,
         y,
         verbose=False,
         method="BFGS",
@@ -435,7 +442,7 @@ class RangeOnlyLocLifter(StateLifter):
         options["disp"] = verbose
         sol = minimize(
             self.get_cost,
-            x0=t_init,
+            x0=t0,
             args=y,
             jac=self.get_grad,
             # hess=self.get_hess, not used by any solvers.
@@ -460,6 +467,7 @@ class RangeOnlyLocLifter(StateLifter):
             that = cost = None
             info["max res"] = None
             info["cond Hess"] = None
+        info["cost"] = cost
         return that, info, cost
 
     @property

@@ -63,7 +63,7 @@ class StateLifter(BaseClass):
 
     # MUST OVERWRITE THESE FOR TIGHTNESS CHECKS
 
-    def get_Q(self, output_poly=False, noise=None):
+    def get_Q(self, output_poly: bool = False, noise: float | None = None):
         """Construct the cost matrix Q.
 
         :param noise: set the noise level, if appropriate.
@@ -100,7 +100,7 @@ class StateLifter(BaseClass):
 
     # MUST OVERWRITE THESE FOR ADDING PARAMETERS
 
-    def sample_parameters(self, theta=None) -> dict:
+    def sample_parameters(self, theta: np.ndarray | None = None) -> dict:
         """Create random set of parameters. By default, there are no parameters
         so this function just returns `{self.HOM: 1.0}`."""
         assert (
@@ -137,7 +137,7 @@ class StateLifter(BaseClass):
     def get_hess(self, theta, y=None) -> float:
         raise NotImplementedError("must define get_hess if you want to use it.")
 
-    def get_cost(self, theta, y=None) -> float:
+    def get_cost(self, theta, y: np.ndarray | None = None) -> float:
         """Compute the cost of the given state theta. This uses the simple form
         x.T @ Q @ x. Consider overwriting this for more efficient computations."""
         print(
@@ -150,7 +150,7 @@ class StateLifter(BaseClass):
             Q = self.get_Q()
         return float(x.T @ Q @ x)
 
-    def local_solver(self, t0, y=None, *args, **kwargs):
+    def local_solver(self, t0, y: np.ndarray | None = None, *args, **kwargs):
         """
         Default local solver that uses IPOPT to solve the QCQP problem defined by Q and the constraints matrices.
         Consider overwriting this for more efficient solvers.

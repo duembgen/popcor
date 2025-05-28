@@ -70,7 +70,7 @@ class RotationLifter(StateLifter):
         C_flat = x[1 : 1 + self.d**2]
         return C_flat.reshape((self.d, self.d))
 
-    def get_Q(self, noise: float | None = None):
+    def get_Q(self, noise: float | None = None, output_poly: bool = False):
         if noise is None:
             noise = self.NOISE
         if self.y_ is None:
@@ -90,7 +90,7 @@ class RotationLifter(StateLifter):
                     Ri = self.theta.T
                 self.y_.append(Ri)
 
-        return self.get_Q_from_y(self.y_)
+        return self.get_Q_from_y(self.y_, output_poly=output_poly)
 
     def get_Q_from_y(self, y, output_poly=False):
         # f(R) = sum_i || R @ R_i - I ||_F^2

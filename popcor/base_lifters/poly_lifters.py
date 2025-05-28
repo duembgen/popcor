@@ -31,15 +31,15 @@ class PolyLifter(StateLifter):
             theta = self.theta
         return np.array([theta**i for i in range(self.degree // 2 + 1)])
 
-    def get_cost(self, theta, *args, **kwargs) -> float:
+    def get_cost(self, theta, y=None) -> float:
         Q = self.get_Q()
         x = self.get_x(theta).flatten()
         return float(x.T @ Q @ x)
 
-    def get_hess(self, *args, **kwargs):
+    def get_hess(self, y=None):
         raise NotImplementedError
 
-    def local_solver(self, t0, *args, **kwargs):
+    def local_solver(self, t0, y=None):
         from scipy.optimize import minimize
 
         sol = minimize(self.get_cost, t0)

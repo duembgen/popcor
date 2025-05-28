@@ -191,15 +191,12 @@ class RobustPoseLifter(StateLifter, ABC):
         landmarks = np.random.normal(loc=0, scale=1.0, size=(self.n_landmarks, self.d))
         return self.sample_parameters_landmarks(landmarks)
 
-    def get_x(self, theta=None, parameters=None, var_subset=None) -> np.ndarray:
+    def get_x(self, theta=None, var_subset=None) -> np.ndarray:
         """Get the lifted vector x given theta and parameters."""
         if theta is None:
             theta = self.theta
-        if parameters is None:
-            parameters = self.parameters
         if var_subset is None:
             var_subset = self.var_dict.keys()
-
         if self.robust:
             theta_here = theta[: -self.n_landmarks]
         else:
@@ -280,7 +277,12 @@ class RobustPoseLifter(StateLifter, ABC):
         return 0.5 * cost
 
     def local_solver(
-        self, t0, y, verbose=False, method=METHOD, solver_kwargs=SOLVER_KWARGS
+        self,
+        t0,
+        y: np.ndarray | None = None,
+        verbose=False,
+        method=METHOD,
+        solver_kwargs=SOLVER_KWARGS,
     ):
         import pymanopt
         from pymanopt.manifolds import Euclidean, Product, SpecialOrthogonalGroup
@@ -404,7 +406,7 @@ class RobustPoseLifter(StateLifter, ABC):
         else:
             A_list.append(Ai_sparse)
 
-    def get_A_known(self, var_dict=None, output_poly=False):
+    def get_A_known(self, var_dict=None, output_poly=False, add_redundant=False):
         A_list = []
         if var_dict is None:
             var_dict = self.var_dict
