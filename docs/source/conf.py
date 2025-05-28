@@ -95,6 +95,7 @@ html_theme = "sphinx_rtd_theme"
 # Make sure we display the logo in top-left.
 html_logo = "_static/logo2.png"
 html_theme_options = {
+    "collapse_navigation": False,
     "logo_only": True,
 }
 
