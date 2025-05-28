@@ -49,7 +49,7 @@ class StateLifter(BaseClass):
 
         super().__init__(d, param_level, n_parameters)
 
-    ###### MUST OVERWRITE THESE
+    # MUST OVERWRITE THESE
 
     @property
     def var_dict(self):
@@ -61,7 +61,7 @@ class StateLifter(BaseClass):
         implemented by the inheriting class."""
         raise NotImplementedError("need to implement sample_theta")
 
-    ###### MUST OVERWRITE THESE FOR TIGHTNESS CHECKS
+    # MUST OVERWRITE THESE FOR TIGHTNESS CHECKS
 
     def get_Q(self, output_poly=False, noise=None):
         """Construct the cost matrix Q.
@@ -98,7 +98,7 @@ class StateLifter(BaseClass):
         """Construct the matrices defining the known inequality constraints."""
         return []
 
-    ###### MUST OVERWRITE THESE FOR ADDING PARAMETERS
+    # MUST OVERWRITE THESE FOR ADDING PARAMETERS
 
     def sample_parameters(self, theta=None) -> dict:
         """Create random set of parameters. By default, there are no parameters
@@ -129,7 +129,7 @@ class StateLifter(BaseClass):
                     keys.append(key)
         return {k: self.param_dict[k] for k in keys if k in self.param_dict}
 
-    ###### CAN OPTINALLY OVERWRITE THESE FOR BETTER PERFORMANCE
+    # CAN OPTINALLY OVERWRITE THESE FOR BETTER PERFORMANCE
 
     def get_grad(self, theta, y=None) -> float:
         raise NotImplementedError("must define get_grad if you want to use it.")
@@ -181,7 +181,7 @@ class StateLifter(BaseClass):
         info["success"] = True
         try:
             theta = self.get_theta(X[:, 0])
-        except:
+        except AttributeError:
             theta = X[1 : 1 + self.d, 0]
         return theta, info, info["cost"]
 

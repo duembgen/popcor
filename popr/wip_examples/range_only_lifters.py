@@ -5,6 +5,9 @@ import numpy as np
 
 from ..base_lifters.state_lifter import StateLifter
 
+# ignore this file in lynting
+# flake8: noqa:
+
 # How to deal with Gauge freedom.
 # - None: do not remove it
 # - "hard": remove variables alltogether
@@ -91,10 +94,6 @@ class RangeOnlyLifter(StateLifter):
     def sample_parameters(self):
         landmarks = np.random.normal(loc=0, scale=1, size=(self.n_landmarks, self.d))
         return self.sample_parameters_landmarks(landmarks)
-
-    def sample_theta(self):
-        self.positions = np.random.rand(self.n_positions, self.d)
-        return self.positions
 
     def get_theta(self, landmarks=None, positions=None):
         if landmarks is None:

@@ -1,7 +1,0 @@
-pymanopt>=2.1.1
-chompack>=2.3.1
-sparseqr>=1.2.1
-asrl-pylgmath>=1.0.3
-git+https://github.com/utiasASRL/poly_matrix.git@v0.2
-git+https://github.com/utiasASRL/certifiable-tools.git@v0.0.3
--e . 

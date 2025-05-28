@@ -1,3 +1,6 @@
+[![Python Package using Conda](https://github.com/duembgen/popr/actions/workflows/python-package-conda.yml/badge.svg)](https://github.com/duembgen/popr/actions/workflows/python-package-conda.yml)
+[![Documentation](https://github.com/duembgen/popr/actions/workflows/documentation.yml/badge.svg)](https://github.com/duembgen/popr/actions/workflows/documentation.yml)
+
 # POPR: Polynomial OPtimization for Robotics
 
 A toolbox for setting up and solving polynomial optimization problems in robotics with certifiable optimality.

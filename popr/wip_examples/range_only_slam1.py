@@ -4,7 +4,10 @@ import numpy as np
 from poly_matrix.least_squares_problem import LeastSquaresProblem
 from poly_matrix.poly_matrix import PolyMatrix
 
-from popr.base_lifters import RangeOnlyLifter
+from .range_only_lifters import RangeOnlyLifter
+
+# ignore this file in lynting
+# flake8: noqa:
 
 
 def vkron(a, b):
@@ -47,6 +50,7 @@ class RangeOnlySLAM1Lifter(RangeOnlyLifter):
     ):
         self.level = level
         self.resample_landmarks = resample_landmarks
+        self.landmarks_ = None
         super().__init__(
             n_positions, n_landmarks, d, edges=edges, remove_gauge=remove_gauge
         )
@@ -229,8 +233,8 @@ class RangeOnlySLAM1Lifter(RangeOnlyLifter):
         for n in range(self.n_positions):
             # below is d/d(p_n) (p_n kron p_n)
             # fmt:off
-            J_lifting[f"tau{n}", f"x{n}"] = ( 
-                vkron(positions[n], np.eye(self.d)) 
+            J_lifting[f"tau{n}", f"x{n}"] = (
+                vkron(positions[n], np.eye(self.d))
               + vkron(np.eye(self.d), positions[n])
             )
             # fmt:on
@@ -245,8 +249,7 @@ class RangeOnlySLAM1Lifter(RangeOnlyLifter):
                 ak = landmarks[k]
                 # fmt:off
                 J_lifting[f"alpha{k}", f"a{k}"] = (
-                    vkron(ak, I) + 
-                    vkron(I, ak)
+                    vkron(ak, I) + vkron(I, ak)
                 )[:, :dim]
                 # fmt:on
             else:

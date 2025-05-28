@@ -159,7 +159,7 @@ def test_cost(noise=0.0):
 
                 try:
                     assert abs(cost - np.sum(w < 0)) < 1e-10
-                except:
+                except AssertionError:
                     lifter.plot_setup()
 
 
