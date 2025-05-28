@@ -1,4 +1,4 @@
-name: popr_small
+name: popcor_small
 channels:
     - conda-forge
 

@@ -8,8 +8,8 @@ POPR can be installed by running from a terminal:
 
 .. code-block:: bash
 
-   git clone --recurse-submodules git@github.com:duembgen/popr
-   cd popr
+   git clone --recurse-submodules git@github.com:duembgen/popcor
+   cd popcor
    conda env create -f environment.yml
 
 
@@ -52,13 +52,13 @@ This class should inherit from :ref:`StateLifter`. A basic skeleton of such a
 Lifter class is provided in :ref:`Example for AutoTight`. The main purpose of this class is 
 that it provides all basic operations related to the problem formulation, such as:
 
-- to sample feasible states (:meth:`popr.base_lifters.StateLifter.sample_theta`),
-- to get the lifted vector (:meth:`popr.base_lifters.StateLifter.get_x`),
+- to sample feasible states (:meth:`popcor.base_lifters.StateLifter.sample_theta`),
+- to get the lifted vector (:meth:`popcor.base_lifters.StateLifter.get_x`),
 
 For a bit more advanced functionality (for example for the :ref:`SDP Relaxation` in the next section), you also need to define functions such as
 
-- get the cost matrix (:py:meth:`popr.base_lifters.StateLifter.get_Q`), 
-- get known constraint matrices (:meth:`popr.base_lifters.StateLifter.get_A_known`, :meth:`popr.base_lifters.StateLifter.get_B_known`).
+- get the cost matrix (:py:meth:`popcor.base_lifters.StateLifter.get_Q`), 
+- get known constraint matrices (:meth:`popcor.base_lifters.StateLifter.get_A_known`, :meth:`popcor.base_lifters.StateLifter.get_B_known`).
 
 Many example lifters are provided, you can find them under :ref:`Examples`.
 
@@ -66,7 +66,7 @@ Many example lifters are provided, you can find them under :ref:`Examples`.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following code snippet shows some basic operations (and useful sanity checks) for the example
-lifter class :class:`popr.examples.Poly4Lifter`. Note that this and all following examples can be found
+lifter class :class:`popcor.examples.Poly4Lifter`. Note that this and all following examples can be found
 in the file :file:`../../tests/test_quickstart.py`.
 
 .. literalinclude:: ../../tests/test_quickstart.py

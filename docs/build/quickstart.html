@@ -110,8 +110,8 @@
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
 <p>POPR can be installed by running from a terminal:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>--recurse-submodules<span class="w"> </span>git@github.com:duembgen/popr
-<span class="nb">cd</span><span class="w"> </span>popr
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>--recurse-submodules<span class="w"> </span>git@github.com:duembgen/popcor
+<span class="nb">cd</span><span class="w"> </span>popcor
 conda<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>-f<span class="w"> </span>environment.yml
 </pre></div>
 </div>
@@ -147,19 +147,19 @@ This class should inherit from <a class="reference internal" href="api/lifters.h
 Lifter class is provided in <a class="reference internal" href="examples/templates.html#example-for-autotight"><span class="std std-ref">Example for AutoTight</span></a>. The main purpose of this class is
 that it provides all basic operations related to the problem formulation, such as:</p>
 <ul class="simple">
-<li><p>to sample feasible states (<a class="reference internal" href="api/lifters.html#popr.base_lifters.StateLifter.sample_theta" title="popr.base_lifters.StateLifter.sample_theta"><code class="xref py py-meth docutils literal notranslate"><span class="pre">popr.base_lifters.StateLifter.sample_theta()</span></code></a>),</p></li>
-<li><p>to get the lifted vector (<a class="reference internal" href="api/lifters.html#popr.base_lifters.StateLifter.get_x" title="popr.base_lifters.StateLifter.get_x"><code class="xref py py-meth docutils literal notranslate"><span class="pre">popr.base_lifters.StateLifter.get_x()</span></code></a>),</p></li>
+<li><p>to sample feasible states (<code class="xref py py-meth docutils literal notranslate"><span class="pre">popcor.base_lifters.StateLifter.sample_theta()</span></code>),</p></li>
+<li><p>to get the lifted vector (<code class="xref py py-meth docutils literal notranslate"><span class="pre">popcor.base_lifters.StateLifter.get_x()</span></code>),</p></li>
 </ul>
 <p>For a bit more advanced functionality (for example for the <a class="reference internal" href="#sdp-relaxation"><span class="std std-ref">SDP Relaxation</span></a> in the next section), you also need to define functions such as</p>
 <ul class="simple">
-<li><p>get the cost matrix (<a class="reference internal" href="api/lifters.html#popr.base_lifters.StateLifter.get_Q" title="popr.base_lifters.StateLifter.get_Q"><code class="xref py py-meth docutils literal notranslate"><span class="pre">popr.base_lifters.StateLifter.get_Q()</span></code></a>),</p></li>
-<li><p>get known constraint matrices (<a class="reference internal" href="api/lifters.html#popr.base_lifters.StateLifter.get_A_known" title="popr.base_lifters.StateLifter.get_A_known"><code class="xref py py-meth docutils literal notranslate"><span class="pre">popr.base_lifters.StateLifter.get_A_known()</span></code></a>, <a class="reference internal" href="api/lifters.html#popr.base_lifters.StateLifter.get_B_known" title="popr.base_lifters.StateLifter.get_B_known"><code class="xref py py-meth docutils literal notranslate"><span class="pre">popr.base_lifters.StateLifter.get_B_known()</span></code></a>).</p></li>
+<li><p>get the cost matrix (<code class="xref py py-meth docutils literal notranslate"><span class="pre">popcor.base_lifters.StateLifter.get_Q()</span></code>),</p></li>
+<li><p>get known constraint matrices (<code class="xref py py-meth docutils literal notranslate"><span class="pre">popcor.base_lifters.StateLifter.get_A_known()</span></code>, <code class="xref py py-meth docutils literal notranslate"><span class="pre">popcor.base_lifters.StateLifter.get_B_known()</span></code>).</p></li>
 </ul>
 <p>Many example lifters are provided, you can find them under <a class="reference internal" href="examples.html#examples"><span class="std std-ref">Examples</span></a>.</p>
 <section id="example-instantiating-and-using-lifter">
 <h3><strong>Example: instantiating and using lifter</strong><a class="headerlink" href="#example-instantiating-and-using-lifter" title="Link to this heading"></a></h3>
 <p>The following code snippet shows some basic operations (and useful sanity checks) for the example
-lifter class <a class="reference internal" href="examples/toy.html#popr.examples.Poly4Lifter" title="popr.examples.Poly4Lifter"><code class="xref py py-class docutils literal notranslate"><span class="pre">popr.examples.Poly4Lifter</span></code></a>. Note that this and all following examples can be found
+lifter class <code class="xref py py-class docutils literal notranslate"><span class="pre">popcor.examples.Poly4Lifter</span></code>. Note that this and all following examples can be found
 in the file <code class="file docutils literal notranslate"><span class="pre">../../tests/test_quickstart.py</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">popr.examples</span><span class="w"> </span><span class="kn">import</span> <span class="n">Poly4Lifter</span>
 

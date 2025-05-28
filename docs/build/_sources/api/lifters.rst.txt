@@ -33,27 +33,27 @@ Below are some general notes about terminology that may be useful in understandi
 StateLifter
 -----------
 
-.. autoclass:: popr.base_lifters.StateLifter
+.. autoclass:: popcor.base_lifters.StateLifter
    :members: get_x, get_theta, sample_theta, sample_parameters, get_Q, get_A_known, get_B_known, local_solver, get_cost, get_error
    :show-inheritance:
 
 StereoLifter
 ------------
 
-.. autoclass:: popr.base_lifters.StereoLifter
+.. autoclass:: popcor.base_lifters.StereoLifter
    :show-inheritance:
    :undoc-members:
 
 RobustPoseLifter
 ------------------
 
-.. autoclass:: popr.base_lifters.RobustPoseLifter
+.. autoclass:: popcor.base_lifters.RobustPoseLifter
    :show-inheritance:
    :undoc-members:
 
 PolyLifter
 ----------
 
-.. autoclass:: popr.base_lifters.PolyLifter
+.. autoclass:: popcor.base_lifters.PolyLifter
    :show-inheritance:
    :undoc-members:

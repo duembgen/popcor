@@ -14,7 +14,7 @@
 import os
 import sys
 
-import popr
+import popcor
 
 # The module you're documenting (assumes you've added the project root dir to sys.path)
 sys.path.insert(0, os.path.abspath("../.."))
@@ -54,7 +54,7 @@ napoleon_custom_sections = [("Returns", "params_style"), ("Attributes", "params_
 
 autodocgen_config = [
     {
-        "modules": [popr],
+        "modules": [popcor],
         "generated_source_dir": "./autodocgen-output/",
         # if module matches this then it and any of its submodules will be skipped
         "skip_module_regex": "(.*[.]__|myskippedmodule)",

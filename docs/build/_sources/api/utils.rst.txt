@@ -9,14 +9,14 @@ Utils
 Constraints and templates
 -------------------------
 
-.. autoclass:: popr.utils.constraint.Constraint
+.. autoclass:: popcor.utils.constraint.Constraint
    :members:
 
 
 Helpers for matrix and vector operations
 ----------------------------------------
 
-.. automodule:: popr.utils.common
+.. automodule:: popcor.utils.common
    :members:
 
 
@@ -25,5 +25,5 @@ Helpers for matrix and vector operations
    Geometry: lie algebra etc.
    --------------------------
 
-   .. automodule:: popr.utils.geometry
+   .. automodule:: popcor.utils.geometry
       :members:

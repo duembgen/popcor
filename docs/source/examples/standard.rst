@@ -4,23 +4,23 @@ Standard Estimation Problems
 Range-Only Localization
 -----------------------
 
-.. autoclass:: popr.examples.RangeOnlyLocLifter
+.. autoclass:: popcor.examples.RangeOnlyLocLifter
 
 
 Stereo-Camera Localization
 --------------------------
 
-.. autoclass:: popr.examples.Stereo2DLifter
+.. autoclass:: popcor.examples.Stereo2DLifter
    :undoc-members:
    :show-inheritance:
 
-.. autoclass:: popr.examples.Stereo3DLifter
+.. autoclass:: popcor.examples.Stereo3DLifter
    :undoc-members:
    :show-inheritance:
 
 Rotation Averaging
 ------------------
 
-.. autoclass:: popr.examples.RotationLifter
+.. autoclass:: popcor.examples.RotationLifter
    :undoc-members:
    :show-inheritance:

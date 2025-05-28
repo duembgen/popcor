@@ -4,7 +4,7 @@ Toy Examples
 Univariate Polynomials
 ----------------------
 
-.. autoclass:: popr.examples.Poly4Lifter
+.. autoclass:: popcor.examples.Poly4Lifter
    :undoc-members:
    :show-inheritance:
 
@@ -22,7 +22,7 @@ Univariate Polynomials
 
    Poly4Lifter Type B
 
-.. autoclass:: popr.examples.Poly6Lifter
+.. autoclass:: popcor.examples.Poly6Lifter
    :undoc-members:
    :show-inheritance:
 
@@ -43,6 +43,6 @@ Univariate Polynomials
 Other Toy Examples
 ------------------
 
-.. autoclass:: popr.examples.Stereo1DLifter
+.. autoclass:: popcor.examples.Stereo1DLifter
    :undoc-members:
    :show-inheritance:

@@ -4,7 +4,7 @@ Templates
 Example for AutoTight
 ------------------------------
 
-.. autoclass:: popr.examples.ExampleLifter
+.. autoclass:: popcor.examples.ExampleLifter
     :undoc-members:
     :show-inheritance:
 
