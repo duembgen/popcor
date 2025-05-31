@@ -101,15 +101,20 @@ class Stereo1DLifter(StateLifter):
     def param_dict(self):
         return self.param_dict_landmarks
 
+    def simulate_y(self, noise: float | None = None):
+        if noise is None:
+            noise = self.NOISE
+        return 1 / (self.theta - self.landmarks.flatten()) + np.random.normal(
+            scale=noise, loc=0, size=self.n_landmarks
+        )
+
     def get_Q(self, noise: float | None = None, output_poly: bool = False):
         if self.landmarks is None:
             raise ValueError("self.landmarks must be initialized before calling get_Q.")
         if noise is None:
             noise = self.NOISE
 
-        y = 1 / (self.theta - self.landmarks.flatten()) + np.random.normal(
-            scale=noise, loc=0, size=self.n_landmarks
-        )
+        y = self.simulate_y(noise=noise)
         if self.y_ is None:
             self.y_ = y
 
@@ -180,7 +185,11 @@ class Stereo1DLifter(StateLifter):
         return A_known
 
     def get_cost(self, theta, y):
-        return np.sum((y - (1 / (theta - self.landmarks.flatten()))) ** 2)
+        if np.ndim(theta) == 0 or (np.ndim(theta) == 1 and len(theta) == 1):
+            return np.sum((y - (1 / (theta - self.landmarks.flatten()))) ** 2)
+        else:
+            u = theta[1:]
+            return np.sum(y - u) ** 2
 
     def local_solver(
         self, t0, y, num_iters=100, eps=1e-5, W=None, verbose=False, **kwargs
