@@ -45,10 +45,10 @@ def generate_random_pose(d=2, size=1, use_euler=False):
     return get_theta_from_C_r(C, r)
 
 
-def get_C_r_from_theta(theta, d):
+def get_C_r_from_theta(theta, d, atol=1e-10):
     r = theta[:d]
     C = theta[d : d + d**2].reshape((d, d))
-    np.testing.assert_allclose(C.T @ C, np.eye(d), atol=1e-10)
+    np.testing.assert_allclose(C.T @ C, np.eye(d), atol=atol)
     return C, r
 
 
@@ -73,16 +73,20 @@ def get_theta_from_T(T):
     return get_theta_from_C_r(C, r)
 
 
-def get_pose_errors_from_theta(theta_hat, theta_gt, d):
-    C_hat, r_hat = get_C_r_from_theta(theta_hat, d)
-    C_gt, r_gt = get_C_r_from_theta(theta_gt, d)
-    r_error = np.linalg.norm(r_hat - r_gt)
-    C_error = np.linalg.norm(C_gt.T @ C_hat - np.eye(d))
+def get_pose_errors_from_theta(theta_hat, theta_gt, d, atol=1e-10):
+    C_hat, r_hat = get_C_r_from_theta(theta_hat, d, atol=atol)
+    C_gt, r_gt = get_C_r_from_theta(theta_gt, d, atol=atol)
+    r_MSE = np.mean((r_hat - r_gt) ** 2)
+    C_MSE = np.mean((C_gt.T @ C_hat - np.eye(d)) ** 2)
+    r_RMSE = np.sqrt(r_MSE)
+    C_RMSE = np.sqrt(C_MSE)
     return {
-        "error": r_error + C_error,
-        "r error": r_error,
-        "C error": C_error,
-        "total error": r_error + C_error,
+        "error": r_RMSE + C_RMSE,  # default errors, for backward compatibility
+        "r error": r_RMSE,
+        "C error": C_RMSE,
+        "total error": r_MSE + C_RMSE,
+        "RMSE": r_RMSE + C_RMSE,  # errors to be used moving forward
+        "MSE": r_MSE + C_MSE,
     }
 
 
