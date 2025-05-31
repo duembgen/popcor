@@ -44,7 +44,7 @@ class RotationLifter(StateLifter):
             C = R.from_euler("z", angle).as_matrix()[:2, :2]
         elif self.d == 3:
             C = R.random().as_matrix()
-        return C
+        return C.flatten("C")
 
     def get_x(self, theta=None, parameters=None, var_subset=None) -> np.ndarray:
         """Get the lifted vector x given theta and parameters."""
@@ -60,35 +60,42 @@ class RotationLifter(StateLifter):
             if key == self.HOM:
                 x_data.append(1.0)
             elif key == "c":
-                x_data += list(theta.flatten("C"))
+                x_data += list(theta)
         dim_x = self.get_dim_x(var_subset=var_subset)
         assert len(x_data) == dim_x
         return np.array(x_data)
 
     def get_theta(self, x: np.ndarray) -> np.ndarray:
         assert np.ndim(x) == 1
-        C_flat = x[1 : 1 + self.d**2]
-        return C_flat.reshape((self.d, self.d))
+        return x[: self.d**2]
+
+    def simulate_y(self, noise: float | None = None) -> list:
+        if noise is None:
+            noise = self.NOISE
+
+        R_gt = self.theta.reshape((self.d, self.d))
+        y = []
+        for i in range(self.n_meas):
+            # noise model: R_i = R.T @ Rnoise
+            if noise > 0:
+                # Generate a random small rotation as noise and apply it
+                noise_rotvec = np.random.normal(scale=noise, size=(self.d,))
+                Rnoise = (
+                    R.from_rotvec(noise_rotvec).as_matrix()
+                    if self.d == 3
+                    else R.from_euler("z", noise_rotvec[0]).as_matrix()[:2, :2]
+                )
+                Ri = R_gt.T @ Rnoise
+            else:
+                Ri = R_gt.T
+            y.append(Ri)
+        return y
 
     def get_Q(self, noise: float | None = None, output_poly: bool = False):
         if noise is None:
             noise = self.NOISE
         if self.y_ is None:
-            self.y_ = []
-            for i in range(self.n_meas):
-                # noise model: R_i = R.T @ Rnoise
-                if noise > 0:
-                    # Generate a random small rotation as noise and apply it
-                    noise_rotvec = np.random.normal(scale=noise, size=(self.d,))
-                    Rnoise = (
-                        R.from_rotvec(noise_rotvec).as_matrix()
-                        if self.d == 3
-                        else R.from_euler("z", noise_rotvec[0]).as_matrix()[:2, :2]
-                    )
-                    Ri = self.theta.T @ Rnoise
-                else:
-                    Ri = self.theta.T
-                self.y_.append(Ri)
+            self.y_ = self.simulate_y(noise=noise)
 
         return self.get_Q_from_y(self.y_, output_poly=output_poly)
 
@@ -173,7 +180,7 @@ class RotationLifter(StateLifter):
             var_dict = self.var_dict
 
         if "c" in var_dict:
-            # enforce diagonal == 1
+            # enforce diagonal == 1 for R'R = I
             for i in range(self.d):
                 Ei = np.zeros((self.d, self.d))
                 Ei[i, i] = 1.0
@@ -183,7 +190,7 @@ class RotationLifter(StateLifter):
                 Ai[self.HOM, self.HOM] = -1
                 self.test_and_add(A_list, Ai, output_poly=output_poly)
 
-            # enforce off-diagonal == 0
+            # enforce off-diagonal == 0 for R'R = I
             for i in range(self.d):
                 for j in range(i + 1, self.d):
                     Ei = np.zeros((self.d, self.d))
@@ -216,4 +223,37 @@ class RotationLifter(StateLifter):
                 print(
                     "Warning: consider implementing the determinant constraint for RobustPoseLifter, d=3"
                 )
+
+        if add_redundant and "c" in var_dict:
+            # enforce diagonal == 1 for RR' = I
+            for i in range(self.d):
+                Ei = np.zeros((self.d, self.d))
+                Ei[i, i] = 1.0
+                constraint = np.kron(np.eye(self.d), Ei)
+                Ai = PolyMatrix(symmetric=True)
+                Ai["c", "c"] = constraint
+                Ai[self.HOM, self.HOM] = -1
+                self.test_and_add(A_list, Ai, output_poly=output_poly)
+
+            # enforce off-diagonal == 0 for RR' = I
+            for i in range(self.d):
+                for j in range(i + 1, self.d):
+                    Ei = np.zeros((self.d, self.d))
+                    Ei[i, j] = 1.0
+                    Ei[j, i] = 1.0
+                    constraint = np.kron(np.eye(self.d), Ei)
+                    Ai = PolyMatrix(symmetric=True)
+                    Ai["c", "c"] = constraint
+                    self.test_and_add(A_list, Ai, output_poly=output_poly)
         return A_list
+
+    def __repr__(self):
+        return f"rotation_lifter{self.d}d"
+
+
+if __name__ == "__main__":
+
+    # adding this here because on save vscode sometimes adds duplicate lines
+    pass
+    # adding this here because on save vscode sometimes adds duplicate lines
+    pass
