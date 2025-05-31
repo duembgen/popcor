@@ -106,6 +106,11 @@ class RangeOnlyLocLifter(StateLifter):
             self.landmarks_ = landmarks
         return self.landmarks_
 
+    @landmarks.setter
+    def landmarks(self, landmarks):
+        assert landmarks.shape == (self.n_landmarks, self.d)
+        self.landmarks_ = landmarks
+
     @property
     def VARIABLE_LIST(self):
         return [
@@ -124,6 +129,11 @@ class RangeOnlyLocLifter(StateLifter):
     def sample_parameters(self, theta=None):
         landmarks = np.random.rand(self.n_landmarks, self.d)
         return self.sample_parameters_landmarks(landmarks)
+
+    def overwrite_theta(self, theta):
+        """To bypass "theta can only be set once" check."""
+        assert theta.shape == (self.n_positions, self.d)
+        self.theta_ = theta
 
     def sample_theta(self):
         return np.random.rand(self.n_positions, self.d).flatten()
