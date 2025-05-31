@@ -139,7 +139,7 @@ class WahbaLifter(RobustPoseLifter):
             noise = self.NOISE
 
         if self.y_ is None:
-            self.y_ = self.simulate_y(self, noise=noise)
+            self.y_ = self.simulate_y(noise=noise)
         Q = self.get_Q_from_y(self.y_, output_poly=output_poly, use_cliques=use_cliques)
         return Q
 

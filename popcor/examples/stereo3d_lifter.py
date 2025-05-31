@@ -163,6 +163,8 @@ class Stereo3DLifter(StereoLifter):
             if not (abs(cost_Q - cost) / cost < 1e-8):
                 print(f"Warning, cost not equal {cost_Q:.2e} {cost:.2e}")
 
+        info["cost"] = cost
+
         if info["success"]:
             return x_hat, info, cost
         else:

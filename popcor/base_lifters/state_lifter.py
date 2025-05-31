@@ -217,6 +217,14 @@ class StateLifter(BaseClass):
         return param_dict
 
     def get_theta(self, x):
-        """Inverse of get_x: given lifted vector x, extract elements corresponding to theta."""
+        """Inverse of get_x: given lifted vector x, extract elements corresponding to theta.
+
+        Note that x should not contain the homogeinized element x[0] = 1
+        """
         assert np.ndim(x) == 1 or x.shape[1] == 1
-        return x.flatten()[1 : 1 + self.d]
+        if abs(x[0] - 1) < 1e-10:
+            print(
+                "Warning: got homogenized vector x. The convention is that get_theta should get x[1:]."
+                "Please make sure that you use get_theta as intended."
+            )
+        return x.flatten()[: self.d]

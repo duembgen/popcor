@@ -444,7 +444,7 @@ class AutoTemplate(object):
             self.solver_vars["xhat"] = xhat  # type: ignore
 
             # calculate error for global estimate
-            self.solver_vars.update(self.lifter.get_error(qcqp_that))
+            self.solver_vars["error"] = self.lifter.get_error(qcqp_that)  # type: ignore
             # calculate errors for local estimates
             for key, qcqp_that_local in info.items():
                 if key.startswith("local solution"):

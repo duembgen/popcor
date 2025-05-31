@@ -50,7 +50,7 @@ class Poly4Lifter(PolyLifter):
         from poly_matrix import PolyMatrix
 
         if add_redundant:
-            print("No redundant constraitns for 4-degree polynomial.")
+            print("No redundant constraints for 4-degree polynomial.")
 
         # z_0 = t^2
         A_1 = PolyMatrix(symmetric=True)

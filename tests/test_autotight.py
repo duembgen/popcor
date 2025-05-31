@@ -70,8 +70,12 @@ def test_constraints_stereo():
 
 
 if __name__ == "__main__":
+    import pytest
+
+    # pytest.main([__file__, "-s"])
+    # print("all tests passed")
+
     test_constraints_stereo()
     test_constraints()
     test_constraints_params()
-    test_constraints_methods()
     test_constraints_methods()

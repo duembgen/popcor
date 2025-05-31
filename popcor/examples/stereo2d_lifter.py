@@ -66,7 +66,7 @@ class Stereo2DLifter(StereoLifter):
             W = self.W
         a = self.landmarks
 
-        phi = convert_theta_to_phi(theta)
+        phi = convert_theta_to_phi(theta[:6])
         p_w, y, phi = change_dimensions(a, y, phi)
         cost = _cost(phi, p_w, y, W, self.M_matrix)
         if StereoLifter.NORMALIZE:
@@ -89,7 +89,7 @@ class Stereo2DLifter(StereoLifter):
             cost /= self.n_landmarks * self.d
         # cost /= self.n_landmarks * self.d
         theta_hat = convert_phi_to_theta(phi_hat)
-        info = {"success": success, "msg": "converged"}
+        info = {"success": success, "msg": "converged", "cost": cost}
         if success:
             return theta_hat, info, cost
         else:
