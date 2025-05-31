@@ -123,6 +123,7 @@ class Stereo1DLifter(StateLifter):
     def get_Q_from_y(self, y, output_poly: bool = False):
         ls_problem = LeastSquaresProblem()
         for j in range(len(y)):
+            # (z_j - y[j])**2
             ls_problem.add_residual({self.HOM: -y[j], f"z_{j}": 1})
         if output_poly:
             return ls_problem.get_Q()
@@ -189,7 +190,7 @@ class Stereo1DLifter(StateLifter):
             return np.sum((y - (1 / (theta - self.landmarks.flatten()))) ** 2)
         else:
             u = theta[1:]
-            return np.sum(y - u) ** 2
+            return np.sum((y - u) ** 2)
 
     def local_solver(
         self, t0, y, num_iters=100, eps=1e-5, W=None, verbose=False, **kwargs

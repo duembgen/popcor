@@ -73,6 +73,7 @@ class WahbaLifter(RobustPoseLifter):
         t_wc_w, C_cw = plot_frame(ax, self.theta, label="pose", color="gray", d=2)
 
         if self.y_ is not None:
+            w = self.theta[-self.n_landmarks :]
             for i in range(self.y_.shape[0]):
                 ax.scatter(*self.landmarks[i], color=f"C{i}", label="landmarks")
 
@@ -91,8 +92,10 @@ class WahbaLifter(RobustPoseLifter):
                     ax.plot(
                         [t_wc_w[0], t_wc_w[0] + t_cpi_w[0]],
                         [t_wc_w[1], t_wc_w[1] + t_cpi_w[1]],
-                        color=f"r" if i < self.n_outliers else "g",
+                        color=f"r" if w[i] < 0 else "g",
                     )
+        ax.axis("equal")
+        return fig, ax
 
     def simulate_y(self, noise: float | None = None):
         if noise is None:

@@ -292,7 +292,7 @@ class RobustPoseLifter(StateLifter, ABC):
     def local_solver(
         self,
         t0,
-        y: np.ndarray | None = None,
+        y: np.ndarray | None,
         verbose=False,
         method=METHOD,
         solver_kwargs=SOLVER_KWARGS,

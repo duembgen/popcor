@@ -63,7 +63,7 @@ class StateLifter(BaseClass):
 
     # MUST OVERWRITE THESE FOR TIGHTNESS CHECKS
 
-    def simulate_y(self, noise: float | None = None) -> np.ndarray:
+    def simulate_y(self, noise: float | None = None) -> np.ndarray | None:
         """Simulate the measurements y from the current state theta.
 
         Must provide this function if a notion of "noise" and "measurements" exists and shall be used.
@@ -190,7 +190,7 @@ class StateLifter(BaseClass):
         # TODO(FD) identify when the solve is not successful.
         info["success"] = True
         try:
-            theta = self.get_theta(X[:, 0])
+            theta = self.get_theta(X[1:, 0])
         except AttributeError:
             theta = X[1 : 1 + self.d, 0]
         return theta, info, info["cost"]

@@ -411,7 +411,11 @@ class RangeOnlyLocLifter(StateLifter):
         return sub_idx_x
 
     def get_theta(self, x):
-        return x[1 : self.d + 1]
+        assert abs(x[0] - 1.0) > 1e-10
+        # below is if we have order x_1, z_1, x_2, z_2, ...
+        # x.reshape((self.n_positions, -1))[:, : self.d].flatten("C")
+        # below is if we have order x_1, x_2, ..., z_1, z_2, ...
+        return x[: self.n_positions * self.d]
 
     def get_position(self, theta=None):
         if theta is not None:
