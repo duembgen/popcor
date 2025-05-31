@@ -147,6 +147,7 @@ class MonoLifter(RobustPoseLifter):
                         [t_wc_w[1], t_wc_w[1] + ui_w[1]],
                         color=f"r" if i < self.n_outliers else "g",
                     )
+        return fig, ax
 
     def simulate_y(self, noise: float | None = None):
         if noise is None:
@@ -176,7 +177,7 @@ class MonoLifter(RobustPoseLifter):
                 for _ in range(N_TRYS):
                     ui_test = deepcopy(ui)
                     ui_test[: self.d - 1] += np.random.normal(
-                        scale=self.NOISE_OUT, loc=0, size=self.d - 1
+                        scale=self.NOISE_OUT / 10.0, loc=self.NOISE_OUT, size=self.d - 1
                     )
                     if np.tan(FOV / 2) * ui_test[self.d - 1] >= np.sqrt(
                         np.sum(ui_test[: self.d - 1] ** 2)
