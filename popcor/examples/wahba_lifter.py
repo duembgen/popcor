@@ -52,7 +52,8 @@ class WahbaLifter(RobustPoseLifter):
     def residual_sq(self, R, t, pi, ui):
         # TODO: can easily extend below to matrix-weighted
         W = np.eye(self.d)
-        res_sq = (R @ pi + t - ui).T @ W @ (R @ pi + t - ui)
+        term = self.term_in_norm(R, t, pi, ui)
+        res_sq = term.T @ W @ term
         if NORMALIZE:
             return res_sq / (self.n_landmarks * self.d) ** 2
         return res_sq

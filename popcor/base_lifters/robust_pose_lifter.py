@@ -544,5 +544,11 @@ class RobustPoseLifter(StateLifter, ABC):
         pass
 
     @abstractmethod
-    def residual_sq(self, R, t, pi, ui) -> float:
+    def residual_sq(
+        self,
+        R: np.ndarray,
+        t: np.ndarray,
+        pi: np.ndarray,
+        ui: np.ndarray,
+    ) -> float:
         pass

@@ -89,13 +89,21 @@ class MonoLifter(RobustPoseLifter):
     def term_in_norm(self, R, t, pi, ui, *args, **kwargs):
         return R @ pi + t
 
-    def residual_sq(self, R, t, pi, ui, *args, **kwargs):
+    def residual_sq(
+        self,
+        R,
+        t,
+        pi,
+        ui,
+        *args,
+        **kwargs,
+    ):
         W = np.eye(self.d) - np.outer(ui, ui)
         term = self.term_in_norm(R, t, pi, ui, *args, **kwargs)
+        res = term.T @ W @ term
         if NORMALIZE:
-            return term.T @ W @ term / (self.n_landmarks * self.d) ** 2
-        else:
-            return term.T @ W @ term
+            res /= (self.n_landmarks * self.d) ** 2
+        return res
 
     def plot_setup(self, *args, **kwargs):
         if self.d != 2:
@@ -141,7 +149,10 @@ class MonoLifter(RobustPoseLifter):
                     )
 
     def simulate_y(self, noise: float | None = None):
-        y_ = np.zeros((self.n_landmarks, self.d))
+        if noise is None:
+            noise = self.NOISE
+
+        y = np.zeros((self.n_landmarks, self.d))
         theta = self.theta[: self.d + self.d**2]
         outlier_index = self.get_outlier_index()
 
@@ -181,8 +192,10 @@ class MonoLifter(RobustPoseLifter):
                 )
             assert ui[self.d - 1] == 1.0
             ui /= np.linalg.norm(ui)
-            y_[i] = ui
-        return y_
+            y[i] = ui
+
+        self.y_ = y
+        return y
 
     def get_Q(
         self,
