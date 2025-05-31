@@ -417,11 +417,11 @@ class RangeOnlyLocLifter(StateLifter):
         if theta is not None:
             return theta.reshape(self.n_positions, self.d)
 
-    def get_error(self, that, error_type="rmse"):
+    def get_error(self, theta_hat, error_type="rmse", *args, **kwargs):
         if error_type == "rmse":
-            return np.sqrt(np.mean((self.theta - that) ** 2))
+            return np.sqrt(np.mean((self.theta - theta_hat) ** 2))
         elif error_type == "mse":
-            return np.mean((self.theta - that) ** 2)
+            return np.mean((self.theta - theta_hat) ** 2)
         else:
             raise ValueError(f"Unkwnon error_type {error_type}")
 

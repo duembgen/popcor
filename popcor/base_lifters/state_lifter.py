@@ -66,7 +66,7 @@ class StateLifter(BaseClass):
     def simulate_y(self, noise: float | None = None) -> np.ndarray:
         """Simulate the measurements y from the current state theta.
 
-        Must provide this funciton if a notion of "noise" and "measurements" exists and shall be used.
+        Must provide this function if a notion of "noise" and "measurements" exists and shall be used.
         """
         return None
 

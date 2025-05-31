@@ -23,9 +23,9 @@ class PolyLifter(StateLifter):
     def sample_theta(self):
         return np.random.rand(1)
 
-    def get_error(self, t, error_type="MSE", *args, **kwargs):
+    def get_error(self, theta_hat, error_type="MSE", *args, **kwargs):
         if error_type == "MSE":
-            return float((self.theta - t) ** 2)
+            return float((self.theta - theta_hat) ** 2)
         else:
             raise ValueError(f"Unknown error type: {error_type}")
 

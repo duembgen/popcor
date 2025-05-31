@@ -21,7 +21,7 @@ def assert_signature_match(base_cls, derived_cls, method_name):
         raise
 
 
-if __name__ == "__main__":
+def test_all_signatures():
     import popcor.examples
 
     for Cls in popcor.examples.__all__:
@@ -31,9 +31,14 @@ if __name__ == "__main__":
             "get_x",
             "get_Q",
             "get_Q_from_y",
+            "simulate_y",
             "get_A_known",
             "get_error",
             "sample_theta",
             "sample_parameters",
         ]:
             assert_signature_match(StateLifter, Cls, function)
+
+
+if __name__ == "__main__":
+    test_all_signatures()
