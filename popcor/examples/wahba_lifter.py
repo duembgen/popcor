@@ -93,6 +93,42 @@ class WahbaLifter(RobustPoseLifter):
                         color=f"r" if i < self.n_outliers else "g",
                     )
 
+    def simulate_y(self, noise: float | None = None):
+        if noise is None:
+            noise = self.NOISE
+
+        theta = self.theta[: self.d + self.d**2]
+        outlier_index = self.get_outlier_index()
+
+        y = np.empty((self.n_landmarks, self.d))
+        R, t = get_C_r_from_theta(theta, self.d)
+        for i in range(self.n_landmarks):
+            valid_measurement = False
+            for _ in range(N_TRYS):
+                outlier = i in outlier_index
+                y_i = R @ self.landmarks[i] + t
+                if outlier:
+                    y_i += np.random.normal(scale=self.NOISE_OUT, loc=0, size=self.d)
+                else:
+                    y_i += np.random.normal(scale=noise, loc=0, size=self.d)
+
+                residual = self.residual_sq(R, t, self.landmarks[i], y_i)
+                if not self.robust:
+                    valid_measurement = True
+                else:
+                    if outlier:
+                        valid_measurement = residual > self.beta
+                    else:
+                        valid_measurement = residual < self.beta
+                if valid_measurement:
+                    break
+            if not valid_measurement and self.robust:
+                self.plot_setup()
+                raise ValueError("did not find a valid measurement.")
+            y[i] = y_i
+        self.y_ = y
+        return y
+
     def get_Q(
         self,
         noise: float | None = None,
@@ -103,37 +139,7 @@ class WahbaLifter(RobustPoseLifter):
             noise = self.NOISE
 
         if self.y_ is None:
-            theta = self.theta[: self.d + self.d**2]
-            outlier_index = self.get_outlier_index()
-
-            self.y_ = np.empty((self.n_landmarks, self.d))
-            R, t = get_C_r_from_theta(theta, self.d)
-            for i in range(self.n_landmarks):
-                valid_measurement = False
-                for _ in range(N_TRYS):
-                    outlier = i in outlier_index
-                    y_i = R @ self.landmarks[i] + t
-                    if outlier:
-                        y_i += np.random.normal(
-                            scale=self.NOISE_OUT, loc=0, size=self.d
-                        )
-                    else:
-                        y_i += np.random.normal(scale=noise, loc=0, size=self.d)
-
-                    residual = self.residual_sq(R, t, self.landmarks[i], y_i)
-                    if not self.robust:
-                        valid_measurement = True
-                    else:
-                        if outlier:
-                            valid_measurement = residual > self.beta
-                        else:
-                            valid_measurement = residual < self.beta
-                    if valid_measurement:
-                        break
-                if not valid_measurement and self.robust:
-                    self.plot_setup()
-                    raise ValueError("did not find a valid measurement.")
-                self.y_[i] = y_i
+            self.y_ = self.simulate_y(self, noise=noise)
         Q = self.get_Q_from_y(self.y_, output_poly=output_poly, use_cliques=use_cliques)
         return Q
 

@@ -63,6 +63,13 @@ class StateLifter(BaseClass):
 
     # MUST OVERWRITE THESE FOR TIGHTNESS CHECKS
 
+    def simulate_y(self, noise: float | None = None) -> np.ndarray:
+        """Simulate the measurements y from the current state theta.
+
+        Must provide this funciton if a notion of "noise" and "measurements" exists and shall be used.
+        """
+        return None
+
     def get_Q(self, output_poly: bool = False, noise: float | None = None):
         """Construct the cost matrix Q.
 
@@ -75,10 +82,13 @@ class StateLifter(BaseClass):
             "Need to impelement get_Q in inheriting class if you want to use it."
         )
 
-    def get_Q_from_y(self, y):
-        raise NotImplementedError(
-            "Need to impelement get_Q_from_y in inheriting class if you want to use it."
-        )
+    def get_Q_from_y(self, y, output_poly: bool = False):
+        if y is None:
+            return self.get_Q(output_poly=output_poly)
+        else:
+            raise NotImplementedError(
+                "Need to impelement get_Q_from_y in inheriting class if you want to use it."
+            )
 
     def get_A_known(
         self,

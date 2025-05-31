@@ -140,6 +140,50 @@ class MonoLifter(RobustPoseLifter):
                         color=f"r" if i < self.n_outliers else "g",
                     )
 
+    def simulate_y(self, noise: float | None = None):
+        y_ = np.zeros((self.n_landmarks, self.d))
+        theta = self.theta[: self.d + self.d**2]
+        outlier_index = self.get_outlier_index()
+
+        R, t = get_C_r_from_theta(theta, self.d)
+        for i in range(self.n_landmarks):
+            pi = self.landmarks[i]
+            # ui = deepcopy(pi) #R @ pi + t
+            ui = R @ pi + t
+            ui /= ui[self.d - 1]
+
+            # random unit vector inside the FOV cone
+            # tan(a/2)*t3 >= sqrt(t1**2 + t2**2) or t3 >= 1
+            if np.tan(FOV / 2) * ui[self.d - 1] < np.sqrt(
+                np.sum(ui[: self.d - 1] ** 2)
+            ):
+                print("warning: inlier not in FOV!!")
+
+            if i in outlier_index:
+                # randomly sample a vector
+                success = False
+                for _ in range(N_TRYS):
+                    ui_test = deepcopy(ui)
+                    ui_test[: self.d - 1] += np.random.normal(
+                        scale=self.NOISE_OUT, loc=0, size=self.d - 1
+                    )
+                    if np.tan(FOV / 2) * ui_test[self.d - 1] >= np.sqrt(
+                        np.sum(ui_test[: self.d - 1] ** 2)
+                    ):
+                        success = True
+                        ui = ui_test
+                        break
+                if not success:
+                    raise ValueError("did not find valid outlier ui")
+            else:
+                ui[: self.d - 1] += np.random.normal(  # type: ignore
+                    scale=noise, loc=0, size=self.d - 1
+                )
+            assert ui[self.d - 1] == 1.0
+            ui /= np.linalg.norm(ui)
+            y_[i] = ui
+        return y_
+
     def get_Q(
         self,
         noise: float | None = None,
@@ -153,47 +197,7 @@ class MonoLifter(RobustPoseLifter):
             noise = self.NOISE
 
         if self.y_ is None:
-            self.y_ = np.zeros((self.n_landmarks, self.d))
-            theta = self.theta[: self.d + self.d**2]
-            outlier_index = self.get_outlier_index()
-
-            R, t = get_C_r_from_theta(theta, self.d)
-            for i in range(self.n_landmarks):
-                pi = self.landmarks[i]
-                # ui = deepcopy(pi) #R @ pi + t
-                ui = R @ pi + t
-                ui /= ui[self.d - 1]
-
-                # random unit vector inside the FOV cone
-                # tan(a/2)*t3 >= sqrt(t1**2 + t2**2) or t3 >= 1
-                if np.tan(FOV / 2) * ui[self.d - 1] < np.sqrt(
-                    np.sum(ui[: self.d - 1] ** 2)
-                ):
-                    print("warning: inlier not in FOV!!")
-
-                if i in outlier_index:
-                    # randomly sample a vector
-                    success = False
-                    for _ in range(N_TRYS):
-                        ui_test = deepcopy(ui)
-                        ui_test[: self.d - 1] += np.random.normal(
-                            scale=self.NOISE_OUT, loc=0, size=self.d - 1
-                        )
-                        if np.tan(FOV / 2) * ui_test[self.d - 1] >= np.sqrt(
-                            np.sum(ui_test[: self.d - 1] ** 2)
-                        ):
-                            success = True
-                            ui = ui_test
-                            break
-                    if not success:
-                        raise ValueError("did not find valid outlier ui")
-                else:
-                    ui[: self.d - 1] += np.random.normal(
-                        scale=noise, loc=0, size=self.d - 1
-                    )
-                assert ui[self.d - 1] == 1.0
-                ui /= np.linalg.norm(ui)
-                self.y_[i] = ui
+            self.y_ = self.simulate_y(noise=noise)
 
         Q = self.get_Q_from_y(
             self.y_, output_poly=output_poly, use_cliques=use_cliques, *args, **kwargs
