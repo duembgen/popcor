@@ -42,6 +42,7 @@ class RangeOnlySqLifter(RangeOnlyLifter):
         "no": "$z_n$",
         "quad": "$\\boldsymbol{y}_n$",
     }
+    MONOMIAL_DEGREE = 2
 
     @staticmethod
     def create_good(n_positions, n_landmarks, d=2):

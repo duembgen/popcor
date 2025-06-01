@@ -43,6 +43,7 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
         "normals": "$\\boldymbol{y}_n$",
         "simple": "$z_n$",
     }
+    MONOMIAL_DEGREE = 1
 
     @staticmethod
     def create_good(n_positions, n_landmarks, d=2):
@@ -70,9 +71,6 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
 
     @staticmethod
     def get_vectorized(samples, normals):
-        samples_vec = np.hstack(
-            [samples, normals.reshape(normals.shape[0], -1)]
-        ).flatten()
         # make sure samples_vec is of the form
         # [x_1, n_11, ..., n_1K, x_2, n_21, ..., n_2K, ...]
         np.testing.assert_allclose(samples_vec[: samples.shape[1]], samples[0, :])
@@ -122,16 +120,13 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
         return [vars]
 
     def get_A_known(self, var_dict=None, output_poly=False, add_redundant=False):
-        from poly_matrix.poly_matrix import PolyMatrix
-
         if var_dict is None:
             var_dict = self.var_dict
-        positions = self.get_variable_indices(var_dict)
 
         A_list = []
         if self.level == "normals":
-            for i in positions:
-                for k in range(self.landmarks.shape[0]):
+            for i in range(self.n_positions):
+                for k in range(self.n_landmarks):
                     # enforce the normal vectors are indeed unit-norm
                     A = PolyMatrix(symmetric=True)
                     A[f"z_{i}_{k}", f"z_{i}_{k}"] = np.eye(self.d)
@@ -175,7 +170,7 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
             parameters = self.parameters
 
         positions = theta.reshape(self.n_positions, -1)
-        normals = self.get_normals(positions, parameters)
+        normals = self.get_normals(positions)
 
         x_data = []
         for val in var_subset:
@@ -285,7 +280,7 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
         min_dist=1e-2,
         radius=1.0,
         center=None,
-        vectorized=False,
+        vectorized=True,
     ):
         # quick and dirty implementation to make sure we don't sample too close
         # from a landmark (otherwise length is zero and the normal vector will have nans)
@@ -305,16 +300,11 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
                 if j == max_trials - 1:
                     print(f"Warning: did not find valid sample in {max_trials} trials")
 
-        # N x K x d
         samples = np.vstack(samples)
+
         normals = self.landmarks[None, :, :] - samples[:, None, :]
-        # normals = np.random.rand(n_samples, *self.landmarks.shape)  # N x K x d
         normals /= np.linalg.norm(normals, axis=2)[:, :, None]
-
-        if vectorized:
-            return self.get_vectorized(samples, normals)
-
-        return samples, normals
+        return np.hstack([samples, normals.reshape(normals.shape[0], -1)])
 
     def __repr__(self):
         return f"rangeonlyloc{self.d}d_{self.level}"

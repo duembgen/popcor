@@ -344,6 +344,10 @@ class RangeOnlyLifter(StateLifter):
         ax.set_aspect("equal")
         return fig, ax, im
 
+    def get_valid_samples(self, n_samples):
+        samples = [self.sample_theta() for _ in range(n_samples)]
+        return np.vstack(samples)
+
     @property
     @abstractmethod
     def size_z(self) -> int:
