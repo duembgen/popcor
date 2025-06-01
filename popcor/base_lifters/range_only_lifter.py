@@ -1,11 +1,12 @@
 from abc import abstractmethod
 
 import autograd.numpy as anp
+import matplotlib.pylab as plt
 import numpy as np
 import scipy.sparse as sp
 from scipy.optimize import minimize
 
-from popcor.base_lifters import StateLifter
+from .state_lifter import StateLifter
 
 NOISE = 1e-2  # std deviation of distance noise
 
@@ -19,6 +20,9 @@ SOLVER_KWARGS = {
     "Powell": dict(ftol=1e-6, xtol=1e-10),
     "TNC": dict(gtol=1e-6, xtol=1e-10),
 }
+
+# size of the region of intereist: [0, SCALE]^d
+SCALE = 2.0
 
 
 class RangeOnlyLifter(StateLifter):
@@ -47,9 +51,48 @@ class RangeOnlyLifter(StateLifter):
 
         if variable_list == "all":
             variable_list = self.get_all_variables()
+
         super().__init__(
             level=level, d=d, variable_list=variable_list, param_level=param_level
         )
+
+    @staticmethod
+    def create_bad_fixed(n_positions, n_landmarks, d=2):
+        assert n_positions == 1
+        landmarks = np.random.rand(n_landmarks, d)
+        landmarks[:, 1] *= 0.1  # align landmarks along X.
+        theta = np.array([[0.2, 0.3]]).reshape((1, -1))
+        return landmarks, theta
+
+    @staticmethod
+    def create_bad(n_positions, n_landmarks, d=2):
+        # create landmarks that are roughly in a subspace of dimension d-1
+        landmarks = np.hstack(  # type: ignore
+            [
+                np.random.rand(n_landmarks, d - 1) * SCALE,
+                np.random.rand(n_landmarks, 1) * 0.3 + SCALE / 2.0,
+            ]
+        )
+        theta = np.hstack(
+            [
+                np.random.rand(n_positions, d - 1) * SCALE,
+                np.max(landmarks[:, -1]) + np.random.rand(n_positions, 1),
+            ]
+        )
+        return landmarks, theta
+
+    @staticmethod
+    def create_good(n_positions, n_landmarks, d=2):
+        landmarks = np.random.rand(n_landmarks, d)
+        landmarks = (landmarks - np.min(landmarks, axis=0)) / (
+            np.max(landmarks, axis=0) - np.min(landmarks, axis=0)
+        )
+        # remove landmarks a bit from border for plotting reasons
+        landmarks = (landmarks + SCALE * 0.05) * SCALE * 0.9
+        theta = np.random.uniform(
+            [np.min(landmarks, axis=0)], [np.max(landmarks, axis=0)]
+        )
+        return landmarks, theta
 
     @property
     def landmarks(self):
@@ -73,8 +116,12 @@ class RangeOnlyLifter(StateLifter):
         ]
 
     @abstractmethod
-    def get_all_variables(self):
-        pass
+    def get_all_variables(self) -> list:
+        return []
+
+    @abstractmethod
+    def get_cost(self, theta, y, sub_idx=None, ad=False) -> float:
+        return 0.0
 
     def get_vec_around_gt(self, delta: float = 0):
         """Sample around ground truth.
@@ -106,112 +153,29 @@ class RangeOnlyLifter(StateLifter):
     def sample_theta(self):
         return np.random.rand(self.n_positions, self.d).flatten()
 
-    def get_J_lifting(self, t):
-        pos = t.reshape((-1, self.d))
-        ii = []
-        jj = []
-        data = []
-
-        idx = 0
-        for n in range(self.n_positions):
-            if self.level == "no":
-                ii += [n] * self.d
-                jj += list(range(n * self.d, (n + 1) * self.d))
-                data += list(2 * pos[n])
-            elif self.level == "quad":
-                # it seemed easier to do this manually that programtically
-                if self.d == 3:
-                    x, y, z = pos[n]
-                    jj += [n * self.d + j for j in [0, 0, 1, 0, 2, 1, 1, 2, 2]]
-                    data += [2 * x, y, x, z, x, 2 * y, z, y, 2 * z]
-                    ii += [idx + i for i in [0, 1, 1, 2, 2, 3, 4, 4, 5]]
-                elif self.d == 2:
-                    x, y = pos[n]
-                    jj += [n * self.d + j for j in [0, 0, 1, 1]]
-                    data += [2 * x, y, x, 2 * y]
-                    ii += [idx + i for i in [0, 1, 1, 2]]
-                idx += self.size_z
-        J_lifting = sp.csr_array(
-            (data, (ii, jj)),
-            shape=(self.M, self.N),
-        )
-        return J_lifting
-
-    def get_hess_lifting(self, t):
-        """return list of the hessians of the M lifting functions."""
-        hessians = []
-        for n in range(self.n_positions):
-            idx = range(n * self.d, (n + 1) * self.d)
-            if self.level == "no":
-                hessian = sp.csr_array(
-                    ([2] * self.d, (idx, idx)),
-                    shape=(self.N, self.N),
-                )
-                hessians.append(hessian)
-            elif self.level == "quad":
-                for h in self.fixed_hessian_list:
-                    ii, jj = np.meshgrid(idx, idx)
-                    hessian = sp.csr_array(
-                        (h.flatten(), (ii.flatten(), jj.flatten())),
-                        shape=(self.N, self.N),
-                    )
-                    hessians.append(hessian)
-        return hessians
-
-    @property
-    def fixed_hessian_list(self):
-        if self.d == 2:
-            return [
-                np.array([[2, 0], [0, 0]]),
-                np.array([[0, 1], [1, 0]]),
-                np.array([[0, 0], [0, 2]]),
-            ]
-        elif self.d == 3:
-            return [
-                np.array([[2, 0, 0], [0, 0, 0], [0, 0, 0]]),
-                np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]]),
-                np.array([[0, 0, 1], [0, 0, 0], [1, 0, 0]]),
-                np.array([[0, 0, 0], [0, 2, 0], [0, 0, 0]]),
-                np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0]]),
-                np.array([[0, 0, 0], [0, 0, 0], [0, 0, 2]]),
-            ]
-        else:
-            raise ValueError(f"Unsupported dimension {self.d} for fixed hessians.")
-
     def get_residuals(self, t, y, squared=True, ad=False):
-        if ad:
-            positions = t.reshape((-1, self.d))
-            if squared:
-                y_current = np.sum(
-                    (self.landmarks[None, :, :] - positions[:, None, :]) ** 2, axis=2
-                )
-                return self.W * (y - y_current)
-            else:
-                y_current = np.linalg.norm(
-                    (self.landmarks[None, :, :] - positions[:, None, :]), axis=2
-                )
-                return self.W * (y - y_current**2)
-        else:
-            positions = t.reshape((-1, self.d))
-            if squared:
-                y_current = anp.sum(  # type: ignore
-                    (self.landmarks[None, :, :] - positions[:, None, :]) ** 2, axis=2
-                )
-                return self.W * (y - y_current)
-            else:
-                y_current = anp.linalg.norm(  # type:ignore
-                    (self.landmarks[None, :, :] - positions[:, None, :]), axis=2
-                )
-                return self.W * (y - y_current**2)
+        positions = t.reshape((-1, self.d))
+        sum = anp.sum if ad else np.sum  # type: ignore
+        norm = anp.linalg.norm if ad else np.linalg.norm  # type: ignore
 
-    def get_cost(self, theta, y, sub_idx=None, ad=False):
+        if squared:
+            y_current = sum(
+                (self.landmarks[None, :, :] - positions[:, None, :]) ** 2, axis=2
+            )
+            return self.W * (y**2 - y_current)
+        else:
+            y_current = norm(
+                (self.landmarks[None, :, :] - positions[:, None, :]), axis=2
+            )
+            return self.W * (y - y_current)
+
+    def get_cost_from_res(self, residuals, sub_idx, ad=False):
         """
         Get cost for given positions, landmarks and noise.
 
         :param t: flattened positions of length Nd
         :param y: N x K distance measurements
         """
-        residuals = self.get_residuals(theta, y, ad=ad)
         if ad:
             if sub_idx is None:
                 cost = anp.sum(residuals**2)  # type: ignore
@@ -392,6 +356,37 @@ class RangeOnlyLifter(StateLifter):
             info["cond Hess"] = None
         info["cost"] = cost
         return that, info, cost
+
+    def plot(self, y=None, xlims=[0, 2], ylims=[0, 2], ax=None):
+        if ax is None:
+            fig, ax = plt.subplots()
+            fig.set_size_inches(5, 5)
+        else:
+            fig = plt.gcf()
+
+        ax.scatter(*self.landmarks[:, :2].T, color="k", marker="+", label="landmarks")
+        ax.scatter(*self.theta[:, :2].T, color="C0", marker="o")
+
+        im = None
+        if y is not None:
+            xs = np.linspace(xlims[0], xlims[1], 100)
+            ys = np.linspace(ylims[0], ylims[1], 100)
+            xx, yy = np.meshgrid(xs, ys)
+            zz = [
+                self.get_cost(theta=np.array([xi, yi])[None, :], y=y)
+                for xi, yi in zip(xx.flatten(), yy.flatten())
+            ]
+            im = ax.pcolormesh(
+                xx,
+                yy,
+                np.reshape(zz, xx.shape),
+                norm="log",
+                alpha=0.5,
+                vmin=1e-5,
+                vmax=1,
+            )
+        ax.set_aspect("equal")
+        return fig, ax, im
 
     @property
     @abstractmethod

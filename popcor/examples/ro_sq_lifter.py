@@ -43,6 +43,30 @@ class RangeOnlySqLifter(RangeOnlyLifter):
         "quad": "$\\boldsymbol{y}_n$",
     }
 
+    @staticmethod
+    def create_good(n_positions, n_landmarks, d=2):
+        landmarks, theta = RangeOnlyLifter.create_good(n_positions, n_landmarks, d)
+        lifter = RangeOnlySqLifter(n_positions, n_landmarks, d)
+        lifter.overwrite_theta(theta)
+        lifter.landmarks = landmarks
+        return lifter
+
+    @staticmethod
+    def create_bad(n_positions, n_landmarks, d=2):
+        landmarks, theta = RangeOnlyLifter.create_bad(n_positions, n_landmarks, d)
+        lifter = RangeOnlySqLifter(n_positions, n_landmarks, d)
+        lifter.overwrite_theta(theta)
+        lifter.landmarks = landmarks
+        return lifter
+
+    @staticmethod
+    def create_bad_fixed(n_positions, n_landmarks, d=2):
+        landmarks, theta = RangeOnlyLifter.create_bad_fixed(n_positions, n_landmarks, d)
+        lifter = RangeOnlySqLifter(n_positions, n_landmarks, d)
+        lifter.overwrite_theta(theta)
+        lifter.landmarks = landmarks
+        return lifter
+
     def __init__(
         self,
         n_positions,
@@ -118,6 +142,10 @@ class RangeOnlySqLifter(RangeOnlyLifter):
 
     def get_residuals(self, t, y, ad=False):
         return super().get_residuals(t, y, ad=ad, squared=True)
+
+    def get_cost(self, theta, y, sub_idx=None, ad=False):
+        residuals = self.get_residuals(theta, y, ad=ad)
+        return self.get_cost_from_res(residuals, sub_idx, ad=ad)
 
     def get_x(self, theta=None, parameters=None, var_subset=None):
         if var_subset is None:
@@ -197,7 +225,30 @@ class RangeOnlySqLifter(RangeOnlyLifter):
                     hessians.append(hessian)
         return hessians
 
+    @property
+    def fixed_hessian_list(self):
+        if self.d == 2:
+            return [
+                np.array([[2, 0], [0, 0]]),
+                np.array([[0, 1], [1, 0]]),
+                np.array([[0, 0], [0, 2]]),
+            ]
+        elif self.d == 3:
+            return [
+                np.array([[2, 0, 0], [0, 0, 0], [0, 0, 0]]),
+                np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]]),
+                np.array([[0, 0, 1], [0, 0, 0], [1, 0, 0]]),
+                np.array([[0, 0, 0], [0, 2, 0], [0, 0, 0]]),
+                np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0]]),
+                np.array([[0, 0, 0], [0, 0, 0], [0, 0, 2]]),
+            ]
+        else:
+            raise ValueError(f"Unsupported dimension {self.d} for fixed hessians.")
+
     def get_Q_from_y(self, y, output_poly: bool = False):
+        """
+        :param y: the distance measurements, shape (n_positions, n_landmarks). IMPORTANT: these are not squared!
+        """
         self.ls_problem = LeastSquaresProblem()
 
         if self.level == "quad":
@@ -209,7 +260,7 @@ class RangeOnlySqLifter(RangeOnlyLifter):
                 if self.level == "no":
                     self.ls_problem.add_residual(
                         {
-                            self.HOM: y[n, k] - np.linalg.norm(ak) ** 2,
+                            self.HOM: y[n, k] ** 2 - np.linalg.norm(ak) ** 2,
                             f"x_{n}": 2 * ak.reshape((1, -1)),
                             f"z_{n}": -1,
                         }
@@ -218,7 +269,7 @@ class RangeOnlySqLifter(RangeOnlyLifter):
                     mat = np.zeros((1, self.size_z))
                     mat[0, diag_idx] = -1
                     res_dict = {
-                        self.HOM: y[n, k] - np.linalg.norm(ak) ** 2,
+                        self.HOM: y[n, k] ** 2 - np.linalg.norm(ak) ** 2,
                         f"x_{n}": 2 * ak.reshape((1, -1)),
                         f"z_{n}": mat,
                     }
