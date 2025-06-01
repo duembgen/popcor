@@ -1,7 +1,7 @@
 import numpy as np
 
 from popcor import AutoTemplate
-from popcor.examples import RangeOnlyLocLifter, Stereo1DLifter
+from popcor.examples import RangeOnlySqLifter, Stereo1DLifter
 
 # random seed, for reproducibility
 SEED = 3
@@ -27,7 +27,7 @@ def test_stereo_1d():
 def test_range_only():
     np.random.seed(SEED)
     for level in ["no", "quad"]:
-        lifter = RangeOnlyLocLifter(n_positions=4, n_landmarks=5, d=2, level=level)
+        lifter = RangeOnlySqLifter(n_positions=4, n_landmarks=5, d=2, level=level)
         learner = AutoTemplate(
             lifter=lifter,
         )

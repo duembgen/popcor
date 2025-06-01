@@ -4,7 +4,7 @@ from popcor.examples import (
     MonoLifter,
     Poly4Lifter,
     Poly6Lifter,
-    RangeOnlyLocLifter,
+    RangeOnlySqLifter,
     RotationLifter,
     Stereo1DLifter,
     Stereo2DLifter,
@@ -25,8 +25,8 @@ Lifters = [
     (MonoLifter, dict(n_landmarks=5, d=2, robust=False, level="no", n_outliers=0)), # not tight
     (WahbaLifter, dict(n_landmarks=5, d=2, robust=True, level="xwT", n_outliers=1)), # not tight
     (MonoLifter, dict(n_landmarks=6, d=2, robust=True, level="xwT", n_outliers=1)), # not tight
-    (RangeOnlyLocLifter, dict(n_positions=n_positions, n_landmarks=n_landmarks, d=d, level="no")), # ok
-    (RangeOnlyLocLifter, dict(n_positions=n_positions, n_landmarks=n_landmarks, d=d, level="quad")), # ok
+    (RangeOnlySqLifter, dict(n_positions=n_positions, n_landmarks=n_landmarks, d=d, level="no")), # ok
+    (RangeOnlySqLifter, dict(n_positions=n_positions, n_landmarks=n_landmarks, d=d, level="quad")), # ok
     (Stereo1DLifter, dict(n_landmarks=n_landmarks)), # not tight
     #(Stereo1DLifter, dict(n_landmarks=n_landmarks, param_level="p")), # skip
     #(Stereo2DLifter, dict(n_landmarks=n_landmarks)),
@@ -37,7 +37,7 @@ Lifters = [
 
 ExampleLifters = [
     (WahbaLifter, dict(n_landmarks=5, d=2, robust=False, level="no", n_outliers=1)),
-    (RangeOnlyLocLifter, dict(n_positions=n_poses, n_landmarks=n_landmarks, d=d, level="quad")),
+    (RangeOnlySqLifter, dict(n_positions=n_poses, n_landmarks=n_landmarks, d=d, level="quad")),
     (Stereo1DLifter, dict(n_landmarks=n_landmarks)),
     (Stereo2DLifter, dict(n_landmarks=n_landmarks)),
 ]
