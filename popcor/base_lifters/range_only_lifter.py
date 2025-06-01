@@ -192,40 +192,6 @@ class RangeOnlyLifter(StateLifter):
                 cost /= np.sum(self.W > 0)
         return cost
 
-    def get_grad(self, t, y, sub_idx=None):
-        J = self.get_J(t, y)
-        x = self.get_x(t)
-        Q = self.get_Q_from_y(y)
-        if sub_idx is None:
-            return 2 * J.T @ Q @ x
-        else:
-            sub_idx_x = self.get_sub_idx_x(sub_idx)
-            return 2 * J.T[:, sub_idx_x] @ Q[sub_idx_x, :][:, sub_idx_x] @ x[sub_idx_x]
-
-    def get_J(self, t, y):
-        J = sp.csr_array(
-            (np.ones(self.N), (range(1, self.N + 1), range(self.N))),
-            shape=(self.N + 1, self.N),
-        )
-        J_lift = self.get_J_lifting(t)
-        J = sp.vstack([J, J_lift])
-        return J
-
-    def get_hess(self, t, y):
-        x = self.get_x(t)
-        Q = self.get_Q_from_y(y)
-        J = self.get_J(t, y)
-        hess = 2 * J.T @ Q @ J
-
-        hessians = self.get_hess_lifting(t)
-        B = self.ls_problem.get_B_matrix(self.var_dict)
-        residuals = B @ x
-        for m, h in enumerate(hessians):
-            bm_tilde = B[:, -self.M + m]
-            factor = float(bm_tilde.T @ residuals)
-            hess += 2 * factor * h
-        return hess
-
     def simulate_y(self, noise: float | None = None, squared: bool = True):
         assert self.landmarks is not None
         # N x K matrix
@@ -251,17 +217,6 @@ class RangeOnlyLifter(StateLifter):
         cost3 = self.get_cost(self.theta, self.y_)
         assert abs(cost1 - cost3) < 1e-10
         return Q
-
-    def get_D(self, that):
-        D = np.eye(1 + self.n_positions * self.d + self.size_z)
-        x = self.get_x(theta=that)
-        J = self.get_J_lifting(t=that)
-
-        D = sp.lil_array((len(x), len(x)))
-        D[range(len(x)), range(len(x))] = 1.0
-        D[:, 0] = x
-        D[-J.shape[0] :, 1 : 1 + J.shape[1]] = J  # type: ignore
-        return D.tocsc()
 
     def get_sub_idx_x(self, sub_idx, add_z=True):
         sub_idx_x = [0]
@@ -348,6 +303,7 @@ class RangeOnlyLifter(StateLifter):
             cost = sol.fun
             info["max res"] = np.max(np.abs(residuals))
             hess = self.get_hess(that, y)
+            assert isinstance(hess, sp.csc_matrix)
             eigs = np.linalg.eigvalsh(hess.toarray())
             info["cond Hess"] = eigs[-1] / eigs[0]
         else:
