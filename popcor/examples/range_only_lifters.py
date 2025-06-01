@@ -372,17 +372,19 @@ class RangeOnlyLocLifter(StateLifter):
             return Q / np.sum(self.W > 0)
         return Q
 
-    def simulate_y(self, noise: float | None = None):
+    def simulate_y(self, noise: float | None = None, squared: bool = True):
         assert self.landmarks is not None
         # N x K matrix
         if noise is None:
             noise = NOISE
         positions = self.theta.reshape(self.n_positions, -1)
-        y_gt = (
-            np.linalg.norm(self.landmarks[None, :, :] - positions[:, None, :], axis=2)
-            ** 2
+        y_gt = np.linalg.norm(
+            self.landmarks[None, :, :] - positions[:, None, :], axis=2
         )
-        return y_gt + np.random.normal(loc=0, scale=noise, size=y_gt.shape)
+        if squared:
+            return y_gt**2 + np.random.normal(loc=0, scale=noise, size=y_gt.shape)
+        else:
+            return y_gt + np.random.normal(loc=0, scale=noise, size=y_gt.shape)
 
     def get_Q(self, noise: float | None = None, output_poly: bool = False) -> tuple:
         if self.y_ is None:
