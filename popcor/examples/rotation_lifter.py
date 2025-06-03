@@ -67,10 +67,10 @@ class RotationLifter(StateLifter):
 
     def get_theta(self, x: np.ndarray) -> np.ndarray:
         assert np.ndim(x) == 1
-        C_flat = x[1 : 1 + self.d**2]
+        C_flat = x[: self.d**2]
         return C_flat.reshape((self.d, self.d))
 
-    def simulate_y(self, noise: float | None = None) =-> list:
+    def simulate_y(self, noise: float | None = None) -> list:
         if noise is None:
             noise = self.NOISE
 
@@ -248,22 +248,30 @@ class RotationLifter(StateLifter):
                     self.test_and_add(A_list, Ai, output_poly=output_poly)
         return A_list
 
-
     def plot(self, estimates={}):
+        import itertools
+
         import matplotlib.pyplot as plt
 
-        from popr.utils.plotting_tools import plot_frame
+        from popcor.utils.plotting_tools import plot_frame
 
         fig, ax = plt.subplots()
-        plot_frame(ax=ax, theta=self.theta, label="gt", ls="-", scale=0.5)
+        plot_frame(ax=ax, theta=self.theta, label="gt", ls="-", scale=0.5, marker="")
 
+        linestyles = itertools.cycle(["--", "-.", ":"])
         for label, theta in estimates.items():
-            plot_frame(ax=ax, theta=theta, label=label, ls="--", scale=1.0)
+            plot_frame(
+                ax=ax,
+                theta=theta,
+                label=label,
+                ls=next(linestyles),
+                scale=1.0,
+                marker="",
+            )
 
         ax.set_aspect("equal")
         ax.legend()
         return fig, ax
-
 
     def __repr__(self):
         return f"rotation_lifter{self.d}d"
