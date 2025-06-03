@@ -304,7 +304,7 @@ def compare_solvers():
             if theta_hat is None:
                 print(solver, "failed")
             else:
-                error = lifter.get_error(theta_hat)["error"]
+                error = lifter.get_error(theta_hat)
                 print(
                     f"{solver} finished in {ttot:.4f}s, final cost {cost_solver:.1e}, error {error:.1e}. \n\tmessage:{msg} "
                 )

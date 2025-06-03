@@ -382,5 +382,8 @@ class AutoTight(object):
         return A_list
 
     @staticmethod
-    def get_duality_gap(cost_local, cost_sdp):
-        return (cost_local - cost_sdp) / abs(cost_sdp)
+    def get_duality_gap(cost_local, cost_sdp, relative=True):
+        if relative:
+            return (cost_local - cost_sdp) / abs(cost_sdp)
+        else:
+            return cost_local - cost_sdp

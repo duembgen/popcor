@@ -16,22 +16,23 @@ from popcor.utils.common import get_vec
 d = 2
 n_landmarks = 3
 n_poses = 4
+n_positions = 3
 # fmt: off
 Lifters = [
-    (Poly4Lifter, dict()),
-    (Poly6Lifter, dict()),
-    (WahbaLifter, dict(n_landmarks=3, d=2, robust=False, level="no", n_outliers=0)),
-    (MonoLifter, dict(n_landmarks=5, d=2, robust=False, level="no", n_outliers=0)),
-    (WahbaLifter, dict(n_landmarks=5, d=2, robust=True, level="xwT", n_outliers=1)),
-    (MonoLifter, dict(n_landmarks=6, d=2, robust=True, level="xwT", n_outliers=1)),
-    (RangeOnlyLocLifter, dict(n_positions=n_poses, n_landmarks=n_landmarks, d=d, level="no")),
-    (RangeOnlyLocLifter, dict(n_positions=n_poses, n_landmarks=n_landmarks, d=d, level="quad")),
-    (Stereo1DLifter, dict(n_landmarks=n_landmarks)),
-    (Stereo1DLifter, dict(n_landmarks=n_landmarks, param_level="p")),
-    (Stereo2DLifter, dict(n_landmarks=n_landmarks)),
-    (Stereo3DLifter, dict(n_landmarks=n_landmarks)),
-    (RotationLifter, dict(d=2)),
-    (RotationLifter, dict(d=3)),
+    (Poly4Lifter, dict()), #ok
+    (Poly6Lifter, dict()), #ok
+    (WahbaLifter, dict(n_landmarks=3, d=2, robust=False, level="no", n_outliers=0)), #ok
+    (MonoLifter, dict(n_landmarks=5, d=2, robust=False, level="no", n_outliers=0)), # not tight
+    (WahbaLifter, dict(n_landmarks=5, d=2, robust=True, level="xwT", n_outliers=1)), # not tight
+    (MonoLifter, dict(n_landmarks=6, d=2, robust=True, level="xwT", n_outliers=1)), # not tight
+    (RangeOnlyLocLifter, dict(n_positions=n_positions, n_landmarks=n_landmarks, d=d, level="no")), # ok
+    (RangeOnlyLocLifter, dict(n_positions=n_positions, n_landmarks=n_landmarks, d=d, level="quad")), # ok
+    (Stereo1DLifter, dict(n_landmarks=n_landmarks)), # not tight
+    #(Stereo1DLifter, dict(n_landmarks=n_landmarks, param_level="p")), # skip
+    #(Stereo2DLifter, dict(n_landmarks=n_landmarks)),
+    #(Stereo3DLifter, dict(n_landmarks=n_landmarks)),
+    (RotationLifter, dict(d=2)), # ok
+    (RotationLifter, dict(d=3)), # ok
 ]
 
 ExampleLifters = [

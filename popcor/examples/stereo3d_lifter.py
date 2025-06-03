@@ -104,7 +104,7 @@ class Stereo3DLifter(StereoLifter):
             pickle.dump(self.param_level, f)
             pickle.dump(self.variable_list, f)
 
-    def get_cost(self, t, y, W=None):
+    def get_cost(self, theta, y, W=None):
         """
         :param t: can be either
         - x, y, z, yaw, pitch roll: vector of unknowns, or
@@ -117,7 +117,7 @@ class Stereo3DLifter(StereoLifter):
 
         p_w, y = change_dimensions(a, y)
 
-        T = get_T(theta=t, d=3)
+        T = get_T(theta=theta, d=3)
 
         cost = _cost(p_w=p_w, y=y, T=T, M=self.M_matrix, W=W)
         if StereoLifter.NORMALIZE:
@@ -125,7 +125,7 @@ class Stereo3DLifter(StereoLifter):
         else:
             return cost
 
-    def local_solver(self, t_init, y, W=None, verbose=False, **kwargs):
+    def local_solver(self, t0, y, W=None, verbose=False, **kwargs):
         """
         :param t_init: same options  asfor t in cost.
         """
@@ -135,7 +135,7 @@ class Stereo3DLifter(StereoLifter):
 
         a = self.landmarks
         p_w, y = change_dimensions(a, y)
-        T_init = get_T(theta=t_init, d=3)
+        T_init = get_T(theta=t0, d=3)
 
         info, T_hat, cost = local_solver(
             T_init=T_init,
@@ -162,6 +162,8 @@ class Stereo3DLifter(StereoLifter):
         if abs(cost) > 1e-10:
             if not (abs(cost_Q - cost) / cost < 1e-8):
                 print(f"Warning, cost not equal {cost_Q:.2e} {cost:.2e}")
+
+        info["cost"] = cost
 
         if info["success"]:
             return x_hat, info, cost

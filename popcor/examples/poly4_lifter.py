@@ -22,7 +22,9 @@ class Poly4Lifter(PolyLifter):
         self.poly_type = poly_type
         super().__init__(degree=4)
 
-    def get_Q(self, *args, **kwargs):
+    def get_Q(self, output_poly=False, noise=None):
+        if output_poly:
+            raise ValueError("output_poly not implemented for Poly4Lifter.")
         if self.poly_type == "A":
             # fmt: off
             # noqa
@@ -44,11 +46,11 @@ class Poly4Lifter(PolyLifter):
             # fmt: on
         return Q
 
-    def get_A_known(self, output_poly=False, add_redundant=False):
+    def get_A_known(self, output_poly=False, add_redundant=False, var_dict=None):
         from poly_matrix import PolyMatrix
 
         if add_redundant:
-            print("No redundant constraitns for 4-degree polynomial.")
+            print("No redundant constraints for 4-degree polynomial.")
 
         # z_0 = t^2
         A_1 = PolyMatrix(symmetric=True)

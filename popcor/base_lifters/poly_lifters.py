@@ -23,27 +23,30 @@ class PolyLifter(StateLifter):
     def sample_theta(self):
         return np.random.rand(1)
 
-    def get_error(self, t):
-        return {"MAE": float(abs(self.theta - t)), "error": float(abs(self.theta - t))}
+    def get_error(self, theta_hat, error_type="MSE", *args, **kwargs):
+        if error_type == "MSE":
+            return float((self.theta - theta_hat) ** 2)
+        else:
+            raise ValueError(f"Unknown error type: {error_type}")
 
     def get_x(self, theta=None, parameters=None, var_subset=None):
         if theta is None:
             theta = self.theta
         return np.array([theta**i for i in range(self.degree // 2 + 1)])
 
-    def get_cost(self, theta, *args, **kwargs) -> float:
+    def get_cost(self, theta, y=None) -> float:
         Q = self.get_Q()
         x = self.get_x(theta).flatten()
         return float(x.T @ Q @ x)
 
-    def get_hess(self, *args, **kwargs):
+    def get_hess(self, y=None):
         raise NotImplementedError
 
-    def local_solver(self, t0, *args, **kwargs):
+    def local_solver(self, t0, y=None, *args, **kwargs):
         from scipy.optimize import minimize
 
         sol = minimize(self.get_cost, t0)
-        info = {"success": sol.success}
+        info = {"success": sol.success, "cost": sol.fun}
         return sol.x, info, sol.fun
 
     def plot(self, thetas, label=None):

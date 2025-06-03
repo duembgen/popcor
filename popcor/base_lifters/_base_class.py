@@ -711,9 +711,13 @@ class BaseClass(object):
                 )
         return parameters
 
-    def get_error(self, t) -> dict:
-        err = np.linalg.norm(t - self.theta) ** 2 / self.theta.size
-        return {"MSE": err, "error": err}
+    def get_error(self, theta_hat, error_type="mse", *args, **kwargs) -> float:
+        if error_type in ("mse", "MSE"):
+            return float(np.mean((theta_hat - self.theta) ** 2))
+        elif error_type in ("rmse", "RMSE"):
+            return float(np.sqrt(np.mean((theta_hat - self.theta) ** 2)))
+        else:
+            raise ValueError(f"unknown error type {error_type}")
 
     def generate_random_setup(self):
         if self.parameters is None:

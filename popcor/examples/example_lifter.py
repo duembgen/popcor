@@ -1,3 +1,5 @@
+from collections.abc import Iterable
+
 import numpy as np
 
 from popcor.base_lifters import StateLifter
@@ -34,11 +36,14 @@ class ExampleLifter(StateLifter):
         param_dict = {self.HOM: 1}
         return param_dict
 
-    def get_x(self, theta=None, parameters=None, var_subset=None) -> np.ndarray:
+    def get_x(
+        self,
+        theta: np.ndarray | None = None,
+        var_subset: Iterable | None = None,
+        **kwargs
+    ) -> np.ndarray:
         if theta is None:
             theta = self.theta
-        if parameters is None:
-            parameters = self.parameters
         if var_subset is None:
             var_subset = self.var_dict
 

@@ -101,27 +101,36 @@ class Stereo1DLifter(StateLifter):
     def param_dict(self):
         return self.param_dict_landmarks
 
-    def get_Q(self, noise: Optional[float] = None):
+    def simulate_y(self, noise: float | None = None):
+        if noise is None:
+            noise = self.NOISE
+        return 1 / (self.theta - self.landmarks.flatten()) + np.random.normal(
+            scale=noise, loc=0, size=self.n_landmarks
+        )
+
+    def get_Q(self, noise: float | None = None, output_poly: bool = False):
         if self.landmarks is None:
             raise ValueError("self.landmarks must be initialized before calling get_Q.")
         if noise is None:
             noise = self.NOISE
 
-        y = 1 / (self.theta - self.landmarks.flatten()) + np.random.normal(
-            scale=noise, loc=0, size=self.n_landmarks
-        )
+        y = self.simulate_y(noise=noise)
         if self.y_ is None:
             self.y_ = y
 
-        return self.get_Q_from_y(y)
+        return self.get_Q_from_y(y, output_poly=output_poly)
 
-    def get_Q_from_y(self, y):
+    def get_Q_from_y(self, y, output_poly: bool = False):
         ls_problem = LeastSquaresProblem()
         for j in range(len(y)):
+            # (z_j - y[j])**2
             ls_problem.add_residual({self.HOM: -y[j], f"z_{j}": 1})
-        return ls_problem.get_Q().get_matrix(self.var_dict)
+        if output_poly:
+            return ls_problem.get_Q()
+        else:
+            return ls_problem.get_Q().get_matrix(self.var_dict)
 
-    def get_A_known(self, var_dict=None, output_poly=False):
+    def get_A_known(self, var_dict=None, output_poly=False, add_redundant=False):
         if var_dict is None:
             var_dict = self.var_dict
 
@@ -146,6 +155,9 @@ class Stereo1DLifter(StateLifter):
                 A_known.append(A)
             else:
                 A_known.append(A.get_matrix(variables=self.var_dict))
+
+        if add_redundant:
+            A_known += self.get_A_known_redundant(var_dict, output_poly)
         return A_known
 
     def get_A_known_redundant(self, var_dict=None, output_poly=False):
@@ -173,15 +185,19 @@ class Stereo1DLifter(StateLifter):
                 A_known.append(A.get_matrix(variables=self.var_dict))
         return A_known
 
-    def get_cost(self, t, y):
-        return np.sum((y - (1 / (t - self.landmarks.flatten()))) ** 2)
+    def get_cost(self, theta, y):
+        if np.ndim(theta) == 0 or (np.ndim(theta) == 1 and len(theta) == 1):
+            return np.sum((y - (1 / (theta - self.landmarks.flatten()))) ** 2)
+        else:
+            u = theta[1:]
+            return np.sum((y - u) ** 2)
 
     def local_solver(
-        self, t_init, y, num_iters=100, eps=1e-5, W=None, verbose=False, **kwargs
+        self, t0, y, num_iters=100, eps=1e-5, W=None, verbose=False, **kwargs
     ):
         info = {}
         a = self.landmarks.flatten()
-        x_op = t_init
+        x_op = t0
         for i in range(num_iters):
             u = y - (1 / (x_op - a))
             if verbose:

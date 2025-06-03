@@ -63,7 +63,14 @@ class StateLifter(BaseClass):
 
     # MUST OVERWRITE THESE FOR TIGHTNESS CHECKS
 
-    def get_Q(self, output_poly=False, noise=None):
+    def simulate_y(self, noise: float | None = None) -> np.ndarray | None:
+        """Simulate the measurements y from the current state theta.
+
+        Must provide this function if a notion of "noise" and "measurements" exists and shall be used.
+        """
+        return None
+
+    def get_Q(self, output_poly: bool = False, noise: float | None = None):
         """Construct the cost matrix Q.
 
         :param noise: set the noise level, if appropriate.
@@ -75,10 +82,13 @@ class StateLifter(BaseClass):
             "Need to impelement get_Q in inheriting class if you want to use it."
         )
 
-    def get_Q_from_y(self, y):
-        raise NotImplementedError(
-            "Need to impelement get_Q_from_y in inheriting class if you want to use it."
-        )
+    def get_Q_from_y(self, y, output_poly: bool = False):
+        if y is None:
+            return self.get_Q(output_poly=output_poly)
+        else:
+            raise NotImplementedError(
+                "Need to impelement get_Q_from_y in inheriting class if you want to use it."
+            )
 
     def get_A_known(
         self,
@@ -100,7 +110,7 @@ class StateLifter(BaseClass):
 
     # MUST OVERWRITE THESE FOR ADDING PARAMETERS
 
-    def sample_parameters(self, theta=None) -> dict:
+    def sample_parameters(self, theta: np.ndarray | None = None) -> dict:
         """Create random set of parameters. By default, there are no parameters
         so this function just returns `{self.HOM: 1.0}`."""
         assert (
@@ -137,7 +147,7 @@ class StateLifter(BaseClass):
     def get_hess(self, theta, y=None) -> float:
         raise NotImplementedError("must define get_hess if you want to use it.")
 
-    def get_cost(self, theta, y=None) -> float:
+    def get_cost(self, theta, y: np.ndarray | None = None) -> float:
         """Compute the cost of the given state theta. This uses the simple form
         x.T @ Q @ x. Consider overwriting this for more efficient computations."""
         print(
@@ -150,7 +160,7 @@ class StateLifter(BaseClass):
             Q = self.get_Q()
         return float(x.T @ Q @ x)
 
-    def local_solver(self, t0, y=None, *args, **kwargs):
+    def local_solver(self, t0, y: np.ndarray | None = None, *args, **kwargs):
         """
         Default local solver that uses IPOPT to solve the QCQP problem defined by Q and the constraints matrices.
         Consider overwriting this for more efficient solvers.
@@ -180,7 +190,7 @@ class StateLifter(BaseClass):
         # TODO(FD) identify when the solve is not successful.
         info["success"] = True
         try:
-            theta = self.get_theta(X[:, 0])
+            theta = self.get_theta(X[1:, 0])
         except AttributeError:
             theta = X[1 : 1 + self.d, 0]
         return theta, info, info["cost"]
@@ -207,6 +217,14 @@ class StateLifter(BaseClass):
         return param_dict
 
     def get_theta(self, x):
-        """Inverse of get_x: given lifted vector x, extract elements corresponding to theta."""
+        """Inverse of get_x: given lifted vector x, extract elements corresponding to theta.
+
+        Note that x should not contain the homogeinized element x[0] = 1
+        """
         assert np.ndim(x) == 1 or x.shape[1] == 1
-        return x.flatten()[1 : 1 + self.d]
+        if abs(x[0] - 1) < 1e-10:
+            print(
+                "Warning: got homogenized vector x. The convention is that get_theta should get x[1:]."
+                "Please make sure that you use get_theta as intended."
+            )
+        return x.flatten()[: self.d]

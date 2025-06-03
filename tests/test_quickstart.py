@@ -79,14 +79,18 @@ def test_autotight():
     constraints = lifter.get_A_b_list(A_list=A_known)
     X, info_sdp = solve_sdp(Q, constraints)
 
-    gap = auto_tight.get_duality_gap(info_local["cost"], info_sdp["cost"])
+    gap = auto_tight.get_duality_gap(
+        info_local["cost"], info_sdp["cost"], relative=True
+    )
     assert gap > 0.1
 
     # learn matrices and solve again
     A_learned = auto_tight.get_A_learned(lifter)
     constraints = lifter.get_A_b_list(A_list=A_learned)
     X, info_sdp_learned = solve_sdp(Q, constraints)
-    gap = auto_tight.get_duality_gap(info_local["cost"], info_sdp_learned["cost"])
+    gap = auto_tight.get_duality_gap(
+        info_local["cost"], info_sdp_learned["cost"], relative=True
+    )
 
     # note that the gap can be slightly negative because of mismatch in convergence tolerances etc.
     assert abs(gap) < 1e-2
@@ -130,7 +134,7 @@ def test_autotemplate():
 
     # evaluate duality gap
     x, info_local, cost = new_lifter.local_solver(new_lifter.theta, y=new_lifter.y_)
-    gap = AutoTight.get_duality_gap(info_local["cost"], info_sdp["cost"])
+    gap = AutoTight.get_duality_gap(info_local["cost"], info_sdp["cost"], relative=True)
     # note that the gap can be slightly negative because of mismatch in convergence tolerances etc.
     assert abs(gap) < 1e-2
 
@@ -153,18 +157,22 @@ def test_autotemplate_literal():
 
     # evaluate duality gap
     x, info_local, cost = new_lifter.local_solver(new_lifter.theta, y=new_lifter.y_)
-    gap = AutoTight.get_duality_gap(info_local["cost"], info_sdp["cost"])
+    gap = AutoTight.get_duality_gap(info_local["cost"], info_sdp["cost"], relative=True)
     # note that the gap can be slightly negative because of mismatch in convergence tolerances etc.
     assert abs(gap) < 1e-2
 
 
 if __name__ == "__main__":
-    import warnings
-
+    # import warnings
     # make sure warnings raise errors, for debugging
-    warnings.simplefilter("error")
+    # warnings.simplefilter("error")
+
+    # import pytest
+    # pytest.main([__file__, "-s"])
+    # print("all tests passed")
 
     test_setup_problem()
     test_solve_sdp()
     test_autotight()
     test_autotemplate()
+    test_autotemplate_literal()
