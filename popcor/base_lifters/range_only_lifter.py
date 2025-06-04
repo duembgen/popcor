@@ -265,7 +265,9 @@ class RangeOnlyLifter(StateLifter):
         if use_autograd:
             from autograd import grad  # , hessian
 
-            fun = lambda x: self.get_cost(theta=x, y=y, ad=True)
+            def fun(x):
+                return self.get_cost(theta=x, y=y, ad=True)
+
             # TODO(FD): split problem into individual points.
             options = solver_kwargs[method]
             options["disp"] = verbose

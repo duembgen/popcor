@@ -69,17 +69,6 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
         lifter.landmarks = landmarks
         return lifter
 
-    @staticmethod
-    def get_vectorized(samples, normals):
-        # make sure samples_vec is of the form
-        # [x_1, n_11, ..., n_1K, x_2, n_21, ..., n_2K, ...]
-        np.testing.assert_allclose(samples_vec[: samples.shape[1]], samples[0, :])
-        np.testing.assert_allclose(
-            samples_vec[samples.shape[1] : samples.shape[1] + normals.shape[2]],
-            normals[0, 0, :],
-        )
-        return samples_vec
-
     def __init__(
         self,
         n_positions,
@@ -204,27 +193,6 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
             shape=(self.M, self.N),
         )
         return J_lifting
-
-    def get_hess_lifting(self, t):
-        """return list of the hessians of the M lifting functions."""
-        hessians = []
-        for n in range(self.n_positions):
-            idx = range(n * self.d, (n + 1) * self.d)
-            if self.level == "no":
-                hessian = sp.csr_array(
-                    ([2] * self.d, (idx, idx)),
-                    shape=(self.N, self.N),
-                )
-                hessians.append(hessian)
-            elif self.level == "quad":
-                for h in self.fixed_hessian_list:
-                    ii, jj = np.meshgrid(idx, idx)
-                    hessian = sp.csr_array(
-                        (h.flatten(), (ii.flatten(), jj.flatten())),
-                        shape=(self.N, self.N),
-                    )
-                    hessians.append(hessian)
-        return hessians
 
     def get_Q_from_y(self, y, output_poly: bool = False):
         Q = PolyMatrix()
