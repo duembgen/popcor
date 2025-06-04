@@ -194,7 +194,13 @@
 <li class="toctree-l4"><a class="reference internal" href="#fixed">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#id1">[0.0.1] - 2025-05-25</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1">[0.0.2] - 2025-06-04</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id2">Added</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#removed">Removed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id3">Fixed</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">[0.0.1] - 2025-05-25</a></li>
 </ul>
 </li>
 </ul>
@@ -258,7 +264,31 @@ and this project adheres to <a class="reference external" href="http://semver.or
 </section>
 </section>
 <section id="id1">
-<h3>[0.0.1] - 2025-05-25<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<h3>[0.0.2] - 2025-06-04<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<section id="id2">
+<h4>Added<a class="headerlink" href="#id2" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>RangeOnlyLifter base class for 2D/3D range-only localization (base_lifters/range_only_lifter.py)</p></li>
+<li><p>RangeOnlyNsqLifter: specialized lifter for range-only localization without squared distances (examples/ro_nsq_lifter.py)</p></li>
+<li><p>RangeOnlySqLifter: specialized lifter for squared-distance-based range-only localization</p></li>
+<li><p>GitHub Pages deployment step to documentation.yml using peaceiris/actions-gh-pages for automatic documentation publishing</p></li>
+</ul>
+</section>
+<section id="removed">
+<h4>Removed<a class="headerlink" href="#removed" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>docs/build/ files</p></li>
+</ul>
+</section>
+<section id="id3">
+<h4>Fixed<a class="headerlink" href="#id3" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>Corrected return type annotations in get_grad and get_hess methods in state_lifter.py from float to np.ndarray</p></li>
+</ul>
+</section>
+</section>
+<section id="id4">
+<h3>[0.0.1] - 2025-05-25<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
 <p>This is the initial release of the toolbox. It is based on <a class="reference external" href="https://github.com/utiasASRL/constraint_learning">https://github.com/utiasASRL/constraint_learning</a> and now included there as a submodule.</p>
 </section>
 </section>
