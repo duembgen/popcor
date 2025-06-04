@@ -1,0 +1,502 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quick Start Guide &mdash; POPCOR 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/custom_css" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API and modules" href="api.html" />
+    <link rel="prev" title="Welcome to POPCOR!" href="index.html" />
+   
+  <style>
+    .github-link {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+    .github-link img {
+      height: 32px;
+      width: 32px;
+    }
+  </style>
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/logo2.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Welcome to POPCOR!</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quick Start Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#problem-formulation">Problem Formulation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#example-instantiating-and-using-lifter"><strong>Example: instantiating and using lifter</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#sdp-relaxation">SDP Relaxation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#example-solving-the-qcqp-using-rank-relaxation"><strong>Example: solving the QCQP using rank relaxation</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#autotight-method">AutoTight Method</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#example-tightening-the-sdp-relaxation-using-autotight"><strong>Example: tightening the SDP relaxation using AutoTight</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#autotemplate-method">AutoTemplate Method</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#example-tightening-a-different-problem-using-autotemplate"><strong>Example: tightening a different problem using AutoTemplate</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API and modules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/algorithms.html">Core Algorithms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/algorithms.html#autotight">AutoTight</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/algorithms.html#popcor.AutoTight"><code class="docutils literal notranslate"><span class="pre">AutoTight</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/algorithms.html#autotemplate">AutoTemplate</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/algorithms.html#popcor.AutoTemplate"><code class="docutils literal notranslate"><span class="pre">AutoTemplate</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/lifters.html">Base Lifters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/lifters.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/lifters.html#basics">Basics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/lifters.html#statelifter">StateLifter</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/lifters.html#popcor.base_lifters.StateLifter"><code class="docutils literal notranslate"><span class="pre">StateLifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/lifters.html#stereolifter">StereoLifter</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/lifters.html#popcor.base_lifters.StereoLifter"><code class="docutils literal notranslate"><span class="pre">StereoLifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/lifters.html#robustposelifter">RobustPoseLifter</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/lifters.html#popcor.base_lifters.RobustPoseLifter"><code class="docutils literal notranslate"><span class="pre">RobustPoseLifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/lifters.html#rangeonlylifter">RangeOnlyLifter</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/lifters.html#popcor.base_lifters.RangeOnlyLifter"><code class="docutils literal notranslate"><span class="pre">RangeOnlyLifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/lifters.html#polylifter">PolyLifter</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/lifters.html#popcor.base_lifters.PolyLifter"><code class="docutils literal notranslate"><span class="pre">PolyLifter</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/utils.html">Utils</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#constraints-and-templates">Constraints and templates</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#popcor.utils.constraint.Constraint"><code class="docutils literal notranslate"><span class="pre">Constraint</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#module-popcor.utils.common">Helpers for matrix and vector operations</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#popcor.utils.common.create_symmetric"><code class="docutils literal notranslate"><span class="pre">create_symmetric()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#popcor.utils.common.diag_indices"><code class="docutils literal notranslate"><span class="pre">diag_indices()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#popcor.utils.common.get_vec"><code class="docutils literal notranslate"><span class="pre">get_vec()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#popcor.utils.common.ravel_multi_index_triu"><code class="docutils literal notranslate"><span class="pre">ravel_multi_index_triu()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#popcor.utils.common.unravel_multi_index_triu"><code class="docutils literal notranslate"><span class="pre">unravel_multi_index_triu()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#popcor.utils.common.upper_triangular"><code class="docutils literal notranslate"><span class="pre">upper_triangular()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/templates.html">1. Templates</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/templates.html#example-for-autotight">1.1. Example for AutoTight</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="examples/templates.html#popcor.examples.ExampleLifter"><code class="docutils literal notranslate"><span class="pre">ExampleLifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="examples/templates.html#example-for-autotemplate">1.2. Example for AutoTemplate</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/toy.html">2. Toy Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/toy.html#univariate-polynomials">2.1. Univariate Polynomials</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="examples/toy.html#popcor.examples.Poly4Lifter"><code class="docutils literal notranslate"><span class="pre">Poly4Lifter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/toy.html#popcor.examples.Poly6Lifter"><code class="docutils literal notranslate"><span class="pre">Poly6Lifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="examples/toy.html#other-toy-examples">2.2. Other Toy Examples</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="examples/toy.html#popcor.examples.Stereo1DLifter"><code class="docutils literal notranslate"><span class="pre">Stereo1DLifter</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/standard.html">3. Standard Estimation Problems</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/standard.html#range-only-localization">3.1. Range-Only Localization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="examples/standard.html#popcor.examples.RangeOnlySqLifter"><code class="docutils literal notranslate"><span class="pre">RangeOnlySqLifter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/standard.html#popcor.examples.RangeOnlyNsqLifter"><code class="docutils literal notranslate"><span class="pre">RangeOnlyNsqLifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="examples/standard.html#stereo-camera-localization">3.2. Stereo-Camera Localization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="examples/standard.html#popcor.examples.Stereo2DLifter"><code class="docutils literal notranslate"><span class="pre">Stereo2DLifter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/standard.html#popcor.examples.Stereo3DLifter"><code class="docutils literal notranslate"><span class="pre">Stereo3DLifter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="examples/standard.html#rotation-averaging">3.3. Rotation Averaging</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="examples/standard.html#popcor.examples.RotationLifter"><code class="docutils literal notranslate"><span class="pre">RotationLifter</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/robust.html">4. Robust Estimation Problems</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/robust.html#robust-registration-problems">4.1. Robust Registration Problems</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="examples/robust.html#popcor.examples.MonoLifter"><code class="docutils literal notranslate"><span class="pre">MonoLifter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/robust.html#popcor.examples.WahbaLifter"><code class="docutils literal notranslate"><span class="pre">WahbaLifter</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="whatsnew.html">What’s new</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="whatsnew.html#change-log">Change Log</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="whatsnew.html#unreleased-yyyy-mm-dd">[Unreleased] – YYYY-MM-DD</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="whatsnew.html#added">Added</a></li>
+<li class="toctree-l4"><a class="reference internal" href="whatsnew.html#changed">Changed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="whatsnew.html#fixed">Fixed</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="whatsnew.html#id1">[0.0.1] - 2025-05-25</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#how-to-contribute-to-popr">How to contribute to POPR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#general-guidelines">General guidelines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#adding-a-new-lifter-class">Adding a new lifter class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#adding-new-functionalities">Adding new functionalities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#resources">Resources</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="contributing.html#testing">Testing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="contributing.html#setting-up-mosek-license-on-server">Setting up mosek license on server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="contributing.html#testing-github-actions-locally">Testing Github actions locally</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">POPCOR</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <!-- Empty override file which replaces the top nav breadcrumbs -->
+<a href="https://github.com/duembgen/popcor">
+  <img style="github-link" src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub logo" width="30", height="30">
+  Go to GitHub source code
+</a>
+<br>
+<br>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="quick-start-guide">
+<h1>Quick Start Guide<a class="headerlink" href="#quick-start-guide" title="Link to this heading"></a></h1>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<p>POPR can be installed by running from a terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>--recurse-submodules<span class="w"> </span>git@github.com:duembgen/popcor
+<span class="nb">cd</span><span class="w"> </span>popcor
+conda<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>-f<span class="w"> </span>environment.yml
+</pre></div>
+</div>
+</section>
+<section id="problem-formulation">
+<h2>Problem Formulation<a class="headerlink" href="#problem-formulation" title="Link to this heading"></a></h2>
+<p>We start with polynomial optimization problems (POPs) of the form:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align} q^\star =&amp;\min_{\theta} f(\theta)   \\
+ \text{s.t. } &amp;g(\theta) = 0 \\
+              &amp;h(\theta) \geq 0
+\end{align}\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(f,g,\text{ and } h\)</span> are polynomial functions, and both <span class="math notranslate nohighlight">\(g\)</span> and <span class="math notranslate nohighlight">\(h\)</span> can be vector-valued.  Many maximum-a-posteriori or maximum-likelihood estimation problems can be formulated as such, for example <a class="reference external" href="https://arxiv.org/abs/2209.04266/">range-only localization</a> and <a class="reference external" href="https://arxiv.org/abs/2302.11614/">range-aided SLAM</a>, (<a class="reference external" href="https://arxiv.org/abs/2308.07275">matrix-weighted</a>) <a class="reference external" href="https://arxiv.org/abs/1612.07386/">SLAM</a>, and <a class="reference external" href="https://ieeexplore.ieee.org/abstract/document/9785843/">outlier-robust estimation</a>. The same is true for many control and planning problems, for example the <a class="reference external" href="https://arxiv.org/abs/2406.05846">inverted pendulum</a> and other classical dynamical systems, and even contact-rich problems such as <a class="reference external" href="https://arxiv.org/abs/2402.10312">slider-pusher planning problems</a>.</p>
+<p>Any POP can be equivalently written in the following QCQP form:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align} q^\star =&amp;\min_{x} x^\top Q x  \\
+ \text{s.t. } &amp;(\forall i): x^\top A_i x = b_i \\
+              &amp;(\forall j): x^\top B_j x \geq 0
+\end{align}\end{split}\]</div>
+<p>with cost matrix <span class="math notranslate nohighlight">\(Q\)</span>, known constraint matrices <span class="math notranslate nohighlight">\(A_i,B_j\)</span>.
+Note that</p>
+<ul class="simple">
+<li><p>We always include the so-called homogenization variable, which enables to write linear and constant terms as quadratics. By convention, we set the first element of <span class="math notranslate nohighlight">\(x\)</span> to one, and we use <span class="math notranslate nohighlight">\(b_0=1, A_0\)</span> to encorce this constraint.</p></li>
+<li><p>All inequality and some equality constraints correspond to the constraints from the original POP.</p></li>
+<li><p>Some additional equality constraints correspond to new substitution variables that need to be added to formulate the problem as a quadratic.</p></li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Note that while inequality constraints can be added to the problem formulation, there is no implementation yet to add find and add redundant inequality constraints to the relaxation.</p>
+</div>
+<p>For the standard usage, the user first needs to define a custom <strong>Lifter</strong> class which essentially contains all elements related to the QCQP problem formulation.
+This class should inherit from <a class="reference internal" href="api/lifters.html#statelifter"><span class="std std-ref">StateLifter</span></a>. A basic skeleton of such a
+Lifter class is provided in <a class="reference internal" href="examples/templates.html#example-for-autotight"><span class="std std-ref">Example for AutoTight</span></a>. The main purpose of this class is
+that it provides all basic operations related to the problem formulation, such as:</p>
+<ul class="simple">
+<li><p>to sample feasible states (<a class="reference internal" href="api/lifters.html#popcor.base_lifters.StateLifter.sample_theta" title="popcor.base_lifters.StateLifter.sample_theta"><code class="xref py py-meth docutils literal notranslate"><span class="pre">popcor.base_lifters.StateLifter.sample_theta()</span></code></a>),</p></li>
+<li><p>to get the lifted vector (<a class="reference internal" href="api/lifters.html#popcor.base_lifters.StateLifter.get_x" title="popcor.base_lifters.StateLifter.get_x"><code class="xref py py-meth docutils literal notranslate"><span class="pre">popcor.base_lifters.StateLifter.get_x()</span></code></a>),</p></li>
+</ul>
+<p>For a bit more advanced functionality (for example for the <a class="reference internal" href="#sdp-relaxation"><span class="std std-ref">SDP Relaxation</span></a> in the next section), you also need to define functions such as</p>
+<ul class="simple">
+<li><p>get the cost matrix (<a class="reference internal" href="api/lifters.html#popcor.base_lifters.StateLifter.get_Q" title="popcor.base_lifters.StateLifter.get_Q"><code class="xref py py-meth docutils literal notranslate"><span class="pre">popcor.base_lifters.StateLifter.get_Q()</span></code></a>),</p></li>
+<li><p>get known constraint matrices (<a class="reference internal" href="api/lifters.html#popcor.base_lifters.StateLifter.get_A_known" title="popcor.base_lifters.StateLifter.get_A_known"><code class="xref py py-meth docutils literal notranslate"><span class="pre">popcor.base_lifters.StateLifter.get_A_known()</span></code></a>, <a class="reference internal" href="api/lifters.html#popcor.base_lifters.StateLifter.get_B_known" title="popcor.base_lifters.StateLifter.get_B_known"><code class="xref py py-meth docutils literal notranslate"><span class="pre">popcor.base_lifters.StateLifter.get_B_known()</span></code></a>).</p></li>
+</ul>
+<p>Many example lifters are provided, you can find them under <a class="reference internal" href="examples.html#examples"><span class="std std-ref">Examples</span></a>.</p>
+<section id="example-instantiating-and-using-lifter">
+<h3><strong>Example: instantiating and using lifter</strong><a class="headerlink" href="#example-instantiating-and-using-lifter" title="Link to this heading"></a></h3>
+<p>The following code snippet shows some basic operations (and useful sanity checks) for the example
+lifter class <a class="reference internal" href="examples/toy.html#popcor.examples.Poly4Lifter" title="popcor.examples.Poly4Lifter"><code class="xref py py-class docutils literal notranslate"><span class="pre">popcor.examples.Poly4Lifter</span></code></a>. Note that this and all following examples can be found
+in the file <code class="file docutils literal notranslate"><span class="pre">../../tests/test_quickstart.py</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">popcor.examples</span><span class="w"> </span><span class="kn">import</span> <span class="n">Poly4Lifter</span>
+
+<span class="n">lifter</span> <span class="o">=</span> <span class="n">Poly4Lifter</span><span class="p">()</span>
+
+<span class="n">Q</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_Q</span><span class="p">()</span>
+
+<span class="c1"># theta corresponds to the ground truth; in this case, the global minimum.</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_x</span><span class="p">(</span><span class="n">lifter</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+<span class="n">cost_optimum</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">Q</span> <span class="o">@</span> <span class="n">x</span><span class="p">)</span>
+
+<span class="c1"># the cost at any other randomly sampled point has to be larger.</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+    <span class="n">theta_random</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">sample_theta</span><span class="p">()</span>
+    <span class="n">x_random</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_x</span><span class="p">(</span><span class="n">theta_random</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="nb">float</span><span class="p">(</span><span class="n">x_random</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">Q</span> <span class="o">@</span> <span class="n">x_random</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">cost_optimum</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="sdp-relaxation">
+<h2>SDP Relaxation<a class="headerlink" href="#sdp-relaxation" title="Link to this heading"></a></h2>
+<p>It is straightforward to derive a convex relaxation of the original QCQP, using the reformulation <span class="math notranslate nohighlight">\(x^\top Qx=\langle x, Qx\rangle = \langle Q, xx^\top \rangle\)</span>, where <span class="math notranslate nohighlight">\(\langle \cdot, \cdot \rangle\)</span> denotes the trace inner product. Then introducing <span class="math notranslate nohighlight">\(X:=xx^\top\)</span> and relaxing its rank, we obtain the following convex relaxation, in the form of an SDP:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align} p^\star = &amp;\min_{X \succeq 0} \langle Q, X \rangle  \\
+ \text{s.t. } &amp;(\forall i): \langle A_i, X \rangle = b_i \\
+               &amp;(\forall j): \langle B_j, X \rangle \geq 0
+\end{align}\end{split}\]</div>
+<section id="example-solving-the-qcqp-using-rank-relaxation">
+<h3><strong>Example: solving the QCQP using rank relaxation</strong><a class="headerlink" href="#example-solving-the-qcqp-using-rank-relaxation" title="Link to this heading"></a></h3>
+<p>The following code snippet shows how you can use the simple lifter from earlier to find the global
+optimum of the nonconvex polynomial problem, by solving an SDP.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cert_tools.linalg_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">rank_project</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cert_tools.sdp_solvers</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve_sdp</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">popcor.examples</span><span class="w"> </span><span class="kn">import</span> <span class="n">Poly4Lifter</span>
+
+<span class="n">lifter</span> <span class="o">=</span> <span class="n">Poly4Lifter</span><span class="p">()</span>
+
+<span class="c1"># the cost matrix</span>
+<span class="n">Q</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_Q</span><span class="p">()</span>
+
+<span class="c1"># the equality constraints</span>
+<span class="n">A_known</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_A_known</span><span class="p">()</span>
+
+<span class="c1"># the homogenization constraint</span>
+<span class="n">A_0</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_A0</span><span class="p">()</span>
+
+<span class="n">X</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">solve_sdp</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="p">[(</span><span class="n">A_0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[(</span><span class="n">A_i</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="k">for</span> <span class="n">A_i</span> <span class="ow">in</span> <span class="n">A_known</span><span class="p">])</span>
+<span class="k">assert</span> <span class="n">X</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+<span class="c1"># if X is rank one, the global optimum can be found in element X_10 of the matrix.</span>
+<span class="n">theta_pick</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">theta_pick</span> <span class="o">-</span> <span class="n">lifter</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-5</span>
+
+<span class="c1"># We can also first extract the rank-1 estimate (X=xx&#39;) and then extract theta.</span>
+<span class="n">x</span><span class="p">,</span> <span class="n">info_rank</span> <span class="o">=</span> <span class="n">rank_project</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">theta_round</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">theta_round</span> <span class="o">-</span> <span class="n">lifter</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-5</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="autotight-method">
+<h2>AutoTight Method<a class="headerlink" href="#autotight-method" title="Link to this heading"></a></h2>
+<p><strong>AutoTight</strong> is used to find all possible constraints matrices <span class="math notranslate nohighlight">\(A_r\)</span>, which are also automatically satisfied by solutions of the QCQP. They are also called <strong>redundant constraints</strong> because they do not change the feasible set of the original problem, but when adding those constraints to the SDP (rank-)relaxation, they often improve tightness. Denoting by <span class="math notranslate nohighlight">\(A_r\)</span> the redundant constraints, we can solve the following SDP:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align} p_r^\star = &amp;\min_{X \succeq 0} \langle Q, X \rangle  \\
+ \text{s.t. } &amp;(\forall i): \langle A_i, X \rangle = b_i \\
+               &amp;(\forall r): \langle A_r, X \rangle = 0 \\
+               &amp;(\forall j): \langle B_j, X \rangle \geq 0
+\end{align}\end{split}\]</div>
+<p>We use the term <strong>cost-tight</strong> to say that strong duality holds (<span class="math notranslate nohighlight">\(p_r^\star = q^\star\)</span>) while by rank-tight we denote the fact that the SDP solver returns a rank-one solution.
+If successful, the output is a set of constraints that leads to a tight SDP relaxation of the original problem, which can be used to solve the problem to global optimality (if we have rank tightness) or certify given solutions (if we have cost tightness).</p>
+<p>More information on how to use AutoTight can be found <a class="reference internal" href="api/algorithms.html#autotight"><span class="std std-ref">here</span></a> and a simple example is given next.</p>
+<section id="example-tightening-the-sdp-relaxation-using-autotight">
+<h3><strong>Example: tightening the SDP relaxation using AutoTight</strong><a class="headerlink" href="#example-tightening-the-sdp-relaxation-using-autotight" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cert_tools.sdp_solvers</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve_sdp</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">popcor.auto_tight</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoTight</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">popcor.examples.stereo1d_lifter</span><span class="w"> </span><span class="kn">import</span> <span class="n">Stereo1DLifter</span>
+
+<span class="n">lifter</span> <span class="o">=</span> <span class="n">Stereo1DLifter</span><span class="p">(</span><span class="n">n_landmarks</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="n">auto_tight</span> <span class="o">=</span> <span class="n">AutoTight</span><span class="p">()</span>
+
+<span class="c1"># solve the SDP -- it is not cost tight!</span>
+<span class="n">Q</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_Q</span><span class="p">(</span><span class="n">noise</span><span class="o">=</span><span class="mf">1e-1</span><span class="p">)</span>
+<span class="n">A_known</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_A_known</span><span class="p">()</span>
+<span class="n">A_0</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_A0</span><span class="p">()</span>
+
+<span class="c1"># solve locally starting at ground truth</span>
+<span class="n">x</span><span class="p">,</span> <span class="n">info_local</span><span class="p">,</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">local_solver</span><span class="p">(</span><span class="n">lifter</span><span class="o">.</span><span class="n">theta</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">lifter</span><span class="o">.</span><span class="n">y_</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+<span class="k">assert</span> <span class="n">info_local</span><span class="p">[</span><span class="s2">&quot;success&quot;</span><span class="p">]</span>
+
+<span class="n">constraints</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_A_b_list</span><span class="p">(</span><span class="n">A_list</span><span class="o">=</span><span class="n">A_known</span><span class="p">)</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">info_sdp</span> <span class="o">=</span> <span class="n">solve_sdp</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+
+<span class="n">gap</span> <span class="o">=</span> <span class="n">auto_tight</span><span class="o">.</span><span class="n">get_duality_gap</span><span class="p">(</span>
+    <span class="n">info_local</span><span class="p">[</span><span class="s2">&quot;cost&quot;</span><span class="p">],</span> <span class="n">info_sdp</span><span class="p">[</span><span class="s2">&quot;cost&quot;</span><span class="p">],</span> <span class="n">relative</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="k">assert</span> <span class="n">gap</span> <span class="o">&gt;</span> <span class="mf">0.1</span>
+
+<span class="c1"># learn matrices and solve again</span>
+<span class="n">A_learned</span> <span class="o">=</span> <span class="n">auto_tight</span><span class="o">.</span><span class="n">get_A_learned</span><span class="p">(</span><span class="n">lifter</span><span class="p">)</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_A_b_list</span><span class="p">(</span><span class="n">A_list</span><span class="o">=</span><span class="n">A_learned</span><span class="p">)</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">info_sdp_learned</span> <span class="o">=</span> <span class="n">solve_sdp</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">gap</span> <span class="o">=</span> <span class="n">auto_tight</span><span class="o">.</span><span class="n">get_duality_gap</span><span class="p">(</span>
+    <span class="n">info_local</span><span class="p">[</span><span class="s2">&quot;cost&quot;</span><span class="p">],</span> <span class="n">info_sdp_learned</span><span class="p">[</span><span class="s2">&quot;cost&quot;</span><span class="p">],</span> <span class="n">relative</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+
+<span class="c1"># note that the gap can be slightly negative because of mismatch in convergence tolerances etc.</span>
+<span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">gap</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-2</span>
+
+<span class="c1"># problem: if we change landmarks, the constraints do not generalize!</span>
+<span class="n">new_lifter</span> <span class="o">=</span> <span class="n">Stereo1DLifter</span><span class="p">(</span><span class="n">n_landmarks</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">new_lifter</span><span class="o">.</span><span class="n">landmarks</span> <span class="o">==</span> <span class="n">lifter</span><span class="o">.</span><span class="n">landmarks</span><span class="p">)</span>
+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="autotemplate-method">
+<h2>AutoTemplate Method<a class="headerlink" href="#autotemplate-method" title="Link to this heading"></a></h2>
+<p><em>AutoTemplate</em> follows the same principle as <em>AutoTight</em>, but its output are templates rather than constraint matrices. These templates can be seen as “parametrized” versions of the constraint matrices, and can be applied to new problem instances of any size without having to learn the constraints again from scratch.</p>
+<p>More information on how to use AutoTemplate can be found <a class="reference internal" href="api/algorithms.html#autotemplate"><span class="std std-ref">here</span></a> and a simple example is given next.</p>
+<section id="example-tightening-a-different-problem-using-autotemplate">
+<h3><strong>Example: tightening a different problem using AutoTemplate</strong><a class="headerlink" href="#example-tightening-a-different-problem-using-autotemplate" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
+
+<span class="n">test_autotemplate</span><span class="p">():</span>
+<span class="sd">&quot;&quot;&quot;Test the AutoTemplate example from the documentation.&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cert_tools.sdp_solvers</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve_sdp</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">popcor.auto_template</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoTemplate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">popcor.auto_tight</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoTight</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">popcor.examples.stereo1d_lifter</span><span class="w"> </span><span class="kn">import</span> <span class="n">Stereo1DLifter</span>
+
+<span class="c1"># important: we need to use param_level=&quot;p&quot;, otherwise the parameters</span>
+<span class="c1"># are not factored out and the constraints are not generalizable.</span>
+<span class="n">lifter</span> <span class="o">=</span> <span class="n">Stereo1DLifter</span><span class="p">(</span><span class="n">n_landmarks</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">param_level</span><span class="o">=</span><span class="s2">&quot;p&quot;</span><span class="p">)</span>
+
+<span class="c1"># learn the template matrices</span>
+<span class="n">auto_template</span> <span class="o">=</span> <span class="n">AutoTemplate</span><span class="p">(</span><span class="n">lifter</span><span class="p">)</span>
+<span class="n">data</span><span class="p">,</span> <span class="n">success</span> <span class="o">=</span> <span class="n">auto_template</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">use_known</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">success</span>
+
+<span class="c1"># apply the templates to a different lifter</span>
+<span class="n">new_lifter</span> <span class="o">=</span> <span class="n">Stereo1DLifter</span><span class="p">(</span><span class="n">n_landmarks</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">param_level</span><span class="o">=</span><span class="s2">&quot;p&quot;</span><span class="p">)</span>
+<span class="n">A_learned</span> <span class="o">=</span> <span class="n">auto_template</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">new_lifter</span><span class="p">,</span> <span class="n">use_known</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">Q</span> <span class="o">=</span> <span class="n">new_lifter</span><span class="o">.</span><span class="n">get_Q</span><span class="p">(</span><span class="n">noise</span><span class="o">=</span><span class="mf">1e-1</span><span class="p">)</span>
+
+<span class="c1"># adds homogenization constraint and all b_i terms</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="n">new_lifter</span><span class="o">.</span><span class="n">get_A_b_list</span><span class="p">(</span><span class="n">A_list</span><span class="o">=</span><span class="n">A_learned</span><span class="p">)</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">info_sdp</span> <span class="o">=</span> <span class="n">solve_sdp</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+
+<span class="c1"># evaluate duality gap</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<p><a class="reference external" href="https://arxiv.org/abs/2308.05783">[1] F. Dümbgen, C. Holmes, B. Agro and T. Barfoot, “Toward Globally Optimal State Estimation Using Automatically Tightened Semidefinite Relaxations,” in IEEE Transactions on Robotics, vol. 40, pp. 4338-4358, 2024, doi: 10.1109/TRO.2024.3454570.</a></p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to POPCOR!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api.html" class="btn btn-neutral float-right" title="API and modules" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, POPCOR Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+   
+  <a class="github-link" href="https://github.com/duembgen/popr" target="_blank" title="View on GitHub">
+    <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub logo">
+  </a>
+
+
+</body>
+</html>
