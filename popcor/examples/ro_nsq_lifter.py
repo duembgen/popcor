@@ -30,11 +30,11 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
     - level "normals" uses a reformulation that introduce normal vectors, as proposed by Halstedt et al (see below).
     - level "simple" uses substitution :math:`z_i=||p_n - a_k||` (or equivalent 3D version).
 
-    .. math:: f(\\theta) = \\sum_{n=0}^{N-1} \\sum_{k=0}^{K-1} w_{nk} || n_{nk} d_{nk} - \\top(p_n - a_k) ||^2
+    .. math:: f(\\theta) = \\sum_{n=0}^{N-1} \\sum_{k=0}^{K-1} w_{nk} || z_{nk} d_{nk} - (p_n - a_k) ||^2
 
     where all are as above, except:
 
-    - :math:`\\theta` is now the flattened vector of positions :math:`p_n` and also normal vectors :amth:`z_{nk}`.
+    - :math:`\\theta` is now the flattened vector of positions :math:`p_n` and also normal vectors :math:`z_{nk}`.
     """
 
     TIGHTNESS = "rank"
