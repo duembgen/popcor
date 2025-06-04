@@ -51,6 +51,13 @@ RobustPoseLifter
    :show-inheritance:
    :undoc-members:
 
+RangeOnlyLifter
+---------------
+
+.. autoclass:: popcor.base_lifters.RangeOnlyLifter
+   :show-inheritance:
+   :undoc-members:
+
 PolyLifter
 ----------
 

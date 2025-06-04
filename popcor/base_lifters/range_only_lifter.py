@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 import autograd.numpy as anp
 import matplotlib.pylab as plt
@@ -25,8 +25,15 @@ SOLVER_KWARGS = {
 SCALE = 2.0
 
 
-class RangeOnlyLifter(StateLifter):
-    """Range-only localization base class, in 2D or 3D."""
+class RangeOnlyLifter(StateLifter, ABC):
+    """Range-only localization base class, in 2D or 3D.
+
+    This is base class for different flavors of the range-only localization problem,
+    where the goal is to estimate positions from distance measurements to fixed landmarks.
+
+    See :class:`~popcor.examples.RangeOnlyNsqLifter` and :class:`~popcor.examples.RangeOnlySqLifter`
+    for concrete implementations.
+    """
 
     def __init__(
         self,
