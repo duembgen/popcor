@@ -191,13 +191,13 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../whatsnew.html#fixed">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../../whatsnew.html#id1">[0.0.2] - 2025-06-04</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../whatsnew.html#id2">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../whatsnew.html#id3">[0.0.2] - 2025-06-04</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../whatsnew.html#id4">Added</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../whatsnew.html#removed">Removed</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../whatsnew.html#id3">Fixed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../whatsnew.html#id7">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../../whatsnew.html#id4">[0.0.1] - 2025-05-25</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../whatsnew.html#id9">[0.0.1] - 2025-05-25</a></li>
 </ul>
 </li>
 </ul>
@@ -260,12 +260,16 @@
 <div class="viewcode-block" id="WahbaLifter">
 <a class="viewcode-back" href="../../../examples/robust.html#popcor.examples.WahbaLifter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">WahbaLifter</span><span class="p">(</span><span class="n">RobustPoseLifter</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;This example is treated in more details in `this paper &lt;https://arxiv.org/abs/2308.05783&gt;`_,</span>
-<span class="sd">    under the name &quot;PPR&quot; (point-to-point registration).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">NOISE</span> <span class="o">=</span> <span class="mf">1e-2</span>  <span class="c1"># inlier noise</span>
     <span class="n">NOISE_OUT</span> <span class="o">=</span> <span class="mf">1.0</span>  <span class="c1"># outlier noise</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;This example is treated in more details in `this paper &lt;https://arxiv.org/abs/2308.05783&gt;`_,</span>
+<span class="sd">        under the name &quot;PPR&quot; (point-to-point registration).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># only introduced this for the documentation -- otherwise the RobustPoseLifter __init__ is shown.</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">h_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
