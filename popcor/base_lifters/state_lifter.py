@@ -235,3 +235,7 @@ class StateLifter(BaseClass):
                 "Please make sure that you use get_theta as intended."
             )
         return x.flatten()[: self.d]
+
+    def get_valid_samples(self, n_samples):
+        samples = [self.sample_theta() for _ in range(n_samples)]
+        return np.vstack(samples)

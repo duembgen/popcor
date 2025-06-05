@@ -8,8 +8,6 @@ from scipy.optimize import minimize
 
 from .state_lifter import StateLifter
 
-NOISE = 1e-2  # std deviation of distance noise
-
 METHOD = "BFGS"
 NORMALIZE = True
 
@@ -21,8 +19,8 @@ SOLVER_KWARGS = {
     "TNC": dict(gtol=1e-6, xtol=1e-10),
 }
 
-# size of the region of intereist: [0, SCALE]^d
-SCALE = 2.0
+
+MAX_TRIALS = 10  # number of trials to find a valid sample
 
 
 class RangeOnlyLifter(StateLifter, ABC):
@@ -34,6 +32,10 @@ class RangeOnlyLifter(StateLifter, ABC):
     See :class:`~popcor.examples.RangeOnlyNsqLifter` and :class:`~popcor.examples.RangeOnlySqLifter`
     for concrete implementations.
     """
+
+    NOISE = 1e-2  # std deviation of distance noise
+    SCALE = 2.0  # size of the region of intereist: [0, SCALE]^d
+    MIN_DIST = 1e-2  # minimum distance between landmarks and positions
 
     def __init__(
         self,
@@ -76,13 +78,13 @@ class RangeOnlyLifter(StateLifter, ABC):
         # create landmarks that are roughly in a subspace of dimension d-1
         landmarks = np.hstack(  # type: ignore
             [
-                np.random.rand(n_landmarks, d - 1) * SCALE,
-                np.random.rand(n_landmarks, 1) * 0.3 + SCALE / 2.0,
+                np.random.rand(n_landmarks, d - 1) * RangeOnlyLifter.SCALE,
+                np.random.rand(n_landmarks, 1) * 0.3 + RangeOnlyLifter.SCALE / 2.0,
             ]
         )
         theta = np.hstack(
             [
-                np.random.rand(n_positions, d - 1) * SCALE,
+                np.random.rand(n_positions, d - 1) * RangeOnlyLifter.SCALE,
                 np.max(landmarks[:, -1]) + np.random.rand(n_positions, 1),
             ]
         )
@@ -95,7 +97,9 @@ class RangeOnlyLifter(StateLifter, ABC):
             np.max(landmarks, axis=0) - np.min(landmarks, axis=0)
         )
         # remove landmarks a bit from border for plotting reasons
-        landmarks = (landmarks + SCALE * 0.05) * SCALE * 0.9
+        landmarks = (
+            (landmarks + RangeOnlyLifter.SCALE * 0.05) * RangeOnlyLifter.SCALE * 0.9
+        )
         theta = np.random.uniform(
             [np.min(landmarks, axis=0)], [np.max(landmarks, axis=0)]
         )
@@ -158,7 +162,17 @@ class RangeOnlyLifter(StateLifter, ABC):
         self.theta_ = theta
 
     def sample_theta(self):
-        return np.random.rand(self.n_positions, self.d).flatten()
+        """Make sure we do not sample too close to landmarks (if distance is zero we get numerical problems)."""
+        for _ in range(MAX_TRIALS):
+            sample = (
+                (np.random.rand(self.landmarks.shape[1]) - 0.5) * 2 * self.SCALE
+            )  # between 0 and SCALE
+            if np.all(
+                np.linalg.norm(sample[None, :] - self.landmarks, axis=1) > self.MIN_DIST
+            ):
+                return sample.reshape((1, self.d))
+        print(f"Warning: did not find valid sample in {MAX_TRIALS} trials")
+        return sample
 
     def get_residuals(self, t, y, squared=True, ad=False):
         positions = t.reshape((-1, self.d))
@@ -203,7 +217,7 @@ class RangeOnlyLifter(StateLifter, ABC):
         assert self.landmarks is not None
         # N x K matrix
         if noise is None:
-            noise = NOISE
+            noise = self.NOISE
         positions = self.theta.reshape(self.n_positions, -1)
         y_gt = np.linalg.norm(
             self.landmarks[None, :, :] - positions[:, None, :], axis=2
@@ -352,10 +366,6 @@ class RangeOnlyLifter(StateLifter, ABC):
             )
         ax.set_aspect("equal")
         return fig, ax, im
-
-    def get_valid_samples(self, n_samples):
-        samples = [self.sample_theta() for _ in range(n_samples)]
-        return np.vstack(samples)
 
     @property
     @abstractmethod
