@@ -1,5 +1,3 @@
-from typing import Optional
-
 import numpy as np
 from poly_matrix.least_squares_problem import LeastSquaresProblem
 from poly_matrix.poly_matrix import PolyMatrix

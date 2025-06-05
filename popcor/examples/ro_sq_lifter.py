@@ -1,29 +1,18 @@
-import matplotlib.pylab as plt
+import itertools
+
 import numpy as np
 import scipy.sparse as sp
 from poly_matrix.least_squares_problem import LeastSquaresProblem
-from scipy.optimize import minimize
 
-from popcor.base_lifters import StateLifter
+from popcor.base_lifters import RangeOnlyLifter
 from popcor.utils.common import diag_indices, upper_triangular
-
-plt.ion()
 
 NOISE = 1e-2  # std deviation of distance noise
 
-METHOD = "BFGS"
 NORMALIZE = True
 
-# TODO(FD): parameters below are not all equivalent.
-SOLVER_KWARGS = {
-    "BFGS": dict(gtol=1e-6, xrtol=1e-10),  # relative step size
-    "Nelder-Mead": dict(xatol=1e-10),  # absolute step size
-    "Powell": dict(ftol=1e-6, xtol=1e-10),
-    "TNC": dict(gtol=1e-6, xtol=1e-10),
-}
 
-
-class RangeOnlyLocLifter(StateLifter):
+class RangeOnlySqLifter(RangeOnlyLifter):
     """Range-only localization in 2D or 3D.
 
     We minimize the cost function
@@ -53,24 +42,31 @@ class RangeOnlyLocLifter(StateLifter):
         "no": "$z_n$",
         "quad": "$\\boldsymbol{y}_n$",
     }
+    MONOMIAL_DEGREE = 2
 
-    def get_vec_around_gt(self, delta: float = 0):
-        """Sample around ground truth.
-        :param delta: sample from gt + std(delta) (set to 0 to start from gt.)
-        """
-        assert self.landmarks is not None, "landmarks must be set before sampling"
+    @staticmethod
+    def create_good(n_positions, n_landmarks, d=2):
+        landmarks, theta = RangeOnlyLifter.create_good(n_positions, n_landmarks, d)
+        lifter = RangeOnlySqLifter(n_positions, n_landmarks, d)
+        lifter.overwrite_theta(theta)
+        lifter.landmarks = landmarks
+        return lifter
 
-        if delta == 0:
-            return self.theta
-        else:
-            bbox_max = np.max(self.landmarks, axis=0) * 2
-            bbox_min = np.min(self.landmarks, axis=0) * 2
-            pos = (
-                np.random.rand(self.n_positions, self.d)
-                * (bbox_max - bbox_min)[None, :]
-                + bbox_min[None, :]
-            )
-            return pos.flatten()
+    @staticmethod
+    def create_bad(n_positions, n_landmarks, d=2):
+        landmarks, theta = RangeOnlyLifter.create_bad(n_positions, n_landmarks, d)
+        lifter = RangeOnlySqLifter(n_positions, n_landmarks, d)
+        lifter.overwrite_theta(theta)
+        lifter.landmarks = landmarks
+        return lifter
+
+    @staticmethod
+    def create_bad_fixed(n_positions, n_landmarks, d=2):
+        landmarks, theta = RangeOnlyLifter.create_bad_fixed(n_positions, n_landmarks, d)
+        lifter = RangeOnlySqLifter(n_positions, n_landmarks, d)
+        lifter.overwrite_theta(theta)
+        lifter.landmarks = landmarks
+        return lifter
 
     def __init__(
         self,
@@ -82,42 +78,21 @@ class RangeOnlyLocLifter(StateLifter):
         variable_list=None,
         param_level="no",
     ):
-        self.n_positions = n_positions
-        self.n_landmarks = n_landmarks
-        self.landmarks_ = None  # will be set later
-
-        if W is not None:
-            assert W.shape == (n_landmarks, n_positions)
-            self.W = W
-        else:
-            self.W = np.ones((n_positions, n_landmarks))
-        self.y_ = None
-
-        if variable_list == "all":
-            variable_list = self.get_all_variables()
         super().__init__(
-            level=level, d=d, variable_list=variable_list, param_level=param_level
+            n_positions=n_positions,
+            n_landmarks=n_landmarks,
+            d=d,
+            W=W,
+            level=level,
+            variable_list=variable_list,
+            param_level=param_level,
         )
-
-    @property
-    def landmarks(self):
-        landmarks = np.random.rand(self.n_landmarks, self.d)
-        if self.landmarks_ is None:
-            self.landmarks_ = landmarks
-        return self.landmarks_
-
-    @landmarks.setter
-    def landmarks(self, landmarks):
-        assert landmarks.shape == (self.n_landmarks, self.d)
-        self.landmarks_ = landmarks
 
     @property
     def VARIABLE_LIST(self):
         return [
             [self.HOM, "x_0"],
             [self.HOM, "x_0", "z_0"],
-            [self.HOM, "x_0", "z_0", "z_1"],
-            [self.HOM, "x_0", "x_1", "z_0", "z_1"],
         ]
 
     def get_all_variables(self):
@@ -125,18 +100,6 @@ class RangeOnlyLocLifter(StateLifter):
         vars += [f"x_{i}" for i in range(self.n_positions)]
         vars += [f"z_{i}" for i in range(self.n_positions)]
         return [vars]
-
-    def sample_parameters(self, theta=None):
-        landmarks = np.random.rand(self.n_landmarks, self.d)
-        return self.sample_parameters_landmarks(landmarks)
-
-    def overwrite_theta(self, theta):
-        """To bypass "theta can only be set once" check."""
-        assert theta.shape == (self.n_positions, self.d)
-        self.theta_ = theta
-
-    def sample_theta(self):
-        return np.random.rand(self.n_positions, self.d).flatten()
 
     def get_A_known(self, var_dict=None, output_poly=False, add_redundant=False):
         from poly_matrix.poly_matrix import PolyMatrix
@@ -177,6 +140,13 @@ class RangeOnlyLocLifter(StateLifter):
                         else:
                             A_list.append(A.get_matrix(self.var_dict))
         return A_list
+
+    def get_residuals(self, t, y, ad=False):
+        return super().get_residuals(t, y, ad=ad, squared=True)
+
+    def get_cost(self, theta, y, sub_idx=None, ad=False):
+        residuals = self.get_residuals(theta, y, ad=ad)
+        return self.get_cost_from_res(residuals, sub_idx, ad=ad)
 
     def get_x(self, theta=None, parameters=None, var_subset=None):
         if var_subset is None:
@@ -276,32 +246,70 @@ class RangeOnlyLocLifter(StateLifter):
         else:
             raise ValueError(f"Unsupported dimension {self.d} for fixed hessians.")
 
-    def get_residuals(self, t, y):
-        positions = t.reshape((-1, self.d))
-        y_current = (
-            np.linalg.norm(self.landmarks[None, :, :] - positions[:, None, :], axis=2)
-            ** 2
-        )
-        return self.W * (y - y_current)
-
-    def get_cost(self, theta, y, sub_idx=None):
+    def get_Q_from_y(self, y, output_poly: bool = False):
         """
-        get cost for given positions, landmarks and noise.
-
-        :param t: flattened positions of length Nd
-        :param y: N x K distance measurements
+        :param y: the distance measurements, shape (n_positions, n_landmarks). IMPORTANT: these are not squared!
         """
-        residuals = self.get_residuals(theta, y)
-        if sub_idx is None:
-            cost = np.sum(residuals**2)
+        self.ls_problem = LeastSquaresProblem()
+
+        if self.level == "quad":
+            diag_idx = diag_indices(self.d)
+
+        for n, k in itertools.product(range(self.n_positions), range(self.n_landmarks)):
+            if self.W[n, k] > 0:
+                ak = self.landmarks[k]
+                if self.level == "no":
+                    self.ls_problem.add_residual(
+                        {
+                            self.HOM: y[n, k] ** 2 - np.linalg.norm(ak) ** 2,
+                            f"x_{n}": 2 * ak.reshape((1, -1)),
+                            f"z_{n}": -1,
+                        }
+                    )
+                elif self.level == "quad":
+                    mat = np.zeros((1, self.size_z))
+                    mat[0, diag_idx] = -1
+                    res_dict = {
+                        self.HOM: y[n, k] ** 2 - np.linalg.norm(ak) ** 2,
+                        f"x_{n}": 2 * ak.reshape((1, -1)),
+                        f"z_{n}": mat,
+                    }
+                    self.ls_problem.add_residual(res_dict)
+        if output_poly:
+            Q = self.ls_problem.get_Q()
         else:
-            cost = np.sum(residuals[sub_idx] ** 2)
+            Q = self.ls_problem.get_Q().get_matrix(self.var_dict)
         if NORMALIZE:
-            return cost / np.sum(self.W > 0)
-        return cost
+            return Q / np.sum(self.W > 0)
+        return Q
 
+    def simulate_y(self, noise: float | None = None, squared: bool = True):
+        # purposefully not using squared=True here:
+        # the noise should always be added to the non-squared distances.
+        return super().simulate_y(noise=noise, squared=False)
+
+    @property
+    def var_dict(self):
+        var_dict = {self.HOM: 1}
+        var_dict.update({f"x_{n}": self.d for n in range(self.n_positions)})
+        var_dict.update({f"z_{n}": self.size_z for n in range(self.n_positions)})
+        return var_dict
+
+    @property
+    def size_z(self) -> int:
+        if self.level == "no":
+            return 1
+        elif self.level == "quad":
+            return int(self.d * (self.d + 1) / 2)
+        else:
+            raise ValueError(f"Unknown level {self.level}")
+
+    def __repr__(self):
+        return f"rangeonlyloc{self.d}d_{self.level}"
+
+    # ============ below are currently not used anymore, but it is an elegant way to compute the  =============
+    #                        gradient and hessian when there are no constraints
     def get_grad(self, t, y, sub_idx=None):
-        """get gradient"""
         J = self.get_J(t, y)
         x = self.get_x(t)
         Q = self.get_Q_from_y(y)
@@ -309,7 +317,7 @@ class RangeOnlyLocLifter(StateLifter):
             return 2 * J.T @ Q @ x
         else:
             sub_idx_x = self.get_sub_idx_x(sub_idx)
-            return 2 * J.T[:, sub_idx_x] @ Q[sub_idx_x, :][:, sub_idx_x] @ x[sub_idx_x]
+            return 2 * J.T[:, sub_idx_x] @ Q[sub_idx_x, :][:, sub_idx_x] @ x[sub_idx_x]  # type: ignore
 
     def get_J(self, t, y):
         J = sp.csr_array(
@@ -321,7 +329,6 @@ class RangeOnlyLocLifter(StateLifter):
         return J
 
     def get_hess(self, t, y):
-        """get Hessian"""
         x = self.get_x(t)
         Q = self.get_Q_from_y(y)
         J = self.get_J(t, y)
@@ -336,68 +343,6 @@ class RangeOnlyLocLifter(StateLifter):
             hess += 2 * factor * h
         return hess
 
-    def get_Q_from_y(self, y, output_poly: bool = False):
-        import itertools
-
-        self.ls_problem = LeastSquaresProblem()
-
-        if self.level == "quad":
-            diag_idx = diag_indices(self.d)
-
-        for n, k in itertools.product(range(self.n_positions), range(self.n_landmarks)):
-            if self.W[n, k] > 0:
-                ak = self.landmarks[k]
-                if self.level == "no":
-                    self.ls_problem.add_residual(
-                        {
-                            self.HOM: y[n, k] - np.linalg.norm(ak) ** 2,
-                            f"x_{n}": 2 * ak.reshape((1, -1)),
-                            f"z_{n}": -1,
-                        }
-                    )
-                elif self.level == "quad":
-                    mat = np.zeros((1, self.size_z))
-                    mat[0, diag_idx] = -1
-                    res_dict = {
-                        self.HOM: y[n, k] - np.linalg.norm(ak) ** 2,
-                        f"x_{n}": 2 * ak.reshape((1, -1)),
-                        f"z_{n}": mat,
-                    }
-                    self.ls_problem.add_residual(res_dict)
-        if output_poly:
-            Q = self.ls_problem.get_Q()
-        else:
-            Q = self.ls_problem.get_Q().get_matrix(self.var_dict)
-        if NORMALIZE:
-            return Q / np.sum(self.W > 0)
-        return Q
-
-    def simulate_y(self, noise: float | None = None, squared: bool = True):
-        assert self.landmarks is not None
-        # N x K matrix
-        if noise is None:
-            noise = NOISE
-        positions = self.theta.reshape(self.n_positions, -1)
-        y_gt = np.linalg.norm(
-            self.landmarks[None, :, :] - positions[:, None, :], axis=2
-        )
-        if squared:
-            return y_gt**2 + np.random.normal(loc=0, scale=noise, size=y_gt.shape)
-        else:
-            return y_gt + np.random.normal(loc=0, scale=noise, size=y_gt.shape)
-
-    def get_Q(self, noise: float | None = None, output_poly: bool = False) -> tuple:
-        if self.y_ is None:
-            self.y_ = self.simulate_y(noise=noise)
-        Q = self.get_Q_from_y(self.y_, output_poly=output_poly)
-
-        # DEBUGGING
-        x = self.get_x()
-        cost1 = x.T @ Q @ x
-        cost3 = self.get_cost(self.theta, self.y_)
-        assert abs(cost1 - cost3) < 1e-10
-        return Q
-
     def get_D(self, that):
         D = np.eye(1 + self.n_positions * self.d + self.size_z)
         x = self.get_x(theta=that)
@@ -409,114 +354,6 @@ class RangeOnlyLocLifter(StateLifter):
         D[-J.shape[0] :, 1 : 1 + J.shape[1]] = J  # type: ignore
         return D.tocsc()
 
-    def get_sub_idx_x(self, sub_idx, add_z=True):
-        sub_idx_x = [0]
-        for idx in sub_idx:
-            sub_idx_x += [1 + idx * self.d + d for d in range(self.d)]
-        if not add_z:
-            return sub_idx_x
-        for idx in sub_idx:
-            sub_idx_x += [
-                1 + self.n_positions * self.d + idx * self.size_z + d
-                for d in range(self.size_z)
-            ]
-        return sub_idx_x
-
-    def get_theta(self, x):
-        assert abs(x[0] - 1.0) > 1e-10
-        # below is if we have order x_1, z_1, x_2, z_2, ...
-        # x.reshape((self.n_positions, -1))[:, : self.d].flatten("C")
-        # below is if we have order x_1, x_2, ..., z_1, z_2, ...
-        return x[: self.n_positions * self.d]
-
-    def get_position(self, theta=None):
-        if theta is not None:
-            return theta.reshape(self.n_positions, self.d)
-
-    def get_error(self, theta_hat, error_type="rmse", *args, **kwargs):
-        if error_type == "rmse":
-            return np.sqrt(np.mean((self.theta - theta_hat) ** 2))
-        elif error_type == "mse":
-            return np.mean((self.theta - theta_hat) ** 2)
-        else:
-            raise ValueError(f"Unkwnon error_type {error_type}")
-
-    def local_solver(
-        self,
-        t0,
-        y,
-        verbose=False,
-        method="BFGS",
-        solver_kwargs=SOLVER_KWARGS,
-    ):
-        """
-        :param t_init: (positions, landmarks) tuple
-        """
-
-        # TODO(FD): split problem into individual points.
-        options = solver_kwargs[method]
-        options["disp"] = verbose
-        sol = minimize(
-            self.get_cost,
-            x0=t0,
-            args=y,
-            jac=self.get_grad,
-            # hess=self.get_hess, not used by any solvers.
-            method=method,
-            options=options,
-        )
-
-        info = {}
-        info["success"] = sol.success
-        info["msg"] = sol.message + f"(# iterations: {sol.nit})"
-        if sol.success:
-            that = sol.x
-            rel_error = self.get_cost(that, y) - self.get_cost(sol.x, y)
-            assert abs(rel_error) < 1e-10, rel_error
-            residuals = self.get_residuals(that, y)
-            cost = sol.fun
-            info["max res"] = np.max(np.abs(residuals))
-            hess = self.get_hess(that, y)
-            eigs = np.linalg.eigvalsh(hess.toarray())
-            info["cond Hess"] = eigs[-1] / eigs[0]
-        else:
-            that = cost = None
-            info["max res"] = None
-            info["cond Hess"] = None
-        info["cost"] = cost
-        return that, info, cost
-
-    @property
-    def var_dict(self):
-        var_dict = {self.HOM: 1}
-        var_dict.update({f"x_{n}": self.d for n in range(self.n_positions)})
-        var_dict.update({f"z_{n}": self.size_z for n in range(self.n_positions)})
-        return var_dict
-
-    @property
-    def param_dict(self):
-        return self.param_dict_landmarks
-
-    @property
-    def size_z(self):
-        if self.level == "no":
-            return 1
-        elif self.level == "quad":
-            return int(self.d * (self.d + 1) / 2)
-        else:
-            raise ValueError(f"Unknown level {self.level}")
-
-    @property
-    def N(self):
-        return self.n_positions * self.d
-
-    @property
-    def M(self):
-        return self.n_positions * self.size_z
-
-    def __repr__(self):
-        return f"rangeonlyloc{self.d}d_{self.level}"
-
 
 if __name__ == "__main__":
-    lifter = RangeOnlyLocLifter(n_positions=3, n_landmarks=4, d=2)
+    lifter = RangeOnlySqLifter(n_positions=3, n_landmarks=4, d=2)

@@ -141,10 +141,10 @@ class StateLifter(BaseClass):
 
     # CAN OPTINALLY OVERWRITE THESE FOR BETTER PERFORMANCE
 
-    def get_grad(self, theta, y=None) -> float:
+    def get_grad(self, theta, y=None) -> np.ndarray:
         raise NotImplementedError("must define get_grad if you want to use it.")
 
-    def get_hess(self, theta, y=None) -> float:
+    def get_hess(self, theta, y=None) -> np.ndarray:
         raise NotImplementedError("must define get_hess if you want to use it.")
 
     def get_cost(self, theta, y: np.ndarray | None = None) -> float:

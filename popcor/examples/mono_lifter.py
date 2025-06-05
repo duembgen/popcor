@@ -20,12 +20,16 @@ NORMALIZE = False
 
 
 class MonoLifter(RobustPoseLifter):
-    """This example is treated in more details in `this paper <https://arxiv.org/abs/2308.05783>`_,
-    under the name "PLR" (point-to-line registration).
-    """
 
     NOISE = 1e-3  # inlier noise
     NOISE_OUT = 0.1  # outlier noise
+
+    def __init__(self, *args, **kwargs):
+        """This example is treated in more details in `this paper <https://arxiv.org/abs/2308.05783>`_,
+        under the name "PLR" (point-to-line registration).
+        """
+        # only introduced this for the documentation -- otherwise the RobustPoseLifter __init__ is shown.
+        return super().__init__(*args, **kwargs)
 
     @property
     def TIGHTNESS(self):
