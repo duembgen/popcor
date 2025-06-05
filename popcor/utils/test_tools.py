@@ -41,11 +41,11 @@ Lifters = [
     ),  # not tight
     (
         RangeOnlySqLifter,
-        dict(n_positions=n_positions, n_landmarks=n_landmarks, d=d, level="no"),
+        dict(n_positions=n_positions, n_landmarks=4, d=d, level="no"),
     ),  # ok
     (
         RangeOnlySqLifter,
-        dict(n_positions=n_positions, n_landmarks=n_landmarks, d=d, level="quad"),
+        dict(n_positions=n_positions, n_landmarks=4, d=d, level="quad"),
     ),  # ok
     (Stereo1DLifter, dict(n_landmarks=n_landmarks)),  # not tight
     (Stereo1DLifter, dict(n_landmarks=n_landmarks, param_level="p")),  # skip
