@@ -1,8 +1,0 @@
-/* Hide the breadcrumb navigation at the top of each page */
-.wy-nav-content .wy-breadcrumbs {
-    display: none !important;
-}
-.wy-nav-content hr {
-    display: none;
-}
-

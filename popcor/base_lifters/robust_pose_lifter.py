@@ -70,7 +70,7 @@ class RobustPoseLifter(StateLifter, ABC):
 
         The goal is to regress an unknown pose based on extrinsic measurements.
 
-        See :class:`~popcor.examples.WahbaLifter` for point-to-point registration and :class:`~popcor.examples.MonoLifter`) for point-to-line registration.
+        See class:`~popcor.examples.WahbaLifter` for point-to-point registration and :class:`~popcor.examples.MonoLifter`) for point-to-line registration.
 
         Implemented lifting functions are:
 
