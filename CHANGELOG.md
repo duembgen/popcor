@@ -7,14 +7,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] -- YYYY-MM-DD
 
+(00-changelog)=
 ### Added
 
+(01-changelog)=
 ### Changed
 
+(02-changelog)=
 ### Fixed
 
 ## [0.0.2] - 2025-06-04
 
+
+(6-changelog)=
 ### Added
 
 - RangeOnlyLifter base class for 2D/3D range-only localization (base_lifters/range_only_lifter.py)
@@ -22,10 +27,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - RangeOnlySqLifter: specialized lifter for squared-distance-based range-only localization
 - GitHub Pages deployment step to documentation.yml using peaceiris/actions-gh-pages for automatic documentation publishing
 
+(5-changelog)=
 ### Removed
 
 - docs/build/ files
 
+(4-changelog)=
 ### Fixed
 
 - Corrected return type annotations in get_grad and get_hess methods in state_lifter.py from float to np.ndarray
