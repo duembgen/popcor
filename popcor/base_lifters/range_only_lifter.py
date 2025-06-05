@@ -92,6 +92,16 @@ class RangeOnlyLifter(StateLifter, ABC):
 
     @staticmethod
     def create_good(n_positions, n_landmarks, d=2):
+        landmarks = RangeOnlyLifter.sample_landmarks_filling_space(n_landmarks, d)
+        theta = np.random.uniform(
+            [np.min(landmarks, axis=0)],
+            [np.max(landmarks, axis=0)],
+            size=(n_positions, d),
+        )
+        return landmarks, theta
+
+    @staticmethod
+    def sample_landmarks_filling_space(n_landmarks, d=2):
         landmarks = np.random.rand(n_landmarks, d)
         landmarks = (landmarks - np.min(landmarks, axis=0)) / (
             np.max(landmarks, axis=0) - np.min(landmarks, axis=0)
@@ -100,14 +110,13 @@ class RangeOnlyLifter(StateLifter, ABC):
         landmarks = (
             (landmarks + RangeOnlyLifter.SCALE * 0.05) * RangeOnlyLifter.SCALE * 0.9
         )
-        theta = np.random.uniform(
-            [np.min(landmarks, axis=0)], [np.max(landmarks, axis=0)]
-        )
-        return landmarks, theta
+        return landmarks
 
     @property
     def landmarks(self):
-        landmarks = np.random.rand(self.n_landmarks, self.d)
+        landmarks = RangeOnlyLifter.sample_landmarks_filling_space(
+            self.n_landmarks, self.d
+        )
         if self.landmarks_ is None:
             self.landmarks_ = landmarks
         return self.landmarks_
@@ -163,16 +172,23 @@ class RangeOnlyLifter(StateLifter, ABC):
 
     def sample_theta(self):
         """Make sure we do not sample too close to landmarks (if distance is zero we get numerical problems)."""
-        for _ in range(MAX_TRIALS):
-            sample = (
-                (np.random.rand(self.landmarks.shape[1]) - 0.5) * 2 * self.SCALE
-            )  # between 0 and SCALE
-            if np.all(
-                np.linalg.norm(sample[None, :] - self.landmarks, axis=1) > self.MIN_DIST
-            ):
-                return sample.reshape((1, self.d))
-        print(f"Warning: did not find valid sample in {MAX_TRIALS} trials")
-        return sample
+        samples = np.empty((self.n_positions, self.d))
+        for i in range(self.n_positions):
+            for j in range(MAX_TRIALS):
+                sample = (
+                    np.random.rand(self.landmarks.shape[1])
+                ) * self.SCALE  # between 0 and SCALE
+                if np.all(
+                    np.linalg.norm(sample[None, :] - self.landmarks, axis=1)
+                    > self.MIN_DIST
+                ):
+                    samples[i, :] = sample
+                elif j == MAX_TRIALS - 1:
+                    print(
+                        f"Warning: did not find valid sample in {MAX_TRIALS} trials. Using last sample."
+                    )
+                    samples[i, :] = sample
+        return samples.flatten("C")
 
     def get_residuals(self, t, y, squared=True, ad=False):
         positions = t.reshape((-1, self.d))
@@ -260,10 +276,12 @@ class RangeOnlyLifter(StateLifter, ABC):
         return x[: self.n_positions * self.d]
 
     def get_error(self, theta_hat, error_type="rmse", *args, **kwargs):
+        assert np.ndim(theta_hat) <= 1
+        theta_gt = self.theta if np.ndim(self.theta) <= 1 else self.theta.flatten()
         if error_type == "rmse":
-            return np.sqrt(np.mean((self.theta - theta_hat) ** 2))
+            return np.sqrt(np.mean((theta_gt - theta_hat) ** 2))
         elif error_type == "mse":
-            return np.mean((self.theta - theta_hat) ** 2)
+            return np.mean((theta_gt - theta_hat) ** 2)
         else:
             raise ValueError(f"Unkwnon error_type {error_type}")
 
@@ -336,15 +354,22 @@ class RangeOnlyLifter(StateLifter, ABC):
         info["cost"] = cost
         return that, info, cost
 
-    def plot(self, y=None, xlims=[0, 2], ylims=[0, 2], ax=None):
+    def plot(self, y=None, xlims=[0, 2], ylims=[0, 2], ax=None, estimates={}):
         if ax is None:
             fig, ax = plt.subplots()
             fig.set_size_inches(5, 5)
         else:
             fig = plt.gcf()
 
+        if np.ndim(self.theta) < 2:
+            theta_gt = self.theta.reshape((self.n_positions, self.d))
+
         ax.scatter(*self.landmarks[:, :2].T, color="k", marker="+", label="landmarks")
-        ax.scatter(*self.theta[:, :2].T, color="C0", marker="o")
+        ax.scatter(*theta_gt[:, :2].T, color="C0", marker="o")
+        for label, theta_est in estimates.items():
+            if np.ndim(theta_est) < 2:
+                theta_est = theta_est.reshape((self.n_positions, self.d))
+            ax.scatter(*theta_est[:, :2].T, marker="x", label=label)
 
         im = None
         if y is not None:
