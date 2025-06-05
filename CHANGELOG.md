@@ -18,7 +18,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.0.2] - 2025-06-04
 
-
 (6-changelog)=
 ### Added
 
@@ -36,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - Corrected return type annotations in get_grad and get_hess methods in state_lifter.py from float to np.ndarray
+- Documentation of MonoLifter and WahbaLifter
 
 ## [0.0.1] - 2025-05-25
 
