@@ -189,6 +189,11 @@ class StateLifter(BaseClass):
                 "Inequality constraints are not currently considered by default solver. Must implement your own."
             )
 
+        if method := kwargs.pop("method", None) is not None:
+            print(
+                f"Warning: ignoreing method argument {method} in local_solver, using default (IPOPT)."
+            )
+
         Constraints = self.get_A_b_list(A_list=self.get_A_known())
         x0 = self.get_x(theta=t0)
         X, info = solve_low_rank_sdp(
@@ -237,5 +242,5 @@ class StateLifter(BaseClass):
         return x.flatten()[: self.d]
 
     def get_valid_samples(self, n_samples):
-        samples = [self.sample_theta() for _ in range(n_samples)]
+        samples = [self.sample_theta().flatten() for _ in range(n_samples)]
         return np.vstack(samples)
