@@ -163,7 +163,7 @@ class StateLifter(BaseClass):
     def local_solver(
         self,
         t0,
-        y: np.ndarray | list | None = None,
+        y: np.ndarray | list | dict | None = None,
         *args,
         **kwargs,
     ):

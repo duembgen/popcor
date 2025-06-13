@@ -5,16 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased] -- YYYY-MM-DD
+## [Unreleased] -- 2025-06-13
 
 (00-changelog)=
 ### Added
+- RangeOnlyLifter: sample_landmarks_filling_space
+- RotationLifter: support to plot 2d frames
 
 (01-changelog)=
 ### Changed
 
 (02-changelog)=
 ### Fixed
+- Link fixes in documentation
 
 ## [0.0.2] - 2025-06-04
 
