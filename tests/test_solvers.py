@@ -193,7 +193,7 @@ def test_solvers(n_seeds=1, noise=0.0):
                 if len(theta_hat) == len(theta_gt):
                     np.testing.assert_allclose(theta_hat, theta_gt)
                 else:
-                    # theta_gt = lifter.get_vec_around_gt(delta=0)
+                    theta_gt = lifter.get_vec_around_gt(delta=0)
                     np.testing.assert_allclose(theta_hat, theta_gt)
 
             else:
@@ -245,13 +245,18 @@ def test_solvers(n_seeds=1, noise=0.0):
                     print(
                         f"Found solution for {lifter} is not ground truth in zero-noise! is the problem well-conditioned?"
                     )
+                    fig, ax, im = lifter.plot(estimates={"estimate": theta_hat})
+                    import matplotlib.pylab as plt
+
+                    plt.show(block=False)
+                    ax.legend()
 
                     try:
                         mineig_hess_hat = np.linalg.eigvalsh(
-                            lifter.get_hess(theta_hat, y)
+                            lifter.get_hess(theta_hat, y).toarray()
                         )[0]
                         mineig_hess_gt = np.linalg.eigvalsh(
-                            lifter.get_hess(theta_gt, y)
+                            lifter.get_hess(theta_gt, y).toarray()
                         )[0]
                         print(
                             f"minimum eigenvalue at gt: {mineig_hess_gt:.1e} and at estimate: {mineig_hess_hat:.1e}"
@@ -304,7 +309,7 @@ def compare_solvers():
             if theta_hat is None:
                 print(solver, "failed")
             else:
-                error = lifter.get_error(theta_hat)["error"]
+                error = lifter.get_error(theta_hat)
                 print(
                     f"{solver} finished in {ttot:.4f}s, final cost {cost_solver:.1e}, error {error:.1e}. \n\tmessage:{msg} "
                 )

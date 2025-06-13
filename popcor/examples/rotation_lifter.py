@@ -67,14 +67,15 @@ class RotationLifter(StateLifter):
 
     def get_theta(self, x: np.ndarray) -> np.ndarray:
         assert np.ndim(x) == 1
-        C_flat = x[1 : 1 + self.d**2]
+        C_flat = x[: self.d**2]
         return C_flat.reshape((self.d, self.d))
 
-    def simulate_y(self, noise: float | None = None):
+    def simulate_y(self, noise: float | None = None) -> list:
         if noise is None:
             noise = self.NOISE
 
-        self.y_ = []
+        R_gt = self.theta.reshape((self.d, self.d))
+        y = []
         for i in range(self.n_meas):
             # noise model: R_i = R.T @ Rnoise
             if noise > 0:
@@ -85,16 +86,19 @@ class RotationLifter(StateLifter):
                     if self.d == 3
                     else R.from_euler("z", noise_rotvec[0]).as_matrix()[:2, :2]
                 )
-                Ri = self.theta.T @ Rnoise
+                Ri = R_gt.T @ Rnoise
             else:
-                Ri = self.theta.T
-            self.y_.append(Ri)
-        return self.y_
+                Ri = R_gt.T
+            y.append(Ri)
+        return y
 
-    def get_Q(self, noise: float | None = None):
+    def get_Q(self, noise: float | None = None, output_poly: bool = False):
+        if noise is None:
+            noise = self.NOISE
         if self.y_ is None:
-            self.y = self.simulate_y(noise=noise)
-        return self.get_Q_from_y(self.y_)
+            self.y_ = self.simulate_y(noise=noise)
+
+        return self.get_Q_from_y(self.y_, output_poly=output_poly)
 
     def get_Q_from_y(self, y, output_poly=False):
         # f(R) = sum_i || R @ R_i - I ||_F^2
@@ -177,7 +181,7 @@ class RotationLifter(StateLifter):
             var_dict = self.var_dict
 
         if "c" in var_dict:
-            # enforce diagonal == 1
+            # enforce diagonal == 1 for R'R = I
             for i in range(self.d):
                 Ei = np.zeros((self.d, self.d))
                 Ei[i, i] = 1.0
@@ -187,7 +191,7 @@ class RotationLifter(StateLifter):
                 Ai[self.HOM, self.HOM] = -1
                 self.test_and_add(A_list, Ai, output_poly=output_poly)
 
-            # enforce off-diagonal == 0
+            # enforce off-diagonal == 0 for R'R = I
             for i in range(self.d):
                 for j in range(i + 1, self.d):
                     Ei = np.zeros((self.d, self.d))
@@ -220,19 +224,54 @@ class RotationLifter(StateLifter):
                 print(
                     "Warning: consider implementing the determinant constraint for RobustPoseLifter, d=3"
                 )
+
+        if add_redundant and "c" in var_dict:
+            # enforce diagonal == 1 for RR' = I
+            for i in range(self.d):
+                Ei = np.zeros((self.d, self.d))
+                Ei[i, i] = 1.0
+                constraint = np.kron(np.eye(self.d), Ei)
+                Ai = PolyMatrix(symmetric=True)
+                Ai["c", "c"] = constraint
+                Ai[self.HOM, self.HOM] = -1
+                self.test_and_add(A_list, Ai, output_poly=output_poly)
+
+            # enforce off-diagonal == 0 for RR' = I
+            for i in range(self.d):
+                for j in range(i + 1, self.d):
+                    Ei = np.zeros((self.d, self.d))
+                    Ei[i, j] = 1.0
+                    Ei[j, i] = 1.0
+                    constraint = np.kron(np.eye(self.d), Ei)
+                    Ai = PolyMatrix(symmetric=True)
+                    Ai["c", "c"] = constraint
+                    self.test_and_add(A_list, Ai, output_poly=output_poly)
         return A_list
 
     def plot(self, estimates={}):
+        import itertools
+
         import matplotlib.pyplot as plt
 
-        from popr.utils.plotting_tools import plot_frame
+        from popcor.utils.plotting_tools import plot_frame
 
         fig, ax = plt.subplots()
-        plot_frame(ax=ax, theta=self.theta, label="gt", ls="-", scale=0.5)
+        plot_frame(ax=ax, theta=self.theta, label="gt", ls="-", scale=0.5, marker="")
 
+        linestyles = itertools.cycle(["--", "-.", ":"])
         for label, theta in estimates.items():
-            plot_frame(ax=ax, theta=theta, label=label, ls="--", scale=1.0)
+            plot_frame(
+                ax=ax,
+                theta=theta,
+                label=label,
+                ls=next(linestyles),
+                scale=1.0,
+                marker="",
+            )
 
         ax.set_aspect("equal")
         ax.legend()
         return fig, ax
+
+    def __repr__(self):
+        return f"rotation_lifter{self.d}d"

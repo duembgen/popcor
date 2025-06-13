@@ -4,7 +4,7 @@ import numpy as np
 
 def find_local_minimum(lifter, y, delta=1.0, verbose=False, n_inits=10, plot=False):
     from popcor.base_lifters import StateLifter
-    from popcor.examples import RangeOnlyLocLifter
+    from popcor.examples import RangeOnlySqLifter
 
     assert isinstance(lifter, StateLifter)
     local_solutions = []
@@ -101,7 +101,7 @@ def find_local_minimum(lifter, y, delta=1.0, verbose=False, n_inits=10, plot=Fal
                 )
 
             # plot all solutions that converged to those (for RO only, for stereo it's too crowded)
-            if isinstance(lifter, RangeOnlyLocLifter):
+            if isinstance(lifter, RangeOnlySqLifter):
                 for i in global_inds[1:]:  # first one corresponds to ground truth
                     plot_frame(ax, theta=inits[i], color="g", marker=".")
                 for i in local_inds:

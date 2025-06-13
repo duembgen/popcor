@@ -13,7 +13,7 @@ Please try to the best of your abilities to:
 
 ## Adding a new lifter class
 
-You can start with the [ExampleLifter](../popr/examples/ExampleLifter.py) skeleton, and feel free to add more functionalities depending on the nature of the problem. You can also consider adding a new base class similar to [RobustPoseLifter](../popr/base_lifters/RobustPoseLifter.py) or [StereoLifter](../popr/base_lifters/StereoLifter.py) if you want to create multiple new lifters that all share similar functionalities.
+You can start with the [ExampleLifter](../popcor/examples/ExampleLifter.py) skeleton, and feel free to add more functionalities depending on the nature of the problem. You can also consider adding a new base class similar to [RobustPoseLifter](../popcor/base_lifters/RobustPoseLifter.py) or [StereoLifter](../popcor/base_lifters/StereoLifter.py) if you want to create multiple new lifters that all share similar functionalities.
 
 ## Adding new functionalities
 
@@ -37,7 +37,7 @@ to make sure there are no errors. There is also the possibility to just use lite
 
 This has already been done -- just keeping track of the process here to make it is easy to redo this in the future. TAken from [here](https://docs.mosek.com/11.0/faq.pdf), page 11. 
 
-1. Go to Settings -> Security -> Secrets and variables -> Actions ([direct link](https://github.com/duembgen/popr/settings/secrets/actions))
+1. Go to Settings -> Security -> Secrets and variables -> Actions ([direct link](https://github.com/duembgen/popcor/settings/secrets/actions))
 2. Create secret called MSK_LICENSE with content 
 
 ```

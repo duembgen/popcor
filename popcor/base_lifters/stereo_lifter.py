@@ -118,7 +118,7 @@ class StereoLifter(StateLifter, ABC):
         else:
             return np.random.rand(self.n_landmarks, self.d)
 
-    def sample_parameters(self, theta=None):
+    def sample_parameters(self, theta: np.ndarray | None = None) -> dict:
         landmarks = self.generate_random_landmarks(theta=self.theta)
         return self.sample_parameters_landmarks(landmarks)
 
@@ -205,7 +205,7 @@ class StereoLifter(StateLifter, ABC):
         assert len(x_data) == dim_x
         return np.array(x_data)
 
-    def get_A_known(self, var_dict=None, output_poly=False):
+    def get_A_known(self, var_dict=None, output_poly=False, add_redundant=False):
         """
         T = |   cx'   tx |
             |   cy'   ty |
@@ -421,8 +421,8 @@ class StereoLifter(StateLifter, ABC):
         C_cw, r_wc_c = get_C_r_from_theta(theta, self.d)
         return (-C_cw.T @ r_wc_c)[None, :]
 
-    def get_error(self, theta_hat):
-        return get_pose_errors_from_theta(theta_hat, self.theta, self.d)
+    def get_error(self, theta_hat, error_type="MSE"):
+        return get_pose_errors_from_theta(theta_hat, self.theta, self.d)[error_type]
 
     def local_solver_manopt(self, t0, y, W=None, verbose=False, method="CG", **kwargs):
         """Alternative solver using Pymanopt. By default, :ref:`StateLifter.local_solver` by is used."""

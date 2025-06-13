@@ -20,3 +20,4 @@ mosek_output.tmp
 *.ptf
 bin/act
 docs/build/doctest
+docs/build/

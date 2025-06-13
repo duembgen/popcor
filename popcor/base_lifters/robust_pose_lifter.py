@@ -70,7 +70,7 @@ class RobustPoseLifter(StateLifter, ABC):
 
         The goal is to regress an unknown pose based on extrinsic measurements.
 
-        See :class:`~popcor.examples.WahbaLifter` for point-to-point registration and :class:`~popcor.examples.MonoLifter`) for point-to-line registration.
+        See class:`~popcor.examples.WahbaLifter` for point-to-point registration and :class:`~popcor.examples.MonoLifter`) for point-to-line registration.
 
         Implemented lifting functions are:
 
@@ -191,15 +191,12 @@ class RobustPoseLifter(StateLifter, ABC):
         landmarks = np.random.normal(loc=0, scale=1.0, size=(self.n_landmarks, self.d))
         return self.sample_parameters_landmarks(landmarks)
 
-    def get_x(self, theta=None, parameters=None, var_subset=None) -> np.ndarray:
+    def get_x(self, theta=None, var_subset=None, parameters=None) -> np.ndarray:
         """Get the lifted vector x given theta and parameters."""
         if theta is None:
             theta = self.theta
-        if parameters is None:
-            parameters = self.parameters
         if var_subset is None:
             var_subset = self.var_dict.keys()
-
         if self.robust:
             theta_here = theta[: -self.n_landmarks]
         else:
@@ -239,11 +236,24 @@ class RobustPoseLifter(StateLifter, ABC):
         else:
             return []
 
-    def get_error(self, theta_hat):
+    def get_theta(self, x):
+        # t, vec(R), w
+        t = x[: self.d]
+        RT = x[self.d : self.d + self.d**2].reshape(self.d, self.d, order="C")
+        R = RT.T
+        w = x[self.d + self.d**2 : self.d + self.d**2 : self.n_landmarks]
+        return np.hstack([t, R.flatten("C"), w])
+
+    def get_error(self, theta_hat, error_type="MSE", atol=1e-10):
+        """
+        :param atol: tolerance for sanity check of C'C=I constraint.
+        """
 
         theta_hat_pose = theta_hat[: self.d + self.d**2]
         theta_gt_pose = self.theta[: self.d + self.d**2]
-        return get_pose_errors_from_theta(theta_hat_pose, theta_gt_pose, self.d)
+        return get_pose_errors_from_theta(
+            theta_hat_pose, theta_gt_pose, self.d, atol=atol
+        )[error_type]
 
     def get_vec_around_gt(self, delta: float = 0):
         """Sample around ground truth.
@@ -261,6 +271,7 @@ class RobustPoseLifter(StateLifter, ABC):
             return theta_noisy
 
     def get_cost(self, theta, y):
+        assert y is not None
         if self.robust:
             x = theta[: -self.n_landmarks]
             w = theta[-self.n_landmarks :]
@@ -280,8 +291,14 @@ class RobustPoseLifter(StateLifter, ABC):
         return 0.5 * cost
 
     def local_solver(
-        self, t0, y, verbose=False, method=METHOD, solver_kwargs=SOLVER_KWARGS
+        self,
+        t0,
+        y: np.ndarray | None,
+        verbose=False,
+        method=METHOD,
+        solver_kwargs=SOLVER_KWARGS,
     ):
+        assert y is not None
         import pymanopt
         from pymanopt.manifolds import Euclidean, Product, SpecialOrthogonalGroup
 
@@ -388,6 +405,7 @@ class RobustPoseLifter(StateLifter, ABC):
         info = {
             "success": success,
             "msg": res.stopping_criterion,
+            "cost": cost_penalized,
         }
         if success:
             return theta_hat, info, cost_penalized
@@ -404,13 +422,13 @@ class RobustPoseLifter(StateLifter, ABC):
         else:
             A_list.append(Ai_sparse)
 
-    def get_A_known(self, var_dict=None, output_poly=False):
+    def get_A_known(self, var_dict=None, output_poly=False, add_redundant=False):
         A_list = []
         if var_dict is None:
             var_dict = self.var_dict
 
         if "c" in var_dict:
-            # enforce diagonal == 1
+            # enforce diagonal == 1 (R'R=I)
             for i in range(self.d):
                 Ei = np.zeros((self.d, self.d))
                 Ei[i, i] = 1.0
@@ -420,7 +438,7 @@ class RobustPoseLifter(StateLifter, ABC):
                 Ai[self.HOM, self.HOM] = -1
                 self.test_and_add(A_list, Ai, output_poly=output_poly)
 
-            # enforce off-diagonal == 0
+            # enforce off-diagonal == 0 (R'R=I)
             for i in range(self.d):
                 for j in range(i + 1, self.d):
                     Ei = np.zeros((self.d, self.d))
@@ -430,6 +448,28 @@ class RobustPoseLifter(StateLifter, ABC):
                     Ai = PolyMatrix(symmetric=True)
                     Ai["c", "c"] = constraint
                     self.test_and_add(A_list, Ai, output_poly=output_poly)
+        if add_redundant and ("c" in var_dict):
+            # enforce diagonal == 1 (RR'=I)
+            for i in range(self.d):
+                Ei = np.zeros((self.d, self.d))
+                Ei[i, i] = 1.0
+                constraint = np.kron(np.eye(self.d), Ei)
+                Ai = PolyMatrix(symmetric=True)
+                Ai["c", "c"] = constraint
+                Ai[self.HOM, self.HOM] = -1
+                self.test_and_add(A_list, Ai, output_poly=output_poly)
+
+            # enforce off-diagonal == 0 (RR'=I)
+            for i in range(self.d):
+                for j in range(i + 1, self.d):
+                    Ei = np.zeros((self.d, self.d))
+                    Ei[i, j] = 1.0
+                    Ei[j, i] = 1.0
+                    constraint = np.kron(np.eye(self.d), Ei)
+                    Ai = PolyMatrix(symmetric=True)
+                    Ai["c", "c"] = constraint
+                    self.test_and_add(A_list, Ai, output_poly=output_poly)
+
         if self.robust:
             for key in var_dict:
                 if "w" in key:
@@ -506,5 +546,11 @@ class RobustPoseLifter(StateLifter, ABC):
         pass
 
     @abstractmethod
-    def residual_sq(self, R, t, pi, ui) -> float:
+    def residual_sq(
+        self,
+        R: np.ndarray,
+        t: np.ndarray,
+        pi: np.ndarray,
+        ui: np.ndarray,
+    ) -> float:
         pass

@@ -21,7 +21,9 @@ class Poly6Lifter(PolyLifter):
         self.poly_type = poly_type
         super().__init__(degree=6)
 
-    def get_Q(self, *args, **kwargs):
+    def get_Q(self, output_poly=False, noise=None):
+        if output_poly:
+            raise ValueError("output_poly not implemented for Poly4Lifter.")
         if self.poly_type == "A":
             return 0.1 * np.array(
                 [
@@ -41,7 +43,7 @@ class Poly6Lifter(PolyLifter):
                 ]
             )
 
-    def get_A_known(self, output_poly=False, add_redundant=True):
+    def get_A_known(self, output_poly=False, add_redundant=True, var_dict=None):
         from poly_matrix import PolyMatrix
 
         A_list = []
