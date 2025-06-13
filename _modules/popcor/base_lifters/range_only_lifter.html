@@ -251,8 +251,6 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.state_lifter</span><span class="w"> </span><span class="kn">import</span> <span class="n">StateLifter</span>
 
-<span class="n">NOISE</span> <span class="o">=</span> <span class="mf">1e-2</span>  <span class="c1"># std deviation of distance noise</span>
-
 <span class="n">METHOD</span> <span class="o">=</span> <span class="s2">&quot;BFGS&quot;</span>
 <span class="n">NORMALIZE</span> <span class="o">=</span> <span class="kc">True</span>
 
@@ -264,8 +262,8 @@
     <span class="s2">&quot;TNC&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">gtol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">xtol</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">),</span>
 <span class="p">}</span>
 
-<span class="c1"># size of the region of intereist: [0, SCALE]^d</span>
-<span class="n">SCALE</span> <span class="o">=</span> <span class="mf">2.0</span>
+
+<span class="n">MAX_TRIALS</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># number of trials to find a valid sample</span>
 
 
 <div class="viewcode-block" id="RangeOnlyLifter">
@@ -279,6 +277,10 @@
 <span class="sd">    See :class:`~popcor.examples.RangeOnlyNsqLifter` and :class:`~popcor.examples.RangeOnlySqLifter`</span>
 <span class="sd">    for concrete implementations.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NOISE</span> <span class="o">=</span> <span class="mf">1e-2</span>  <span class="c1"># std deviation of distance noise</span>
+    <span class="n">SCALE</span> <span class="o">=</span> <span class="mf">2.0</span>  <span class="c1"># size of the region of intereist: [0, SCALE]^d</span>
+    <span class="n">MIN_DIST</span> <span class="o">=</span> <span class="mf">1e-2</span>  <span class="c1"># minimum distance between landmarks and positions</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -321,13 +323,13 @@
         <span class="c1"># create landmarks that are roughly in a subspace of dimension d-1</span>
         <span class="n">landmarks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span>  <span class="c1"># type: ignore</span>
             <span class="p">[</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">n_landmarks</span><span class="p">,</span> <span class="n">d</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">SCALE</span><span class="p">,</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">n_landmarks</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.3</span> <span class="o">+</span> <span class="n">SCALE</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">n_landmarks</span><span class="p">,</span> <span class="n">d</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">RangeOnlyLifter</span><span class="o">.</span><span class="n">SCALE</span><span class="p">,</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">n_landmarks</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.3</span> <span class="o">+</span> <span class="n">RangeOnlyLifter</span><span class="o">.</span><span class="n">SCALE</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span>
             <span class="p">]</span>
         <span class="p">)</span>
         <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span>
             <span class="p">[</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">n_positions</span><span class="p">,</span> <span class="n">d</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">SCALE</span><span class="p">,</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">n_positions</span><span class="p">,</span> <span class="n">d</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">RangeOnlyLifter</span><span class="o">.</span><span class="n">SCALE</span><span class="p">,</span>
                 <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">landmarks</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">n_positions</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
             <span class="p">]</span>
         <span class="p">)</span>
@@ -335,20 +337,31 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">create_good</span><span class="p">(</span><span class="n">n_positions</span><span class="p">,</span> <span class="n">n_landmarks</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+        <span class="n">landmarks</span> <span class="o">=</span> <span class="n">RangeOnlyLifter</span><span class="o">.</span><span class="n">sample_landmarks_filling_space</span><span class="p">(</span><span class="n">n_landmarks</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">landmarks</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)],</span>
+            <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">landmarks</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)],</span>
+            <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">n_positions</span><span class="p">,</span> <span class="n">d</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">landmarks</span><span class="p">,</span> <span class="n">theta</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample_landmarks_filling_space</span><span class="p">(</span><span class="n">n_landmarks</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
         <span class="n">landmarks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">n_landmarks</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
         <span class="n">landmarks</span> <span class="o">=</span> <span class="p">(</span><span class="n">landmarks</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">landmarks</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span>
             <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">landmarks</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">landmarks</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="p">)</span>
         <span class="c1"># remove landmarks a bit from border for plotting reasons</span>
-        <span class="n">landmarks</span> <span class="o">=</span> <span class="p">(</span><span class="n">landmarks</span> <span class="o">+</span> <span class="n">SCALE</span> <span class="o">*</span> <span class="mf">0.05</span><span class="p">)</span> <span class="o">*</span> <span class="n">SCALE</span> <span class="o">*</span> <span class="mf">0.9</span>
-        <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">landmarks</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">landmarks</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)]</span>
+        <span class="n">landmarks</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">landmarks</span> <span class="o">+</span> <span class="n">RangeOnlyLifter</span><span class="o">.</span><span class="n">SCALE</span> <span class="o">*</span> <span class="mf">0.05</span><span class="p">)</span> <span class="o">*</span> <span class="n">RangeOnlyLifter</span><span class="o">.</span><span class="n">SCALE</span> <span class="o">*</span> <span class="mf">0.9</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="n">landmarks</span><span class="p">,</span> <span class="n">theta</span>
+        <span class="k">return</span> <span class="n">landmarks</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">landmarks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">landmarks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_landmarks</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">)</span>
+        <span class="n">landmarks</span> <span class="o">=</span> <span class="n">RangeOnlyLifter</span><span class="o">.</span><span class="n">sample_landmarks_filling_space</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_landmarks</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">landmarks_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">landmarks_</span> <span class="o">=</span> <span class="n">landmarks</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">landmarks_</span>
@@ -403,7 +416,24 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">theta_</span> <span class="o">=</span> <span class="n">theta</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">sample_theta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_positions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Make sure we do not sample too close to landmarks (if distance is zero we get numerical problems).&quot;&quot;&quot;</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_positions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_positions</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MAX_TRIALS</span><span class="p">):</span>
+                <span class="n">sample</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">landmarks</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">SCALE</span>  <span class="c1"># between 0 and SCALE</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">sample</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">landmarks</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">MIN_DIST</span>
+                <span class="p">):</span>
+                    <span class="n">samples</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">sample</span>
+                <span class="k">elif</span> <span class="n">j</span> <span class="o">==</span> <span class="n">MAX_TRIALS</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Warning: did not find valid sample in </span><span class="si">{</span><span class="n">MAX_TRIALS</span><span class="si">}</span><span class="s2"> trials. Using last sample.&quot;</span>
+                    <span class="p">)</span>
+                    <span class="n">samples</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">sample</span>
+        <span class="k">return</span> <span class="n">samples</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_residuals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">squared</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ad</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">positions</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">))</span>
@@ -448,7 +478,7 @@
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">landmarks</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="c1"># N x K matrix</span>
         <span class="k">if</span> <span class="n">noise</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">noise</span> <span class="o">=</span> <span class="n">NOISE</span>
+            <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">NOISE</span>
         <span class="n">positions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_positions</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">y_gt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">landmarks</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">positions</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span>
@@ -491,10 +521,12 @@
         <span class="k">return</span> <span class="n">x</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_positions</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta_hat</span><span class="p">,</span> <span class="n">error_type</span><span class="o">=</span><span class="s2">&quot;rmse&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">theta_hat</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span>
+        <span class="n">theta_gt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">error_type</span> <span class="o">==</span> <span class="s2">&quot;rmse&quot;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">-</span> <span class="n">theta_hat</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">theta_gt</span> <span class="o">-</span> <span class="n">theta_hat</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
         <span class="k">elif</span> <span class="n">error_type</span> <span class="o">==</span> <span class="s2">&quot;mse&quot;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">-</span> <span class="n">theta_hat</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">theta_gt</span> <span class="o">-</span> <span class="n">theta_hat</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unkwnon error_type </span><span class="si">{</span><span class="n">error_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
@@ -567,15 +599,22 @@
         <span class="n">info</span><span class="p">[</span><span class="s2">&quot;cost&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cost</span>
         <span class="k">return</span> <span class="n">that</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span> <span class="n">cost</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">ylims</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">ylims</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">estimates</span><span class="o">=</span><span class="p">{}):</span>
         <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
             <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
 
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">theta_gt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_positions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">))</span>
+
         <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">landmarks</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;landmarks&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;C0&quot;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="o">*</span><span class="n">theta_gt</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;C0&quot;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">theta_est</span> <span class="ow">in</span> <span class="n">estimates</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">theta_est</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">theta_est</span> <span class="o">=</span> <span class="n">theta_est</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_positions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">))</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="o">*</span><span class="n">theta_est</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
 
         <span class="n">im</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -597,10 +636,6 @@
             <span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s2">&quot;equal&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">im</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_valid_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">):</span>
-        <span class="n">samples</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_theta</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_samples</span><span class="p">)]</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="nd">@abstractmethod</span>

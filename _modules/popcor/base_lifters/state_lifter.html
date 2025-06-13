@@ -425,7 +425,13 @@
 
 <div class="viewcode-block" id="StateLifter.local_solver">
 <a class="viewcode-back" href="../../../api/lifters.html#popcor.base_lifters.StateLifter.local_solver">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">local_solver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">local_solver</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">t0</span><span class="p">,</span>
+        <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="nb">list</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Default local solver that uses IPOPT to solve the QCQP problem defined by Q and the constraints matrices.</span>
 <span class="sd">        Consider overwriting this for more efficient solvers.</span>
@@ -433,7 +439,8 @@
         <span class="nb">print</span><span class="p">(</span>
             <span class="s2">&quot;Warning: using default local_solver, which may be less efficient than a custom one.&quot;</span>
         <span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Ignoring args and kwargs:&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: ignore args </span><span class="si">{</span><span class="n">args</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">cert_tools.sdp_solvers</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve_low_rank_sdp</span>
 
         <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -447,10 +454,15 @@
                 <span class="s2">&quot;Inequality constraints are not currently considered by default solver. Must implement your own.&quot;</span>
             <span class="p">)</span>
 
+        <span class="k">if</span> <span class="n">method</span> <span class="o">:=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;method&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Warning: ignoreing method argument </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2"> in local_solver, using default (IPOPT).&quot;</span>
+            <span class="p">)</span>
+
         <span class="n">Constraints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_A_b_list</span><span class="p">(</span><span class="n">A_list</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_A_known</span><span class="p">())</span>
         <span class="n">x0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_x</span><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="n">t0</span><span class="p">)</span>
         <span class="n">X</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">solve_low_rank_sdp</span><span class="p">(</span>
-            <span class="n">Q</span><span class="p">,</span> <span class="n">Constraints</span><span class="o">=</span><span class="n">Constraints</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">x_cand</span><span class="o">=</span><span class="n">x0</span>
+            <span class="n">Q</span><span class="p">,</span> <span class="n">Constraints</span><span class="o">=</span><span class="n">Constraints</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">x_cand</span><span class="o">=</span><span class="n">x0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
         <span class="p">)</span>
         <span class="c1"># TODO(FD) identify when the solve is not successful.</span>
         <span class="n">info</span><span class="p">[</span><span class="s2">&quot;success&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
@@ -496,7 +508,11 @@
                 <span class="s2">&quot;Please make sure that you use get_theta as intended.&quot;</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">]</span></div>
-</div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_valid_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">):</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_theta</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_samples</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span></div>
 
 </pre></div>
 

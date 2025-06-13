@@ -247,10 +247,6 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">popcor.base_lifters</span><span class="w"> </span><span class="kn">import</span> <span class="n">RangeOnlyLifter</span>
 
-<span class="n">NOISE</span> <span class="o">=</span> <span class="mf">1e-2</span>  <span class="c1"># std deviation of distance noise</span>
-
-<span class="n">NORMALIZE</span> <span class="o">=</span> <span class="kc">True</span>
-
 
 <div class="viewcode-block" id="RangeOnlyNsqLifter">
 <a class="viewcode-back" href="../../../examples/standard.html#popcor.examples.RangeOnlyNsqLifter">[docs]</a>
@@ -289,6 +285,8 @@
         <span class="s2">&quot;simple&quot;</span><span class="p">:</span> <span class="s2">&quot;$z_n$&quot;</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="n">MONOMIAL_DEGREE</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="n">SCALE</span> <span class="o">=</span> <span class="mf">1.0</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">create_good</span><span class="p">(</span><span class="n">n_positions</span><span class="p">,</span> <span class="n">n_landmarks</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
@@ -489,32 +487,10 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">get_valid_samples</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">n_samples</span><span class="p">,</span>
-        <span class="n">max_trials</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-        <span class="n">min_dist</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span>
-        <span class="n">radius</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-        <span class="n">center</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">vectorized</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="c1"># quick and dirty implementation to make sure we don&#39;t sample too close</span>
-        <span class="c1"># from a landmark (otherwise length is zero and the normal vector will have nans)</span>
-        <span class="k">if</span> <span class="n">center</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">center</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">landmarks</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">samples</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_samples</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_trials</span><span class="p">):</span>
-                <span class="n">sample</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">landmarks</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">radius</span>
-                <span class="p">)</span> <span class="o">+</span> <span class="n">center</span>  <span class="c1"># between 0 and 1</span>
-                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span>
-                    <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">sample</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">landmarks</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">min_dist</span>
-                <span class="p">):</span>
-                    <span class="n">samples</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
-                    <span class="k">break</span>
-                <span class="k">if</span> <span class="n">j</span> <span class="o">==</span> <span class="n">max_trials</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: did not find valid sample in </span><span class="si">{</span><span class="n">max_trials</span><span class="si">}</span><span class="s2"> trials&quot;</span><span class="p">)</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_valid_samples</span><span class="p">(</span><span class="n">n_samples</span><span class="p">)</span>
 
-        <span class="n">samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
-
+        <span class="c1"># TODO(FD): maybe this should be moved to theta.</span>
         <span class="n">normals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">landmarks</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">samples</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
         <span class="n">normals</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">normals</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">samples</span><span class="p">,</span> <span class="n">normals</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">normals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)])</span>
