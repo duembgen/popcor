@@ -160,7 +160,13 @@ class StateLifter(BaseClass):
             Q = self.get_Q()
         return float(x.T @ Q @ x)
 
-    def local_solver(self, t0, y: np.ndarray | None = None, *args, **kwargs):
+    def local_solver(
+        self,
+        t0,
+        y: np.ndarray | list | None = None,
+        *args,
+        **kwargs,
+    ):
         """
         Default local solver that uses IPOPT to solve the QCQP problem defined by Q and the constraints matrices.
         Consider overwriting this for more efficient solvers.
@@ -168,7 +174,8 @@ class StateLifter(BaseClass):
         print(
             "Warning: using default local_solver, which may be less efficient than a custom one."
         )
-        print("Ignoring args and kwargs:", args, kwargs)
+        if len(args):
+            print(f"Warning: ignore args {args}")
         from cert_tools.sdp_solvers import solve_low_rank_sdp
 
         if y is not None:
@@ -182,10 +189,15 @@ class StateLifter(BaseClass):
                 "Inequality constraints are not currently considered by default solver. Must implement your own."
             )
 
+        if method := kwargs.pop("method", None) is not None:
+            print(
+                f"Warning: ignoreing method argument {method} in local_solver, using default (IPOPT)."
+            )
+
         Constraints = self.get_A_b_list(A_list=self.get_A_known())
         x0 = self.get_x(theta=t0)
         X, info = solve_low_rank_sdp(
-            Q, Constraints=Constraints, rank=1, verbose=True, x_cand=x0
+            Q, Constraints=Constraints, rank=1, x_cand=x0, **kwargs
         )
         # TODO(FD) identify when the solve is not successful.
         info["success"] = True
@@ -228,3 +240,7 @@ class StateLifter(BaseClass):
                 "Please make sure that you use get_theta as intended."
             )
         return x.flatten()[: self.d]
+
+    def get_valid_samples(self, n_samples):
+        samples = [self.sample_theta().flatten() for _ in range(n_samples)]
+        return np.vstack(samples)

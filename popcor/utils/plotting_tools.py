@@ -105,7 +105,7 @@ def savefig(fig, name, verbose=True):
 
 def plot_frame(
     ax,
-    theta=None,
+    theta,
     color="k",
     marker="+",
     label=None,
@@ -115,12 +115,17 @@ def plot_frame(
     d=3,
     **kwargs,
 ):
-    try:
-        C_cw, r_wc_c = get_C_r_from_theta(theta, d=d)
-        r_wc_w = -C_cw.T @ r_wc_c  # r_wc_w
-    except Exception as e:
-        C_cw = None
-        r_wc_w = theta
+    if np.ndim(theta) == 2:
+        # used by rotation averaging
+        C_cw = theta
+        r_wc_w = np.zeros((theta.shape[0]))
+    else:
+        try:
+            C_cw, r_wc_c = get_C_r_from_theta(theta, d=d)
+            r_wc_w = -C_cw.T @ r_wc_c  # r_wc_w
+        except Exception as e:
+            C_cw = None
+            r_wc_w = theta
 
     assert r_wc_w is not None
 
@@ -139,8 +144,18 @@ def plot_frame(
         *r_wc_w[:2].T,
         color=color,
         marker=marker,
+        label=None,
+        zorder=1,
+        **kwargs,
+    )
+    ax.plot(
+        [],
+        [],
+        marker=marker,
         label=label,
         zorder=1,
+        ls=ls,
+        color="k",
         **kwargs,
     )
     return r_wc_w, C_cw

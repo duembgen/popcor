@@ -271,6 +271,7 @@ class RobustPoseLifter(StateLifter, ABC):
             return theta_noisy
 
     def get_cost(self, theta, y):
+        assert y is not None
         if self.robust:
             x = theta[: -self.n_landmarks]
             w = theta[-self.n_landmarks :]
@@ -297,6 +298,7 @@ class RobustPoseLifter(StateLifter, ABC):
         method=METHOD,
         solver_kwargs=SOLVER_KWARGS,
     ):
+        assert y is not None
         import pymanopt
         from pymanopt.manifolds import Euclidean, Product, SpecialOrthogonalGroup
 

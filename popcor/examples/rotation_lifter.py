@@ -44,7 +44,7 @@ class RotationLifter(StateLifter):
             C = R.from_euler("z", angle).as_matrix()[:2, :2]
         elif self.d == 3:
             C = R.random().as_matrix()
-        return C.flatten("C")
+        return C
 
     def get_x(self, theta=None, parameters=None, var_subset=None) -> np.ndarray:
         """Get the lifted vector x given theta and parameters."""
@@ -60,14 +60,15 @@ class RotationLifter(StateLifter):
             if key == self.HOM:
                 x_data.append(1.0)
             elif key == "c":
-                x_data += list(theta)
+                x_data += list(theta.flatten("C"))
         dim_x = self.get_dim_x(var_subset=var_subset)
         assert len(x_data) == dim_x
         return np.array(x_data)
 
     def get_theta(self, x: np.ndarray) -> np.ndarray:
         assert np.ndim(x) == 1
-        return x[: self.d**2]
+        C_flat = x[: self.d**2]
+        return C_flat.reshape((self.d, self.d))
 
     def simulate_y(self, noise: float | None = None) -> list:
         if noise is None:
@@ -247,13 +248,30 @@ class RotationLifter(StateLifter):
                     self.test_and_add(A_list, Ai, output_poly=output_poly)
         return A_list
 
+    def plot(self, estimates={}):
+        import itertools
+
+        import matplotlib.pyplot as plt
+
+        from popcor.utils.plotting_tools import plot_frame
+
+        fig, ax = plt.subplots()
+        plot_frame(ax=ax, theta=self.theta, label="gt", ls="-", scale=0.5, marker="")
+
+        linestyles = itertools.cycle(["--", "-.", ":"])
+        for label, theta in estimates.items():
+            plot_frame(
+                ax=ax,
+                theta=theta,
+                label=label,
+                ls=next(linestyles),
+                scale=1.0,
+                marker="",
+            )
+
+        ax.set_aspect("equal")
+        ax.legend()
+        return fig, ax
+
     def __repr__(self):
         return f"rotation_lifter{self.d}d"
-
-
-if __name__ == "__main__":
-
-    # adding this here because on save vscode sometimes adds duplicate lines
-    pass
-    # adding this here because on save vscode sometimes adds duplicate lines
-    pass

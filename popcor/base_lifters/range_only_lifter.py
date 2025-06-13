@@ -8,8 +8,6 @@ from scipy.optimize import minimize
 
 from .state_lifter import StateLifter
 
-NOISE = 1e-2  # std deviation of distance noise
-
 METHOD = "BFGS"
 NORMALIZE = True
 
@@ -21,8 +19,8 @@ SOLVER_KWARGS = {
     "TNC": dict(gtol=1e-6, xtol=1e-10),
 }
 
-# size of the region of intereist: [0, SCALE]^d
-SCALE = 2.0
+
+MAX_TRIALS = 10  # number of trials to find a valid sample
 
 
 class RangeOnlyLifter(StateLifter, ABC):
@@ -34,6 +32,10 @@ class RangeOnlyLifter(StateLifter, ABC):
     See :class:`~popcor.examples.RangeOnlyNsqLifter` and :class:`~popcor.examples.RangeOnlySqLifter`
     for concrete implementations.
     """
+
+    NOISE = 1e-2  # std deviation of distance noise
+    SCALE = 2.0  # size of the region of intereist: [0, SCALE]^d
+    MIN_DIST = 1e-2  # minimum distance between landmarks and positions
 
     def __init__(
         self,
@@ -76,13 +78,13 @@ class RangeOnlyLifter(StateLifter, ABC):
         # create landmarks that are roughly in a subspace of dimension d-1
         landmarks = np.hstack(  # type: ignore
             [
-                np.random.rand(n_landmarks, d - 1) * SCALE,
-                np.random.rand(n_landmarks, 1) * 0.3 + SCALE / 2.0,
+                np.random.rand(n_landmarks, d - 1) * RangeOnlyLifter.SCALE,
+                np.random.rand(n_landmarks, 1) * 0.3 + RangeOnlyLifter.SCALE / 2.0,
             ]
         )
         theta = np.hstack(
             [
-                np.random.rand(n_positions, d - 1) * SCALE,
+                np.random.rand(n_positions, d - 1) * RangeOnlyLifter.SCALE,
                 np.max(landmarks[:, -1]) + np.random.rand(n_positions, 1),
             ]
         )
@@ -90,20 +92,31 @@ class RangeOnlyLifter(StateLifter, ABC):
 
     @staticmethod
     def create_good(n_positions, n_landmarks, d=2):
+        landmarks = RangeOnlyLifter.sample_landmarks_filling_space(n_landmarks, d)
+        theta = np.random.uniform(
+            [np.min(landmarks, axis=0)],
+            [np.max(landmarks, axis=0)],
+            size=(n_positions, d),
+        )
+        return landmarks, theta
+
+    @staticmethod
+    def sample_landmarks_filling_space(n_landmarks, d=2):
         landmarks = np.random.rand(n_landmarks, d)
         landmarks = (landmarks - np.min(landmarks, axis=0)) / (
             np.max(landmarks, axis=0) - np.min(landmarks, axis=0)
         )
         # remove landmarks a bit from border for plotting reasons
-        landmarks = (landmarks + SCALE * 0.05) * SCALE * 0.9
-        theta = np.random.uniform(
-            [np.min(landmarks, axis=0)], [np.max(landmarks, axis=0)]
+        landmarks = (
+            (landmarks + RangeOnlyLifter.SCALE * 0.05) * RangeOnlyLifter.SCALE * 0.9
         )
-        return landmarks, theta
+        return landmarks
 
     @property
     def landmarks(self):
-        landmarks = np.random.rand(self.n_landmarks, self.d)
+        landmarks = RangeOnlyLifter.sample_landmarks_filling_space(
+            self.n_landmarks, self.d
+        )
         if self.landmarks_ is None:
             self.landmarks_ = landmarks
         return self.landmarks_
@@ -158,7 +171,24 @@ class RangeOnlyLifter(StateLifter, ABC):
         self.theta_ = theta
 
     def sample_theta(self):
-        return np.random.rand(self.n_positions, self.d).flatten()
+        """Make sure we do not sample too close to landmarks (if distance is zero we get numerical problems)."""
+        samples = np.empty((self.n_positions, self.d))
+        for i in range(self.n_positions):
+            for j in range(MAX_TRIALS):
+                sample = (
+                    np.random.rand(self.landmarks.shape[1])
+                ) * self.SCALE  # between 0 and SCALE
+                if np.all(
+                    np.linalg.norm(sample[None, :] - self.landmarks, axis=1)
+                    > self.MIN_DIST
+                ):
+                    samples[i, :] = sample
+                elif j == MAX_TRIALS - 1:
+                    print(
+                        f"Warning: did not find valid sample in {MAX_TRIALS} trials. Using last sample."
+                    )
+                    samples[i, :] = sample
+        return samples.flatten("C")
 
     def get_residuals(self, t, y, squared=True, ad=False):
         positions = t.reshape((-1, self.d))
@@ -203,7 +233,7 @@ class RangeOnlyLifter(StateLifter, ABC):
         assert self.landmarks is not None
         # N x K matrix
         if noise is None:
-            noise = NOISE
+            noise = self.NOISE
         positions = self.theta.reshape(self.n_positions, -1)
         y_gt = np.linalg.norm(
             self.landmarks[None, :, :] - positions[:, None, :], axis=2
@@ -246,10 +276,12 @@ class RangeOnlyLifter(StateLifter, ABC):
         return x[: self.n_positions * self.d]
 
     def get_error(self, theta_hat, error_type="rmse", *args, **kwargs):
+        assert np.ndim(theta_hat) <= 1
+        theta_gt = self.theta if np.ndim(self.theta) <= 1 else self.theta.flatten()
         if error_type == "rmse":
-            return np.sqrt(np.mean((self.theta - theta_hat) ** 2))
+            return np.sqrt(np.mean((theta_gt - theta_hat) ** 2))
         elif error_type == "mse":
-            return np.mean((self.theta - theta_hat) ** 2)
+            return np.mean((theta_gt - theta_hat) ** 2)
         else:
             raise ValueError(f"Unkwnon error_type {error_type}")
 
@@ -322,15 +354,22 @@ class RangeOnlyLifter(StateLifter, ABC):
         info["cost"] = cost
         return that, info, cost
 
-    def plot(self, y=None, xlims=[0, 2], ylims=[0, 2], ax=None):
+    def plot(self, y=None, xlims=[0, 2], ylims=[0, 2], ax=None, estimates={}):
         if ax is None:
             fig, ax = plt.subplots()
             fig.set_size_inches(5, 5)
         else:
             fig = plt.gcf()
 
+        if np.ndim(self.theta) < 2:
+            theta_gt = self.theta.reshape((self.n_positions, self.d))
+
         ax.scatter(*self.landmarks[:, :2].T, color="k", marker="+", label="landmarks")
-        ax.scatter(*self.theta[:, :2].T, color="C0", marker="o")
+        ax.scatter(*theta_gt[:, :2].T, color="C0", marker="o")
+        for label, theta_est in estimates.items():
+            if np.ndim(theta_est) < 2:
+                theta_est = theta_est.reshape((self.n_positions, self.d))
+            ax.scatter(*theta_est[:, :2].T, marker="x", label=label)
 
         im = None
         if y is not None:
@@ -352,10 +391,6 @@ class RangeOnlyLifter(StateLifter, ABC):
             )
         ax.set_aspect("equal")
         return fig, ax, im
-
-    def get_valid_samples(self, n_samples):
-        samples = [self.sample_theta() for _ in range(n_samples)]
-        return np.vstack(samples)
 
     @property
     @abstractmethod

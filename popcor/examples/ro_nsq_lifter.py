@@ -4,10 +4,6 @@ from poly_matrix import PolyMatrix
 
 from popcor.base_lifters import RangeOnlyLifter
 
-NOISE = 1e-2  # std deviation of distance noise
-
-NORMALIZE = True
-
 
 class RangeOnlyNsqLifter(RangeOnlyLifter):
     """Range-only localization in 2D or 3D.
@@ -44,6 +40,8 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
         "simple": "$z_n$",
     }
     MONOMIAL_DEGREE = 1
+
+    SCALE = 1.0
 
     @staticmethod
     def create_good(n_positions, n_landmarks, d=2):
@@ -244,32 +242,10 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
     def get_valid_samples(
         self,
         n_samples,
-        max_trials=3,
-        min_dist=1e-2,
-        radius=1.0,
-        center=None,
-        vectorized=True,
     ):
-        # quick and dirty implementation to make sure we don't sample too close
-        # from a landmark (otherwise length is zero and the normal vector will have nans)
-        if center is None:
-            center = np.ones(self.landmarks.shape[1])
-        samples = []
-        for i in range(n_samples):
-            for j in range(max_trials):
-                sample = (
-                    (np.random.rand(self.landmarks.shape[1]) - 0.5) * 2 * radius
-                ) + center  # between 0 and 1
-                if np.all(
-                    np.linalg.norm(sample[None, :] - self.landmarks, axis=1) > min_dist
-                ):
-                    samples.append(sample)
-                    break
-                if j == max_trials - 1:
-                    print(f"Warning: did not find valid sample in {max_trials} trials")
+        samples = super().get_valid_samples(n_samples)
 
-        samples = np.vstack(samples)
-
+        # TODO(FD): maybe this should be moved to theta.
         normals = self.landmarks[None, :, :] - samples[:, None, :]
         normals /= np.linalg.norm(normals, axis=2)[:, :, None]
         return np.hstack([samples, normals.reshape(normals.shape[0], -1)])

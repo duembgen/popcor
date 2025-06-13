@@ -4,7 +4,11 @@ import scipy.sparse as sp
 
 from popcor.base_lifters import StateLifter, StereoLifter
 from popcor.examples import Stereo2DLifter, Stereo3DLifter
-from popcor.utils.common import get_vec, ravel_multi_index_triu, unravel_multi_index_triu
+from popcor.utils.common import (
+    get_vec,
+    ravel_multi_index_triu,
+    unravel_multi_index_triu,
+)
 from popcor.utils.test_tools import all_lifters, constraints_test_with_tol
 
 
