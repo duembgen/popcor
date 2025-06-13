@@ -153,12 +153,12 @@ class StateLifter(BaseClass):
         print(
             "Warning: using default get_cost, which may be less efficient than a custom one."
         )
-        x = self.get_x(theta=theta).flatten("C")
         if y is not None:
             Q = self.get_Q_from_y(y)
         else:
             Q = self.get_Q()
-        return float(x.T @ Q @ x)
+        x = self.get_x(theta=theta)
+        return float(np.trace(x.T @ Q @ x))
 
     def local_solver(
         self,
@@ -196,13 +196,21 @@ class StateLifter(BaseClass):
 
         Constraints = self.get_A_b_list(A_list=self.get_A_known())
         x0 = self.get_x(theta=t0)
+        if np.ndim(x0) == 1:
+            x0 = x0.reshape((-1, 1))
+
+        try:
+            L = self.get_L()
+        except AttributeError:
+            L = None
+
         X, info = solve_low_rank_sdp(
-            Q, Constraints=Constraints, rank=1, x_cand=x0, **kwargs
+            Q, Constraints=Constraints, rank=x0.shape[1], x_cand=x0, L=L, **kwargs
         )
         # TODO(FD) identify when the solve is not successful.
         info["success"] = True
         try:
-            theta = self.get_theta(X[1:, 0])
+            theta = self.get_theta(X[:, : x0.shape[1]])
         except AttributeError:
             theta = X[1 : 1 + self.d, 0]
         return theta, info, info["cost"]
@@ -239,7 +247,10 @@ class StateLifter(BaseClass):
                 "Warning: got homogenized vector x. The convention is that get_theta should get x[1:]."
                 "Please make sure that you use get_theta as intended."
             )
-        return x.flatten()[: self.d]
+        if self.HOM in self.var_dict:
+            return x.flatten()[1 : 1 + self.d]
+        else:
+            return x.flatten()[: self.d]
 
     def get_valid_samples(self, n_samples):
         samples = [self.sample_theta().flatten() for _ in range(n_samples)]

@@ -89,14 +89,19 @@ class RotationLifter(StateLifter):
                     i = int(key.split("_")[1])
                     x_data.append(theta[i * self.d : (i + 1) * self.d])
             return np.vstack(x_data)
+        else:
+            raise ValueError(f"Unknown level {self.level} for RotationLifter")
 
     def get_theta(self, x: np.ndarray) -> np.ndarray:
         if self.level == "no":
-            assert np.ndim(x) == 1
-            C_flat = x[: self.n_rot * self.d**2]
+            if np.ndim(x) == 2:
+                assert x.shape[1] == 1
+            C_flat = x[1 : 1 + self.n_rot * self.d**2]
             return C_flat.reshape((self.n_rot * self.d, self.d))
         elif self.level == "bm":
             return np.array(x[: self.n_rot * self.d, : self.d])
+        else:
+            raise ValueError(f"Unknown level {self.level} for RotationLifter")
 
     def simulate_y(self, noise: float | None = None) -> dict:
         if noise is None:
@@ -104,6 +109,13 @@ class RotationLifter(StateLifter):
 
         y = {}
         if self.n_meas > 0:
+            """
+                     _
+            || R_i - R_i ||
+
+            measurements:
+            R_ij = R_i @ R_j.T
+            """
             for i in range(self.n_rot):
                 R_gt = self.theta[i * self.d : (i + 1) * self.d, :]
                 y[i] = []
@@ -122,6 +134,12 @@ class RotationLifter(StateLifter):
                         Ri = R_gt.T
                     y[i].append(Ri)
         if self.sparsity == "chain":
+            """
+                     _
+            || R_i - R_ij @ R_j ||_F^2
+                          _
+            measurements: R_ij = R_i @ R_j.T
+            """
             for i in range(self.n_rot - 1):
                 j = i + 1
                 R_i = self.theta[i * self.d : (i + 1) * self.d, :]
@@ -151,18 +169,46 @@ class RotationLifter(StateLifter):
 
         return self.get_Q_from_y(self.y_, output_poly=output_poly)
 
+    def get_L(self, theta=None):
+        """
+        Returns matrix L from the cost term, so that we can add non-quadratic terms.
+        F is the fixed rotation matrix
+
+        || R - F ||_F = tr(R'R) - 2 tr(F'R) + tr(F'F)
+                      = 2 tr(I) - 2 tr(F'R)
+
+        # R is Nd x d
+        argmin "" = argmin -2 * tr(F'R_0)
+                  = argmin -2 * vec(F).T @ vec(R_0)
+
+        will add trace(L'R), so L is of shape Nd x d
+        """
+        if theta is None:
+            theta = self.theta
+        R0 = theta[: self.d, : self.d]
+
+        if self.level == "bm":
+            L = PolyMatrix(symmetric=False)
+            L["c_0", "width"] = -R0
+            return L.get_matrix(variables=(self.var_dict, {"width": self.d}))
+        elif self.level == "no":
+            L = PolyMatrix(symmetric=False)
+            L["c_0", "width"] = -R0.flatten("C")
+            return L.get_matrix(variables=(self.var_dict, {"width": 1}))
+        else:
+            raise ValueError(f"Unknown level {self.level} for RotationLifter")
+
     def get_Q_from_y(self, y, output_poly=False):
-        # f(R) = sum_i || R @ R_i - I ||_F^2
-        # argmin f(R) = argmin sum_i || R_i.T @ R_i ||^2 - 2 tr(R.T @ R_i) + ||I||_F^2
-        #             = argmin sum_i -2 tr(R.T @ R_i) + sum_i d
-        #             = argmin sum_i -2 vec(R).T @ vec(R_i.T) + N * d
-        # sanity check for zero noise:
-        #              || R @ R.T - I ||_F^2 = 0
         """param y: list of noisy rotation matrices."""
         Q = PolyMatrix()
 
         for key, R in y.items():
             # treat unary factors
+            # f(R) = sum_i || R  - Ri ||_F^2
+            # argmin f(R) = argmin sum_i tr((R - Ri)'(R - Ri))
+            #             = argmin sum_i -2 tr(Ri.T @ R)
+            #     tr(A.T @ B) = vec(A).T @ vec(B)
+            #             = argmin sum_i -2 vec(Ri).T @ vec(R)
             if isinstance(key, int):
                 if self.level == "bm":
                     raise NotImplementedError(
@@ -173,12 +219,18 @@ class RotationLifter(StateLifter):
                     if self.level == "no":
                         Q[self.HOM, f"c_{key}"] -= Ri.T.flatten("C")[None, :]
                 Q[self.HOM, self.HOM] += len(R) * self.d
+            # treat binary factors
+            # f(R) = sum_ij || Ri  - Rij @ Rj ||_F^2
+            # argmin f(R) = argmin sum_i -2 tr(Ri.T @ R_ij @ R_j)
+            #                           = tr(R_ij @ R_j @ Ri.T)
+            #     tr(A.T @ C @ B) = vec(A).T @ (I kron C) @ vec(B)
+            #             = argmin sum_i -2 tr((I kron R_ij) @ vec(R_j) vec(Ri).T)
             elif isinstance(key, tuple):
                 i, j = key
                 if self.level == "no":
-                    Q[f"c_{i}", f"c_{j}"] -= np.kron(np.eye(self.d), R.T)
+                    Q[f"c_{j}", f"c_{i}"] -= np.kron(np.eye(self.d), R)
                 elif self.level == "bm":
-                    Q[f"c_{i}", f"c_{j}"] -= R
+                    Q[f"c_{j}", f"c_{i}"] -= R.T
         if output_poly:
             return Q
         else:
@@ -234,10 +286,10 @@ class RotationLifter(StateLifter):
         if success:
             return theta_hat, info, cost
 
-    def test_and_add(self, A_list, Ai, output_poly):
+    def test_and_add(self, A_list, Ai, output_poly, bi=0):
         x = self.get_x()
         Ai_sparse = Ai.get_matrix(self.var_dict)
-        err = x.T @ Ai_sparse @ x
+        err = np.trace(np.atleast_2d(x.T @ Ai_sparse @ x)) - bi
         assert abs(err) <= 1e-10, err
         if output_poly:
             A_list.append(Ai)
@@ -246,6 +298,7 @@ class RotationLifter(StateLifter):
 
     def get_A_known(self, var_dict=None, output_poly=False, add_redundant=False):
         A_list = []
+        b_list = []
         if var_dict is None:
             var_dict = self.var_dict
 
@@ -256,13 +309,17 @@ class RotationLifter(StateLifter):
                     Ei = np.zeros((self.d, self.d))
                     Ei[i, i] = 1.0
                     Ai = PolyMatrix(symmetric=True)
-                    Ai[self.HOM, self.HOM] = -1
                     if self.level == "no":
                         constraint = np.kron(Ei, np.eye(self.d))
+                        Ai[self.HOM, self.HOM] = -1
                         Ai[f"c_{k}", f"c_{k}"] = constraint
+                        b_list.append(0.0)
                     else:
                         Ai[f"c_{k}", f"c_{k}"] = Ei
-                    self.test_and_add(A_list, Ai, output_poly=output_poly)
+                        b_list.append(1.0)
+                    self.test_and_add(
+                        A_list, Ai, output_poly=output_poly, bi=b_list[-1]
+                    )
 
                 # enforce off-diagonal == 0 for R'R = I
                 for i in range(self.d):
@@ -274,9 +331,13 @@ class RotationLifter(StateLifter):
                         if self.level == "no":
                             constraint = np.kron(Ei, np.eye(self.d))
                             Ai[f"c_{k}", f"c_{k}"] = constraint
+                            b_list.append(0.0)
                         else:
                             Ai[f"c_{k}", f"c_{k}"] = Ei
-                        self.test_and_add(A_list, Ai, output_poly=output_poly)
+                            b_list.append(0.0)
+                        self.test_and_add(
+                            A_list, Ai, output_poly=output_poly, bi=b_list[-1]
+                        )
 
                 # enforce that determinant is one.
                 if self.d == 2 and self.ADD_DETERMINANT:
@@ -304,7 +365,10 @@ class RotationLifter(StateLifter):
                     constraint[1, 2] = constraint[2, 1] = -1.0
                     Ai[self.HOM, self.HOM] = -2
                     Ai[f"c_{k}", f"c_{k}"] = constraint
-                    self.test_and_add(A_list, Ai, output_poly=output_poly)
+                    b_list.append(0.0)
+                    self.test_and_add(
+                        A_list, Ai, output_poly=output_poly, bi=b_list[-1]
+                    )
                 elif self.d == 3 and self.ADD_DETERMINANT:
                     #      c11  c12  c13                  c21 * c32 - c31 * c22 = c13
                     # C = [c21, c22, c23]; c1 x c2 = c3:  c31 * c12 - c11 * c12 = c23
@@ -326,7 +390,10 @@ class RotationLifter(StateLifter):
                     Ai[self.HOM, self.HOM] = -1
                     constraint = np.kron(np.eye(self.d), Ei)
                     Ai[f"c_{k}", f"c_{k}"] = constraint
-                    self.test_and_add(A_list, Ai, output_poly=output_poly)
+                    b_list.append(0.0)
+                    self.test_and_add(
+                        A_list, Ai, output_poly=output_poly, bi=b_list[-1]
+                    )
 
                 # enforce off-diagonal == 0 for RR' = I
                 for i in range(self.d):
@@ -337,8 +404,14 @@ class RotationLifter(StateLifter):
                         constraint = np.kron(np.eye(self.d), Ei)
                         Ai = PolyMatrix(symmetric=True)
                         Ai[f"c_{k}", f"c_{k}"] = constraint
-                        self.test_and_add(A_list, Ai, output_poly=output_poly)
-        return A_list
+                        b_list.append(0.0)
+                        self.test_and_add(
+                            A_list, Ai, output_poly=output_poly, bi=b_list[-1]
+                        )
+        if self.level == "bm":
+            return A_list, b_list
+        else:
+            return A_list
 
     def plot(self, estimates={}):
         import itertools
@@ -348,16 +421,18 @@ class RotationLifter(StateLifter):
         from popcor.utils.plotting_tools import plot_frame
 
         fig, ax = plt.subplots()
+        label = "gt"
         for i in range(self.n_rot):
             plot_frame(
                 ax=ax,
                 theta=self.theta[i * self.d : (i + 1) * self.d, :],
-                label="gt",
+                label=label,
                 ls="-",
                 scale=0.5,
                 marker="",
-                r_wc_w=np.hstack([i] + [0.0] * (self.d - 1)),  # type.ignore
+                r_wc_w=np.hstack([i * 2.0] + [0.0] * (self.d - 1)),  # type.ignore
             )
+            label = None
 
         linestyles = itertools.cycle(["--", "-.", ":"])
         for label, theta in estimates.items():
@@ -369,8 +444,9 @@ class RotationLifter(StateLifter):
                     ls=next(linestyles),
                     scale=1.0,
                     marker="",
-                    r_wc_w=np.hstack([i] + [0.0] * (self.d - 1)),  # type.ignore
+                    r_wc_w=np.hstack([i * 2.0] + [0.0] * (self.d - 1)),  # type.ignore
                 )
+                label = None
 
         ax.set_aspect("equal")
         ax.legend()
@@ -383,19 +459,55 @@ class RotationLifter(StateLifter):
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import numpy as np
+    from cert_tools.linalg_tools import rank_project
+    from cert_tools.sdp_solvers import solve_sdp
+
+    from popcor.utils.plotting_tools import plot_matrix
+
+    # level = "no"
+    level = "bm"
 
     np.random.seed(0)
-    lifter = RotationLifter(d=3, n_meas=0, n_rot=3, sparsity="chain", level="no")
-    y = lifter.simulate_y(noise=0.2)
+    lifter = RotationLifter(d=2, n_meas=0, n_rot=3, sparsity="chain", level=level)
+    y = lifter.simulate_y(noise=1e-10)
+
+    x = lifter.get_x()
+    rank = x.shape[1] if np.ndim(x) == 2 else 1
 
     theta_gt, *_ = lifter.local_solver(lifter.theta, y, verbose=False)
     estimates = {"init gt": theta_gt}
-    for i in range(10):
+    for i in range(0):
         theta_init = lifter.sample_theta()
         theta_i, *_ = lifter.local_solver(theta_init, y, verbose=False)
         estimates[f"init random {i}"] = theta_i
 
     fig, ax = lifter.plot(estimates=estimates)
-    ax.legend([])
+    ax.legend()
     plt.show(block=False)
+
+    Q = lifter.get_Q_from_y(y=y, output_poly=False)
+    A_known = lifter.get_A_known(output_poly=False)
+    constraints = lifter.get_A_b_list(lifter.get_A_known())
+
+    fig, axs = plt.subplots(1, len(constraints) + 1)
+    fig.set_size_inches(3 * (len(constraints) + 1), 3)
+    for i in range(len(constraints)):
+        Ai = constraints[i][0]
+        plot_matrix(Ai.toarray(), ax=axs[i], title=f"A{i} ", colorbar=False)  # type: ignore
+
+    fig = plot_matrix(Q.toarray(), ax=axs[i + 1], title="Q", colorbar=False)  # type: ignore
+
+    X, info = solve_sdp(Q, constraints, verbose=False)
+
+    x, info_rank = rank_project(X, p=rank)
+    print(f"EVR: {info_rank['EVR']:.2e}")
+
+    if rank == 1:
+        theta_opt = lifter.get_theta(x.flatten()[1:])
+    else:
+        theta_opt = lifter.get_theta(x[:, :rank])
+
+    estimates = {"init gt": theta_gt, "SDP": theta_opt}
+    fig, ax = lifter.plot(estimates=estimates)
+
     print("done")
