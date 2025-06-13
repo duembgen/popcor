@@ -11,9 +11,14 @@ SOLVER_KWARGS = dict(
 
 
 class RotationLifter(StateLifter):
-    """Rotation averaging problem."""
+    """Rotation averaging problem.
 
-    LEVELS = ["no"]
+    - level "no" corresponds to the rank-1 version.
+    - level "bm" corresponds to the rank-d version (bm=Bourer Monteiro, for later extension).
+
+    """
+
+    LEVELS = ["no", "bm"]
     HOM = "h"
     VARIABLE_LIST = [["h", "c_0"], ["h", "c_0", "c_1"]]
 
@@ -23,10 +28,13 @@ class RotationLifter(StateLifter):
     NOISE = 1e-3
 
     # Add any parameters here that describe the problem (e.g. number of landmarks etc.)
-    def __init__(self, level="no", param_level="no", d=2, n_meas=2, n_rot=1):
+    def __init__(
+        self, level="no", param_level="no", d=2, n_meas=2, n_rot=1, sparsity="chain"
+    ):
         self.n_meas = n_meas
         self.n_rot = n_rot
         self.level = level
+        self.sparsity = sparsity
         super().__init__(
             level=level,
             param_level=param_level,
@@ -35,8 +43,11 @@ class RotationLifter(StateLifter):
 
     @property
     def var_dict(self):
-        var_dict = {self.HOM: 1}
-        var_dict.update({f"c_{i}": self.d**2 for i in range(self.n_rot)})
+        if self.level == "no":
+            var_dict = {self.HOM: 1}
+            var_dict.update({f"c_{i}": self.d**2 for i in range(self.n_rot)})
+        else:
+            var_dict = {f"c_{i}": self.d for i in range(self.n_rot)}
         return var_dict
 
     def sample_theta(self):
@@ -62,43 +73,74 @@ class RotationLifter(StateLifter):
             var_subset = self.var_dict.keys()
 
         x_data = []
-        for key in var_subset:
-            if key == self.HOM:
-                x_data.append(1.0)
-            elif "c" in key:
-                i = int(key.split("_")[1])
-                x_data += list(theta[i * self.d : (i + 1) * self.d].flatten("C"))
-        dim_x = self.get_dim_x(var_subset=var_subset)
-        assert len(x_data) == dim_x
-        return np.array(x_data)
+        if self.level == "no":
+            for key in var_subset:
+                if key == self.HOM:
+                    x_data.append(1.0)
+                elif "c" in key:
+                    i = int(key.split("_")[1])
+                    x_data += list(theta[i * self.d : (i + 1) * self.d].flatten("C"))
+            dim_x = self.get_dim_x(var_subset=var_subset)
+            assert len(x_data) == dim_x
+            return np.hstack(x_data)
+        elif self.level == "bm":
+            for key in var_subset:
+                if "c" in key:
+                    i = int(key.split("_")[1])
+                    x_data.append(theta[i * self.d : (i + 1) * self.d])
+            return np.vstack(x_data)
 
     def get_theta(self, x: np.ndarray) -> np.ndarray:
-        assert np.ndim(x) == 1
-        C_flat = x[: self.n_rot * self.d**2]
-        return C_flat.reshape((self.n_rot * self.d, self.d))
+        if self.level == "no":
+            assert np.ndim(x) == 1
+            C_flat = x[: self.n_rot * self.d**2]
+            return C_flat.reshape((self.n_rot * self.d, self.d))
+        elif self.level == "bm":
+            return np.array(x[: self.n_rot * self.d, : self.d])
 
     def simulate_y(self, noise: float | None = None) -> dict:
         if noise is None:
             noise = self.NOISE
 
         y = {}
-        for i in range(self.n_rot):
-            R_gt = self.theta[i * self.d : (i + 1) * self.d, :]
-            y[i] = []
-            for n in range(self.n_meas):
-                # noise model: R_i = R.T @ Rnoise
+        if self.n_meas > 0:
+            for i in range(self.n_rot):
+                R_gt = self.theta[i * self.d : (i + 1) * self.d, :]
+                y[i] = []
+                for _ in range(self.n_meas):
+                    # noise model: R_i = R.T @ Rnoise
+                    if noise > 0:
+                        # Generate a random small rotation as noise and apply it
+                        noise_rotvec = np.random.normal(scale=noise, size=(self.d,))
+                        Rnoise = (
+                            R.from_rotvec(noise_rotvec).as_matrix()
+                            if self.d == 3
+                            else R.from_euler("z", noise_rotvec[0]).as_matrix()[:2, :2]
+                        )
+                        Ri = R_gt.T @ Rnoise
+                    else:
+                        Ri = R_gt.T
+                    y[i].append(Ri)
+        if self.sparsity == "chain":
+            for i in range(self.n_rot - 1):
+                j = i + 1
+                R_i = self.theta[i * self.d : (i + 1) * self.d, :]
+                R_j = self.theta[j * self.d : (j + 1) * self.d, :]
+                R_gt = R_i @ R_j.T
+
+                # Generate a random small rotation as noise and apply it
                 if noise > 0:
-                    # Generate a random small rotation as noise and apply it
                     noise_rotvec = np.random.normal(scale=noise, size=(self.d,))
                     Rnoise = (
                         R.from_rotvec(noise_rotvec).as_matrix()
                         if self.d == 3
                         else R.from_euler("z", noise_rotvec[0]).as_matrix()[:2, :2]
                     )
-                    Ri = R_gt.T @ Rnoise
+                    y[(i, j)] = R_gt @ Rnoise
                 else:
-                    Ri = R_gt.T
-                y[i].append(Ri)
+                    y[(i, j)] = R_gt
+        else:
+            raise ValueError(f"Unknown sparsity {self.sparsity}")
         return y
 
     def get_Q(self, noise: float | None = None, output_poly: bool = False):
@@ -122,13 +164,21 @@ class RotationLifter(StateLifter):
         for key, R in y.items():
             # treat unary factors
             if isinstance(key, int):
+                if self.level == "bm":
+                    raise NotImplementedError(
+                        "no support for unary factors in bm formulation yet"
+                    )
                 assert isinstance(R, list)
                 for Ri in R:
-                    Q[self.HOM, f"c_{key}"] -= Ri.T.flatten("C")[None, :]
+                    if self.level == "no":
+                        Q[self.HOM, f"c_{key}"] -= Ri.T.flatten("C")[None, :]
                 Q[self.HOM, self.HOM] += len(R) * self.d
             elif isinstance(key, tuple):
                 i, j = key
-                Q[f"c_{i}", f"c_{j}"] -= R.T.flatten("C")[None, :]
+                if self.level == "no":
+                    Q[f"c_{i}", f"c_{j}"] -= np.kron(np.eye(self.d), R.T)
+                elif self.level == "bm":
+                    Q[f"c_{i}", f"c_{j}"] -= R
         if output_poly:
             return Q
         else:
@@ -137,6 +187,8 @@ class RotationLifter(StateLifter):
     def local_solver_old(
         self, t0, y, verbose=False, method=METHOD, solver_kwargs=SOLVER_KWARGS
     ):
+        """Not used anymore, kept for reference. We now use the default
+        QCQP local solver."""
         import pymanopt
         from pymanopt.manifolds import SpecialOrthogonalGroup
 
@@ -203,10 +255,13 @@ class RotationLifter(StateLifter):
                 for i in range(self.d):
                     Ei = np.zeros((self.d, self.d))
                     Ei[i, i] = 1.0
-                    constraint = np.kron(Ei, np.eye(self.d))
                     Ai = PolyMatrix(symmetric=True)
-                    Ai[f"c_{k}", f"c_{k}"] = constraint
                     Ai[self.HOM, self.HOM] = -1
+                    if self.level == "no":
+                        constraint = np.kron(Ei, np.eye(self.d))
+                        Ai[f"c_{k}", f"c_{k}"] = constraint
+                    else:
+                        Ai[f"c_{k}", f"c_{k}"] = Ei
                     self.test_and_add(A_list, Ai, output_poly=output_poly)
 
                 # enforce off-diagonal == 0 for R'R = I
@@ -215,19 +270,34 @@ class RotationLifter(StateLifter):
                         Ei = np.zeros((self.d, self.d))
                         Ei[i, j] = 1.0
                         Ei[j, i] = 1.0
-                        constraint = np.kron(Ei, np.eye(self.d))
                         Ai = PolyMatrix(symmetric=True)
-                        Ai[f"c_{k}", f"c_{k}"] = constraint
+                        if self.level == "no":
+                            constraint = np.kron(Ei, np.eye(self.d))
+                            Ai[f"c_{k}", f"c_{k}"] = constraint
+                        else:
+                            Ai[f"c_{k}", f"c_{k}"] = Ei
                         self.test_and_add(A_list, Ai, output_poly=output_poly)
 
                 # enforce that determinant is one.
                 if self.d == 2 and self.ADD_DETERMINANT:
+                    # level "no":
                     # C = [a b; c d]; ad - bc - 1 = 0
                     #    a b c d
                     # a        1
                     # b     -1
                     # c   -1
                     # d 1
+                    # level "bm"
+                    # C = [a b
+                    #      c d]
+                    # C @ C.T
+                    # [a b] [a c]   [a^2 + b^2 a*c + b*d]
+                    # [c d] [b d] = [a*c + b*d c^2 + d^2]
+                    # cannot be implemented...
+                    if self.level == "bm":
+                        raise NotImplementedError(
+                            "Cannot add determinant constraint for level bm"
+                        )
                     Ai = PolyMatrix(symmetric=True)
                     constraint = np.zeros((self.d**2, self.d**2))
                     constraint[0, 3] = constraint[3, 0] = 1.0
@@ -244,14 +314,18 @@ class RotationLifter(StateLifter):
                     )
 
             if add_redundant and f"c_{k}" in var_dict:
+                if self.level == "bm":
+                    print("No known redundant constraints for level bm")
+                    continue
+
                 # enforce diagonal == 1 for RR' = I
                 for i in range(self.d):
                     Ei = np.zeros((self.d, self.d))
                     Ei[i, i] = 1.0
-                    constraint = np.kron(np.eye(self.d), Ei)
                     Ai = PolyMatrix(symmetric=True)
-                    Ai[f"c_{k}", f"c_{k}"] = constraint
                     Ai[self.HOM, self.HOM] = -1
+                    constraint = np.kron(np.eye(self.d), Ei)
+                    Ai[f"c_{k}", f"c_{k}"] = constraint
                     self.test_and_add(A_list, Ai, output_poly=output_poly)
 
                 # enforce off-diagonal == 0 for RR' = I
@@ -303,16 +377,15 @@ class RotationLifter(StateLifter):
         return fig, ax
 
     def __repr__(self):
-        return f"rotation_lifter{self.d}d"
+        return f"rotation_lifter{self.d}d_{self.level}"
 
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import numpy as np
 
-    np.random.seed(2)
-    lifter = RotationLifter(d=3, n_meas=3, n_rot=2)
-
+    np.random.seed(0)
+    lifter = RotationLifter(d=3, n_meas=0, n_rot=3, sparsity="chain", level="no")
     y = lifter.simulate_y(noise=0.2)
 
     theta_gt, *_ = lifter.local_solver(lifter.theta, y, verbose=False)
