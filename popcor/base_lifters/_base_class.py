@@ -700,7 +700,10 @@ class BaseClass(object):
             return [(self.get_A0(var_subset), 1.0)] + [(A, 0.0) for A in A_list]
         else:
             assert isinstance(A_list, tuple)
-            return [(Ai, bi) for Ai, bi in zip(*A_list)]
+            A0_list, b0_list = self.get_A0(var_subset)
+            return [
+                (Ai, bi) for Ai, bi in zip(A0_list + A_list[0], b0_list + A_list[1])
+            ]
 
     def sample_parameters_landmarks(self, landmarks: np.ndarray):
         """Used by RobustPoseLifter, RangeOnlyLocLifter: the default way of adding landmarks to parameters."""

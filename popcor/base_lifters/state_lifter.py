@@ -199,13 +199,8 @@ class StateLifter(BaseClass):
         if np.ndim(x0) == 1:
             x0 = x0.reshape((-1, 1))
 
-        try:
-            L = self.get_L()
-        except AttributeError:
-            L = None
-
         X, info = solve_low_rank_sdp(
-            Q, Constraints=Constraints, rank=x0.shape[1], x_cand=x0, L=L, **kwargs
+            Q, Constraints=Constraints, rank=x0.shape[1], x_cand=x0, **kwargs
         )
         # TODO(FD) identify when the solve is not successful.
         info["success"] = True

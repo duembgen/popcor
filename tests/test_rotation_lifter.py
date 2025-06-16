@@ -7,10 +7,10 @@ def test_rank1_vs_rankd():
     """make sure that the rank-1 and rank-d lifters give the same cost
     for the same measurements"""
     np.random.seed(0)
-    r1 = RotationLifter(level="no", n_meas=0, n_rot=3, d=2)
+    r1 = RotationLifter(level="no", n_abs=0, n_rot=3, d=2)
 
     np.random.seed(0)
-    r2 = RotationLifter(level="bm", n_meas=0, n_rot=3, d=2)
+    r2 = RotationLifter(level="bm", n_abs=0, n_rot=3, d=2)
 
     np.testing.assert_array_equal(r1.theta, r2.theta)
 
@@ -35,7 +35,7 @@ def test_rank1_vs_rankd():
 
 def test_measurements(level="no"):
     """make sure that the forward model for measurements is correct"""
-    lifter = RotationLifter(d=2, n_meas=0, n_rot=3, sparsity="chain", level=level)
+    lifter = RotationLifter(d=2, n_abs=0, n_rot=3, sparsity="chain", level=level)
     y = lifter.simulate_y(noise=1e-10)
 
     for (i, j), R in y.items():
