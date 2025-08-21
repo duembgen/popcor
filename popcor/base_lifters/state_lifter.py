@@ -158,7 +158,14 @@ class StateLifter(BaseClass):
         else:
             Q = self.get_Q()
         x = self.get_x(theta=theta)
-        return float(np.trace(x.T @ Q @ x))
+        if np.ndim(x) == 1:
+            return float(x.T @ Q @ x)
+        elif np.ndim(x) == 2:
+            return float(np.trace(x.T @ Q @ x))
+        else:
+            raise ValueError(
+                f"Unexpected shape of x: {x.shape}. Must be 1D or 2D array."
+            )
 
     def local_solver(
         self,

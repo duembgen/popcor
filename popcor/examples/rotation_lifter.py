@@ -111,9 +111,11 @@ class RotationLifter(StateLifter):
     @property
     def var_dict(self):
         if self.level == "no":
+            # self.HOM is the scalar homogenization variable
             var_dict = {self.HOM: 1}
             var_dict.update({f"c_{i}": self.d**2 for i in range(self.n_rot)})
         else:
+            # self.HOM is the world frame, which is d x d
             var_dict = {self.HOM: self.d}
             var_dict.update({f"c_{i}": self.d for i in range(self.n_rot)})
         return var_dict
@@ -280,6 +282,8 @@ class RotationLifter(StateLifter):
                         #      = sum_k 2tr(I) - 2tr(R'Rk)
                         Q_test = PolyMatrix()
                         Q_test[self.HOM, f"c_{key}"] -= Rk.flatten("F")[None, :]
+                        # Not adding below to be consistent with "bm" case, where we cannot
+                        # add a constant term to the cost.
                         # Q_test[self.HOM, self.HOM] += 2 * self.d
                         if DEBUG:
                             x = self.get_x()
@@ -315,6 +319,9 @@ class RotationLifter(StateLifter):
                 i, j = key
                 if self.level == "no":
                     Q_test = PolyMatrix()
+
+                    # Not adding below to be consistent with "bm" case, where we cannot
+                    # add a constant term to the cost.
                     # Q_test[self.HOM, self.HOM] += 2 * self.d
                     Q_test[f"c_{i}", f"c_{j}"] = -np.kron(R, np.eye(self.d))
                     if DEBUG:
