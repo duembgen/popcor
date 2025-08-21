@@ -1,8 +1,21 @@
+"""
+A class for solving rotation averaging problems.
+
+Some notes and conventions:
+- The rotation matrices are called R_i.
+- We consider two different forms of "lifting":
+    - "no" corresponds to the rank-1 version, where we define x = [1, c_1, ..., c_N] with each c_i = R_i.flatten("C"), x in (d**2 x N + 1)
+    - "bm" corresponds to the rank-d version, where we define X.T = [R_0.T; R_1.T; ...; R_N.T], X in (d x (N + 1)*d), and R_0 is the world frame.
+- According to above conventions, HOM is either 1 or R_0, the world frame.
+- Relative measurements are defined such that R_j = R_i @ R_ij
+
+"""
+
 from typing import List
 
 import numpy as np
 from poly_matrix.poly_matrix import PolyMatrix
-from scipy.spatial.transform import Rotation as R
+from scipy.spatial.transform import Rotation
 
 from popcor.base_lifters import StateLifter
 
@@ -10,6 +23,8 @@ METHOD = "CG"
 SOLVER_KWARGS = dict(
     min_gradient_norm=1e-7, max_iterations=10000, min_step_size=1e-8, verbosity=1
 )
+
+DEBUG = True
 
 
 def get_orthogonal_constraints(key, hom, d, level):
@@ -105,15 +120,15 @@ class RotationLifter(StateLifter):
 
     def sample_theta(self):
         """Generate a random new feasible point."""
-        C = np.empty((self.n_rot * self.d, self.d))
+        C = np.empty((self.d, self.n_rot * self.d))
         for i in range(self.n_rot):
             if self.d == 2:
                 angle = np.random.uniform(0, 2 * np.pi)
-                C[i * self.d : (i + 1) * self.d, :] = R.from_euler(
+                C[:, i * self.d : (i + 1) * self.d] = Rotation.from_euler(
                     "z", angle
                 ).as_matrix()[:2, :2]
             elif self.d == 3:
-                C[i * self.d : (i + 1) * self.d, :] = R.random().as_matrix()
+                C[:, i * self.d : (i + 1) * self.d] = Rotation.random().as_matrix()
         return C
 
     def get_x(self, theta=None, parameters=None, var_subset=None) -> np.ndarray:
@@ -132,7 +147,7 @@ class RotationLifter(StateLifter):
                     x_data.append(1.0)
                 elif "c" in key:
                     i = int(key.split("_")[1])
-                    x_data += list(theta[i * self.d : (i + 1) * self.d].flatten("C"))
+                    x_data += list(theta[:, i * self.d : (i + 1) * self.d].flatten("F"))
                 else:
                     raise ValueError(f"untreated key {key}")
             dim_x = self.get_dim_x(var_subset=var_subset)
@@ -144,7 +159,7 @@ class RotationLifter(StateLifter):
                     x_data.append(np.eye(self.d))
                 elif "c" in key:
                     i = int(key.split("_")[1])
-                    x_data.append(theta[i * self.d : (i + 1) * self.d])
+                    x_data.append(theta[:, i * self.d : (i + 1) * self.d].T)
                 else:
                     raise ValueError(f"untreated key {key}")
             return np.vstack(x_data)
@@ -156,48 +171,54 @@ class RotationLifter(StateLifter):
             if np.ndim(x) == 2:
                 assert x.shape[1] == 1
             C_flat = x[1 : 1 + self.n_rot * self.d**2]
-            return C_flat.reshape((self.n_rot * self.d, self.d))
+            return C_flat.reshape((self.d, self.n_rot * self.d), order="F")
         elif self.level == "bm":
+            # Remember that x is composed of R_0.T, R_1.T, ..., R_N.T
+            # We want to return theta in the form [R*_1, R*_2, ..., R*_N]
+            # where each R*_i := R_0.T @ R_i
+
             # d x d
-            R0 = x[: self.d, : self.d]
-            # nd x d
+            R0 = x[: self.d, : self.d].T
+
+            # nd x d: [R_1.T; R_2.T; ...; R_N.T]
             Ri = np.array(x[self.d : (self.n_rot + 1) * self.d, : self.d])
-            # below is a block-diagonal matrix
-            return np.kron(np.eye(self.n_rot), R0.T) @ Ri
+
+            # return d x nd: [R*_1, R*_2, ..., R*_N]
+            Ri_world = R0.T @ Ri.T
+            return Ri_world
         else:
             raise ValueError(f"Unknown level {self.level} for RotationLifter")
 
     def add_relative_measurement(self, i, j, noise) -> np.ndarray:
         """
-                    _
-        || R_i - R_ij @ R_j ||_F^2
-                        _
-        measurements: R_ij = R_i @ R_j.T
+        || R_j - R_i @ R_ij ||_F^2
+
+        measurements: R_ij = R_i.T @ R_j
         """
-        R_i = self.theta[i * self.d : (i + 1) * self.d, :]
-        R_j = self.theta[j * self.d : (j + 1) * self.d, :]
-        R_gt = R_i @ R_j.T
+        R_i = self.theta[:, i * self.d : (i + 1) * self.d]
+        R_j = self.theta[:, j * self.d : (j + 1) * self.d]
+        R_gt = R_i.T @ R_j
 
         # Generate a random small rotation as noise and apply it
         if noise > 0:
             noise_rotvec = np.random.normal(scale=noise, size=(self.d,))
             Rnoise = (
-                R.from_rotvec(noise_rotvec).as_matrix()
+                Rotation.from_rotvec(noise_rotvec).as_matrix()
                 if self.d == 3
-                else R.from_euler("z", noise_rotvec[0]).as_matrix()[:2, :2]
+                else Rotation.from_euler("z", noise_rotvec[0]).as_matrix()[:2, :2]
             )
             return R_gt @ Rnoise
         else:
             return R_gt
 
     def add_absolute_measurement(self, i, noise, n_meas=1) -> List[np.ndarray]:
-        """_
-        || R_i - R_i ||
-
-        measurements:   _
-                        R_i = R_i @ noise
         """
-        R_gt = self.theta[i * self.d : (i + 1) * self.d, :]
+        || R_i - R_w @ R_wi ||
+
+        measurements:
+                        R_wi = R_w.T @ R_i
+        """
+        R_gt = self.theta[:, i * self.d : (i + 1) * self.d]
         y = []
         for _ in range(n_meas):
             # noise model: R_i = R.T @ Rnoise
@@ -205,9 +226,9 @@ class RotationLifter(StateLifter):
                 # Generate a random small rotation as noise and apply it
                 noise_rotvec = np.random.normal(scale=noise, size=(self.d,))
                 Rnoise = (
-                    R.from_rotvec(noise_rotvec).as_matrix()
+                    Rotation.from_rotvec(noise_rotvec).as_matrix()
                     if self.d == 3
-                    else R.from_euler("z", noise_rotvec[0]).as_matrix()[:2, :2]
+                    else Rotation.from_euler("z", noise_rotvec[0]).as_matrix()[:2, :2]
                 )
                 Ri = R_gt @ Rnoise
             else:
@@ -224,7 +245,7 @@ class RotationLifter(StateLifter):
             for i in range(self.n_rot):
                 y[i] = self.add_absolute_measurement(i, noise, self.n_abs)
         else:
-            y[0] = self.add_absolute_measurement(0, 0.0, 1)
+            y[0] = self.add_absolute_measurement(0, 0.0, 1)  # add prior
 
         if self.n_rel > 0:
             if self.sparsity == "chain":
@@ -243,122 +264,96 @@ class RotationLifter(StateLifter):
 
         return self.get_Q_from_y(self.y_, output_poly=output_poly)
 
-    def get_L(self, theta=None):
-        """This function is deprecated as we now introduce a homogeneous variable R0.
-
-        Returns matrix L from the cost term, so that we can add non-quadratic terms.
-        F is the fixed rotation matrix
-
-        || R - F ||_F = tr(R'R) - 2 tr(F'R) + tr(F'F)
-                      = 2 tr(I) - 2 tr(F'R)
-
-        # R is Nd x d
-        argmin "" = argmin -2 * tr(F'R_0)
-                  = argmin -2 * vec(F).T @ vec(R_0)
-
-        will add trace(L'R), so L is of shape Nd x d
-        """
-        if theta is None:
-            theta = self.theta
-        R0 = theta[: self.d, : self.d]
-
-        if self.level == "bm":
-            L = PolyMatrix(symmetric=False)
-            L["c_0", "width"] = -R0
-            return L.get_matrix(variables=(self.var_dict, {"width": self.d}))
-        elif self.level == "no":
-            L = PolyMatrix(symmetric=False)
-            L["c_0", "width"] = -R0.flatten("C")
-            return L.get_matrix(variables=(self.var_dict, {"width": 1}))
-        else:
-            raise ValueError(f"Unknown level {self.level} for RotationLifter")
-
     def get_Q_from_y(self, y, output_poly=False):
         """param y: list of noisy rotation matrices."""
         Q = PolyMatrix()
 
         for key, R in y.items():
-            # treat unary factors
-            # f(R) = sum_i || R  - Ri ||_F^2
-            # argmin f(R) = argmin sum_i tr((R - Ri)'(R - Ri))
-            #             = argmin sum_i -2 tr(Ri.T @ R)
-            #     tr(A.T @ B) = vec(A).T @ vec(B)
-            #             = argmin sum_i -2 vec(Ri).T @ vec(R)
             if isinstance(key, int):
+                # loop over all absolute measurements of this rotation.
                 assert isinstance(R, list)
-                for Ri in R:
+                for Rk in R:
                     if self.level == "no":
-                        Q[self.HOM, f"c_{key}"] -= Ri.flatten("C")[None, :]
-                        Q[self.HOM, self.HOM] += len(R) * self.d
+                        # treat unary factors
+                        # Rk is measured
+                        # f(R) = sum_k || R  - Rk ||_F^2
+                        #      = sum_k 2tr(I) - 2tr(R'Rk)
+                        Q_test = PolyMatrix()
+                        Q_test[self.HOM, f"c_{key}"] -= Rk.flatten("F")[None, :]
+                        # Q_test[self.HOM, self.HOM] += 2 * self.d
+                        if DEBUG:
+                            x = self.get_x()
+                            cost_x = x.T @ Q_test.get_matrix(self.var_dict) @ x
+                            Ri = self.theta[:, key * self.d : (key + 1) * self.d]
+                            cost_R = np.linalg.norm(Ri - Rk) ** 2 - 2 * self.d
+                            assert abs(cost_x - cost_R) < 1e-10
+                        Q += Q_test
+
                     elif self.level == "bm":
-                        Q[self.HOM, f"c_{key}"] -= Ri
+                        # in this case, we use self.HOM as a world frame.
+                        # f(R) = sum_i || R - HOM @ Rk ||
+                        # compare with below:
+                        # R corresponds to Rj, HOM corresponds to Ri
+                        Q_test = PolyMatrix()
+                        Q_test[self.HOM, f"c_{key}"] -= Rk
+                        if DEBUG:
+                            x = self.get_x()
+                            cost_x = np.trace(
+                                x.T @ Q_test.get_matrix(self.var_dict) @ x
+                            )
+                            Ri = self.theta[:, key * self.d : (key + 1) * self.d]
+                            cost_R = np.linalg.norm(Ri - Rk) ** 2 - 2 * self.d
+                            assert abs(cost_x - cost_R) < 1e-10
+                        Q += Q_test
             # treat binary factors
-            # f(R) = sum_ij || Ri  - Rij @ Rj ||_F^2
-            # argmin f(R) = argmin sum_i -2 tr(Ri.T @ R_ij @ R_j)
-            #                           = tr(R_ij @ R_j @ Ri.T)
-            #     tr(A.T @ C @ B) = vec(A).T @ (I kron C) @ vec(B)
-            #             = argmin sum_i -2 tr((I kron R_ij) @ vec(R_j) vec(Ri).T)
+            # f(R) = sum_ij || Rj  - Ri @ Rij ||_F^2
+            #      = sum_ij tr((Rj - Ri @ Rij)'(Rj - Ri @ Rij))
+            #      = sum_ij tr(Rj'Rj) - 2 tr(Rj'Ri Rij) + tr(Rij'Ri'RiRij)
+            #      = sum_ij 2tr(I) - 2tr(Rij Rj' Ri)
+            #      = sum_ij 2tr(I)  - 2c_i' (Rij kron I) c_j
             elif isinstance(key, tuple):
                 i, j = key
                 if self.level == "no":
-                    Q[f"c_{j}", f"c_{i}"] -= np.kron(np.eye(self.d), R)
+                    Q_test = PolyMatrix()
+                    # Q_test[self.HOM, self.HOM] += 2 * self.d
+                    Q_test[f"c_{i}", f"c_{j}"] = -np.kron(R, np.eye(self.d))
+                    if DEBUG:
+                        x = self.get_x()
+                        assert (
+                            x[1:].T @ x[1:] - np.trace(self.theta.T @ self.theta)
+                        ) < 1e-10
+                        Ri = self.theta[:, i * self.d : (i + 1) * self.d]
+                        Rj = self.theta[:, j * self.d : (j + 1) * self.d]
+                        c_j = x[1 + j * self.d**2 : 1 + (j + 1) * self.d**2]
+                        c_i = x[1 + i * self.d**2 : 1 + (i + 1) * self.d**2]
+                        np.testing.assert_allclose(Ri.flatten("F"), c_i, atol=1e-5)
+                        np.testing.assert_allclose(Rj.flatten("F"), c_j, atol=1e-5)
+
+                        tr_R = np.trace(R @ Rj.T @ Ri)
+                        tr_c = c_i.T @ (np.kron(R, np.eye(self.d)) @ c_j)
+                        assert abs(tr_R - tr_c) < 1e-10
+
+                        cost_x = x.T @ Q_test.get_matrix(self.var_dict) @ x
+                        cost_R = np.linalg.norm(Rj - Ri @ R) ** 2 - 2 * self.d
+                        assert abs(cost_x - cost_R) < 1e-10
+                    Q += Q_test
                 elif self.level == "bm":
-                    Q[f"c_{j}", f"c_{i}"] -= R
+                    Q_test = PolyMatrix()
+                    Q_test[f"c_{i}", f"c_{j}"] = -R
+                    if DEBUG:
+                        x = self.get_x()
+                        Ri = self.theta[:, i * self.d : (i + 1) * self.d]
+                        Rj = self.theta[:, j * self.d : (j + 1) * self.d]
+
+                        cost_x = np.trace(x.T @ Q_test.get_matrix(self.var_dict) @ x)
+                        cost_R = np.linalg.norm(Rj - Ri @ R) ** 2 - 2 * self.d
+                        assert abs(cost_x - cost_R) < 1e-9
+                    Q += Q_test
 
         if output_poly:
             return Q
         else:
             return Q.get_matrix(self.var_dict)
-
-    def local_solver_old(
-        self, t0, y, verbose=False, method=METHOD, solver_kwargs=SOLVER_KWARGS
-    ):
-        """Not used anymore, kept for reference. We now use the default
-        QCQP local solver."""
-        import pymanopt
-        from pymanopt.manifolds import SpecialOrthogonalGroup
-
-        if method == "CG":
-            from pymanopt.optimizers import ConjugateGradient as Optimizer  # fastest
-        elif method == "SD":
-            from pymanopt.optimizers import SteepestDescent as Optimizer  # slow
-        elif method == "TR":
-            from pymanopt.optimizers import TrustRegions as Optimizer  # okay
-        else:
-            raise ValueError(method)
-
-        if verbose:
-            solver_kwargs["verbosity"] = 2
-        else:
-            solver_kwargs["verbosity"] = 0
-
-        manifold = SpecialOrthogonalGroup(self.d, k=1)
-
-        @pymanopt.function.autograd(manifold)
-        def cost(R):
-            cost = 0
-            for Ri in y:
-                cost += np.sum((R.T @ Ri - np.eye(self.d)) ** 2)
-            return cost
-
-        euclidean_gradient = None
-        problem = pymanopt.Problem(
-            manifold, cost, euclidean_gradient=euclidean_gradient
-        )
-        optimizer = Optimizer(**solver_kwargs)
-
-        res = optimizer.run(problem, initial_point=t0)
-        theta_hat = res.point
-
-        success = ("min step_size" in res.stopping_criterion) or (
-            "min grad norm" in res.stopping_criterion
-        )
-        info = {
-            "success": success,
-            "msg": res.stopping_criterion,
-        }
-        if success:
-            return theta_hat, info, cost
 
     def test_and_add(self, A_list, Ai, output_poly, b_list=[], bi=0.0):
         x = self.get_x()
@@ -521,9 +516,9 @@ class RotationLifter(StateLifter):
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import numpy as np
-
     from cert_tools.linalg_tools import rank_project
     from cert_tools.sdp_solvers import solve_sdp
+
     from popcor.utils.plotting_tools import plot_matrix
 
     level = "no"
