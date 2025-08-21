@@ -178,9 +178,6 @@ class StateLifter(BaseClass):
         Default local solver that uses IPOPT to solve the QCQP problem defined by Q and the constraints matrices.
         Consider overwriting this for more efficient solvers.
         """
-        print(
-            "Warning: using default local_solver, which may be less efficient than a custom one."
-        )
         if len(args):
             print(f"Warning: ignore args {args}")
         from cert_tools.sdp_solvers import solve_low_rank_sdp

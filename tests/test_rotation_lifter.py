@@ -1,7 +1,27 @@
+import math
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pytest
+import scipy.sparse as sp
+from cert_tools.linalg_tools import rank_project
+from cert_tools.sdp_solvers import solve_sdp
 
 from popcor.examples import RotationLifter
+from popcor.utils.plotting_tools import plot_matrix
+
+
+def plot_matrices(A_known, Q):
+    n_cols = min(1 + len(A_known), 10)
+    n_rows = math.ceil((len(A_known) + 1) / n_cols)
+    fig, axs = plt.subplots(n_rows, n_cols)
+    fig.set_size_inches(n_rows * n_cols, 3 * n_rows)
+    axs = axs.flatten()
+    for i in range(len(A_known)):
+        assert isinstance(A_known[i], sp.csc_matrix)
+        plot_matrix(A_known[i].toarray(), ax=axs[i], title=f"A{i} ", colorbar=False)
+    fig = plot_matrix(Q.toarray(), ax=axs[i + 1], title="Q", colorbar=False)
+    [axs[j].axis("off") for j in range(i + 1, len(axs))]
 
 
 @pytest.mark.parametrize("d", [2, 3])
@@ -72,11 +92,91 @@ def test_measurements(d, level="no"):
     np.testing.assert_allclose(theta, lifter.theta)
 
 
+def test_solve_local():
+
+    d = 3
+    n_abs = 1
+    n_rot = 4
+    for noise in [0.0, 0.2]:
+        np.random.seed(2)
+        lifter = RotationLifter(
+            d=d, n_abs=n_abs, n_rot=n_rot, sparsity="chain", level="no"
+        )
+
+        y = lifter.simulate_y(noise=noise)
+
+        theta_gt, *_ = lifter.local_solver(lifter.theta, y, verbose=False)
+        estimates = {"init gt": theta_gt}
+        for i in range(10):
+            theta_init = lifter.sample_theta()
+            theta_i, *_ = lifter.local_solver(theta_init, y, verbose=False)
+
+            # make sure we are starting relatively far from ground truth
+            assert np.any(np.abs(theta_init - theta_gt) > 1e-1)
+            estimates[f"init random {i}"] = theta_i
+
+            # make sure that we converge to the ground truth in zero-noise setting
+            if noise == 0.0:
+                np.testing.assert_allclose(theta_i, lifter.theta, atol=1e-5)
+            else:
+                # 0.5 is found empirically
+                np.testing.assert_allclose(theta_i, lifter.theta, atol=0.5)
+
+        fig, ax = lifter.plot(estimates=estimates)
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(handles[:3], labels[:3], loc="lower left", bbox_to_anchor=(0.0, 1.0))
+        plt.show(block=False)
+    print("done")
+
+
+def test_solve_sdp():
+    d = 3
+    n_abs = 1
+    n_rot = 4
+    estimates = {}
+    for noise in [0.0, 0.2]:
+        np.random.seed(2)
+        lifter = RotationLifter(
+            d=d, n_abs=n_abs, n_rot=n_rot, sparsity="chain", level="no"
+        )
+
+        y = lifter.simulate_y(noise=noise)
+        Q = lifter.get_Q_from_y(y=y, output_poly=False)
+
+        assert isinstance(Q, sp.csc_matrix)
+        A_known = lifter.get_A_known()
+        constraints = lifter.get_A_b_list(lifter.get_A_known())
+
+        # if noise == 0:
+        #     plot_matrices(A_known, Q)
+
+        X, info = solve_sdp(Q, constraints, verbose=False)
+
+        x, info_rank = rank_project(X, p=1)
+        print(f"EVR at noise {noise:.2f}: {info_rank['EVR']:.2e}")
+        if noise <= 1:
+            assert info_rank["EVR"] > 1e8
+
+        theta_sdp = lifter.get_theta(x.flatten())
+        if noise == 0.0:
+            np.testing.assert_allclose(theta_sdp, lifter.theta, atol=1e-5)
+
+        estimates.update({"init gt": lifter.theta, f"SDP noise {noise:.2f}": theta_sdp})
+    fig, ax = lifter.plot(estimates=estimates)
+    plt.show(block=False)
+    return
+
+
 if __name__ == "__main__":
+    test_solve_sdp()
+    test_solve_local()
+
     test_measurements(d=2, level="no")
     test_measurements(d=2, level="bm")
     test_measurements(d=3, level="no")
     test_measurements(d=3, level="bm")
+
     test_rank1_vs_rankd(d=2)
     test_rank1_vs_rankd(d=3)
+
     print("all tests passed")
