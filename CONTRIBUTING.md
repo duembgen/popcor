@@ -74,3 +74,11 @@ curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/nektos/ac
 ```
 sudo ./bin/act 
 ```
+
+### Running documentation locally
+
+To generate a live-reloading preview of Sphinx docs while editing, you can run, from this root folder
+of the repository:
+```
+make doc
+```
