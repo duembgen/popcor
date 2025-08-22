@@ -133,7 +133,7 @@ def get_vec(mat, correct=True, sparse=False) -> np.ndarray | sp.csr_matrix | Non
 
     mat = deepcopy(mat)
     if correct:
-        if isinstance(mat, sp.csc_matrix):
+        if isinstance(mat, (sp.csc_matrix, sp.csr_matrix)):
             ii, jj = mat.nonzero()
             mat[ii, jj] *= np.sqrt(2.0)
             diag = ii == jj
