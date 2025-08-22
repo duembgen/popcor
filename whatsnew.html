@@ -188,19 +188,19 @@
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">What’s new</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#change-log">Change Log</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#unreleased-yyyy-mm-dd">[Unreleased] – YYYY-MM-DD</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#unreleased-2025-08-22">[Unreleased] – 2025-08-22</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#added">Added</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#changed">Changed</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#fixed">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#id3">[0.0.2] - 2025-06-04</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id4">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">[0.0.2] - 2025-06-04</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id3">Added</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#removed">Removed</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id7">Fixed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#f">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#id9">[0.0.1] - 2025-05-25</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">[0.0.1] - 2025-05-25</a></li>
 </ul>
 </li>
 </ul>
@@ -214,6 +214,7 @@
 <li class="toctree-l4"><a class="reference internal" href="contributing.html#testing">Testing</a></li>
 <li class="toctree-l4"><a class="reference internal" href="contributing.html#setting-up-mosek-license-on-server">Setting up mosek license on server</a></li>
 <li class="toctree-l4"><a class="reference internal" href="contributing.html#testing-github-actions-locally">Testing Github actions locally</a></li>
+<li class="toctree-l4"><a class="reference internal" href="contributing.html#running-documentation-locally">Running documentation locally</a></li>
 </ul>
 </li>
 </ul>
@@ -251,22 +252,37 @@
 <p>All notable changes to this project will be documented in this file.</p>
 <p>The format is based on <a class="reference external" href="http://keepachangelog.com/">Keep a Changelog</a>
 and this project adheres to <a class="reference external" href="http://semver.org/">Semantic Versioning</a>.</p>
-<section id="unreleased-yyyy-mm-dd">
-<h3>[Unreleased] – YYYY-MM-DD<a class="headerlink" href="#unreleased-yyyy-mm-dd" title="Link to this heading"></a></h3>
+<section id="unreleased-2025-08-22">
+<h3>[Unreleased] – 2025-08-22<a class="headerlink" href="#unreleased-2025-08-22" title="Link to this heading"></a></h3>
 <section id="added">
-<span id="changelog"></span><h4>Added<a class="headerlink" href="#added" title="Link to this heading"></a></h4>
+<span id="a"></span><h4>Added<a class="headerlink" href="#added" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>RotationLifter: support to plot 2d frames, improved documentation for rotation conventions</p></li>
+<li><p>RotationLifter: implemented rank-d (“bm”) lifting</p></li>
+<li><p>RangeOnlyLifter: new landmark sampling methods to fill available space</p></li>
+<li><p>Documentation instructions in CONTRIBUTING.md</p></li>
+<li><p>Unit tests and notebook for RotationLifter</p></li>
+<li><p>StateLifter: started support for rank-d instead of rank-1 formulations</p></li>
+</ul>
 </section>
 <section id="changed">
-<span id="id1"></span><h4>Changed<a class="headerlink" href="#changed" title="Link to this heading"></a></h4>
+<span id="c"></span><h4>Changed<a class="headerlink" href="#changed" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>RangeOnlyLifter: default sampling for landmarks in RO is now the one filling space</p></li>
+<li><p>RangeOnlyLifter: theta is sampled at least MIN_DIST away from landmarks</p></li>
+</ul>
 </section>
 <section id="fixed">
-<span id="id2"></span><h4>Fixed<a class="headerlink" href="#fixed" title="Link to this heading"></a></h4>
+<span id="id1"></span><h4>Fixed<a class="headerlink" href="#fixed" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>Link fixes in documentation</p></li>
+</ul>
 </section>
 </section>
+<section id="id2">
+<h3>[0.0.2] - 2025-06-04<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
 <section id="id3">
-<h3>[0.0.2] - 2025-06-04<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
-<section id="id4">
-<span id="id5"></span><h4>Added<a class="headerlink" href="#id4" title="Link to this heading"></a></h4>
+<span id="id4"></span><h4>Added<a class="headerlink" href="#id3" title="Link to this heading"></a></h4>
 <ul class="simple">
 <li><p>RangeOnlyLifter base class for 2D/3D range-only localization (base_lifters/range_only_lifter.py)</p></li>
 <li><p>RangeOnlyNsqLifter: specialized lifter for range-only localization without squared distances (examples/ro_nsq_lifter.py)</p></li>
@@ -275,21 +291,21 @@ and this project adheres to <a class="reference external" href="http://semver.or
 </ul>
 </section>
 <section id="removed">
-<span id="id6"></span><h4>Removed<a class="headerlink" href="#removed" title="Link to this heading"></a></h4>
+<span id="r"></span><h4>Removed<a class="headerlink" href="#removed" title="Link to this heading"></a></h4>
 <ul class="simple">
 <li><p>docs/build/ files</p></li>
 </ul>
 </section>
-<section id="id7">
-<span id="id8"></span><h4>Fixed<a class="headerlink" href="#id7" title="Link to this heading"></a></h4>
+<section id="f">
+<span id="id5"></span><h4>Fixed<a class="headerlink" href="#f" title="Link to this heading"></a></h4>
 <ul class="simple">
 <li><p>Corrected return type annotations in get_grad and get_hess methods in state_lifter.py from float to np.ndarray</p></li>
 <li><p>Documentation of MonoLifter and WahbaLifter</p></li>
 </ul>
 </section>
 </section>
-<section id="id9">
-<h3>[0.0.1] - 2025-05-25<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<section id="id6">
+<h3>[0.0.1] - 2025-05-25<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
 <p>This is the initial release of the toolbox. It is based on <a class="reference external" href="https://github.com/utiasASRL/constraint_learning">https://github.com/utiasASRL/constraint_learning</a> and now included there as a submodule.</p>
 </section>
 </section>

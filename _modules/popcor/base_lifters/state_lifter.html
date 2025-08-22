@@ -185,19 +185,19 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../whatsnew.html">What’s new</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../whatsnew.html#change-log">Change Log</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../whatsnew.html#unreleased-yyyy-mm-dd">[Unreleased] – YYYY-MM-DD</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../whatsnew.html#unreleased-2025-08-22">[Unreleased] – 2025-08-22</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../whatsnew.html#added">Added</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../whatsnew.html#changed">Changed</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../whatsnew.html#fixed">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../../whatsnew.html#id3">[0.0.2] - 2025-06-04</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../whatsnew.html#id4">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../whatsnew.html#id2">[0.0.2] - 2025-06-04</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../whatsnew.html#id3">Added</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../whatsnew.html#removed">Removed</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../whatsnew.html#id7">Fixed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../whatsnew.html#f">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../../whatsnew.html#id9">[0.0.1] - 2025-05-25</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../whatsnew.html#id6">[0.0.1] - 2025-05-25</a></li>
 </ul>
 </li>
 </ul>
@@ -211,6 +211,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../contributing.html#testing">Testing</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../contributing.html#setting-up-mosek-license-on-server">Setting up mosek license on server</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../contributing.html#testing-github-actions-locally">Testing Github actions locally</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../contributing.html#running-documentation-locally">Running documentation locally</a></li>
 </ul>
 </li>
 </ul>
@@ -415,12 +416,19 @@
         <span class="nb">print</span><span class="p">(</span>
             <span class="s2">&quot;Warning: using default get_cost, which may be less efficient than a custom one.&quot;</span>
         <span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_x</span><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_Q_from_y</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_Q</span><span class="p">()</span>
-        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">Q</span> <span class="o">@</span> <span class="n">x</span><span class="p">)</span></div>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_x</span><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">Q</span> <span class="o">@</span> <span class="n">x</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">Q</span> <span class="o">@</span> <span class="n">x</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Unexpected shape of x: </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">. Must be 1D or 2D array.&quot;</span>
+            <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="StateLifter.local_solver">
@@ -428,7 +436,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">local_solver</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">t0</span><span class="p">,</span>
-        <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="nb">list</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="nb">list</span> <span class="o">|</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">*</span><span class="n">args</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
@@ -436,9 +444,6 @@
 <span class="sd">        Default local solver that uses IPOPT to solve the QCQP problem defined by Q and the constraints matrices.</span>
 <span class="sd">        Consider overwriting this for more efficient solvers.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span>
-            <span class="s2">&quot;Warning: using default local_solver, which may be less efficient than a custom one.&quot;</span>
-        <span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: ignore args </span><span class="si">{</span><span class="n">args</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">cert_tools.sdp_solvers</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve_low_rank_sdp</span>
@@ -461,13 +466,16 @@
 
         <span class="n">Constraints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_A_b_list</span><span class="p">(</span><span class="n">A_list</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_A_known</span><span class="p">())</span>
         <span class="n">x0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_x</span><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="n">t0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">x0</span> <span class="o">=</span> <span class="n">x0</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
         <span class="n">X</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">solve_low_rank_sdp</span><span class="p">(</span>
-            <span class="n">Q</span><span class="p">,</span> <span class="n">Constraints</span><span class="o">=</span><span class="n">Constraints</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">x_cand</span><span class="o">=</span><span class="n">x0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+            <span class="n">Q</span><span class="p">,</span> <span class="n">Constraints</span><span class="o">=</span><span class="n">Constraints</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">x0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">x_cand</span><span class="o">=</span><span class="n">x0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
         <span class="p">)</span>
         <span class="c1"># TODO(FD) identify when the solve is not successful.</span>
         <span class="n">info</span><span class="p">[</span><span class="s2">&quot;success&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">theta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_theta</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_theta</span><span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="p">:</span> <span class="n">x0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
             <span class="n">theta</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="mi">1</span> <span class="p">:</span> <span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">theta</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;cost&quot;</span><span class="p">]</span></div>
@@ -507,7 +515,10 @@
                 <span class="s2">&quot;Warning: got homogenized vector x. The convention is that get_theta should get x[1:].&quot;</span>
                 <span class="s2">&quot;Please make sure that you use get_theta as intended.&quot;</span>
             <span class="p">)</span>
-        <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">]</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">HOM</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_dict</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="mi">1</span> <span class="p">:</span> <span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">]</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_valid_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">):</span>
