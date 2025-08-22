@@ -113,12 +113,14 @@ def plot_frame(
     ls="--",
     alpha=0.5,
     d=3,
+    r_wc_w: np.ndarray | None = None,
     **kwargs,
 ):
     if np.ndim(theta) == 2:
         # used by rotation averaging
         C_cw = theta
-        r_wc_w = np.zeros((theta.shape[0]))
+        if r_wc_w is None:
+            r_wc_w = np.zeros((theta.shape[0]))
     else:
         try:
             C_cw, r_wc_c = get_C_r_from_theta(theta, d=d)

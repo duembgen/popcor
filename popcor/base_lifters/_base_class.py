@@ -685,7 +685,25 @@ class BaseClass(object):
         return A0.get_matrix(var_dict)
 
     def get_A_b_list(self, A_list, var_subset=None):
-        return [(self.get_A0(var_subset), 1.0)] + [(A, 0.0) for A in A_list]
+        """get equality constraint tuples (Ai, bi) s.t. x.t @ Ai @ bi, 0
+
+        :param A_list: Normally, this is just the list of equality constaints that equal zero. We will add the homogenization.
+                       For certain cases, such as the RotationLifter with level="bm", this is already a tuple of (Ai, bi).
+
+        """
+        if var_subset is None:
+            var_subset = self.var_dict
+
+        if isinstance(A_list, list):
+            # TODO(FD): do more with var_subset
+            assert self.HOM in var_subset
+            return [(self.get_A0(var_subset), 1.0)] + [(A, 0.0) for A in A_list]
+        else:
+            assert isinstance(A_list, tuple)
+            A0_list, b0_list = self.get_A0(var_subset)
+            return [
+                (Ai, bi) for Ai, bi in zip(A0_list + A_list[0], b0_list + A_list[1])
+            ]
 
     def sample_parameters_landmarks(self, landmarks: np.ndarray):
         """Used by RobustPoseLifter, RangeOnlyLocLifter: the default way of adding landmarks to parameters."""

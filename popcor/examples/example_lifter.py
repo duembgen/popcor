@@ -58,7 +58,7 @@ class ExampleLifter(StateLifter):
         return np.array(x_data)
 
     def sample_parameters(self, theta: np.ndarray | None = None) -> dict:
-        pass
+        return {}
 
     def sample_theta(self) -> np.ndarray:
-        pass
+        return np.array([])
