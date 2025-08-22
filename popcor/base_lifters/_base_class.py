@@ -639,7 +639,9 @@ class BaseClass(object):
         """
         return self.theta + np.random.normal(size=self.theta.shape, scale=delta)
 
-    def test_constraints(self, A_list, errors: str = "raise", n_seeds: int = 3):
+    def test_constraints(
+        self, A_list, b_list=None, errors: str = "raise", n_seeds: int = 3
+    ):
         """
         :param A_list: can be either list of sparse matrices, or poly matrices
         :param errors: "raise" or "print" detected violations.
@@ -650,17 +652,24 @@ class BaseClass(object):
         for j, A in enumerate(A_list):
             if isinstance(A, PolyMatrix):
                 A = A.get_matrix(self.get_var_dict(unroll_keys=True))
+            if b_list is None:
+                b = 0.0
+            else:
+                b = b_list[j]
 
             for i in range(n_seeds):
                 if i == 0:
-                    x = self.get_x().flatten()
+                    x = self.get_x()
                 else:
                     np.random.seed(i)
                     t = self.sample_theta()
                     p = self.sample_parameters()
-                    x = self.get_x(theta=t, parameters=p).flatten()
+                    x = self.get_x(theta=t, parameters=p)
 
-                constraint_violation = abs(float(x.T @ A @ x))
+                if np.ndim(x) == 2 and x.shape[1] > 1:
+                    constraint_violation = abs(np.trace(x.T @ A @ x) - b)
+                else:
+                    constraint_violation = abs(float(x.T @ A @ x - b))
                 max_violation = max(max_violation, constraint_violation)
                 if constraint_violation > self.EPS_ERROR:
                     msg = f"big violation at {j}: {constraint_violation:.1e}"
@@ -675,35 +684,14 @@ class BaseClass(object):
                         raise ValueError(errors)
         return max_violation, j_bad
 
-    def get_A0(self, var_subset=None):
+    def get_A0(self, var_subset=None) -> tuple[list, np.ndarray | list]:
         if var_subset is not None:
             var_dict = {k: self.var_dict[k] for k in var_subset}
         else:
             var_dict = self.var_dict
         A0 = PolyMatrix()
         A0[self.HOM, self.HOM] = 1.0
-        return [A0.get_matrix(var_dict)], [1.0]
-
-    def get_A_b_list(self, A_list, var_subset=None):
-        """get equality constraint tuples (Ai, bi) s.t. x.t @ Ai @ bi, 0
-
-        :param A_list: Normally, this is just the list of equality constaints that equal zero. We will add the homogenization.
-                       For certain cases, such as the RotationLifter with level="bm", this is already a tuple of (Ai, bi).
-
-        """
-        if var_subset is None:
-            var_subset = self.var_dict
-
-        if isinstance(A_list, list):
-            # TODO(FD): do more with var_subset
-            assert self.HOM in var_subset
-            return [(self.get_A0(var_subset), 1.0)] + [(A, 0.0) for A in A_list]
-        else:
-            assert isinstance(A_list, tuple)
-            A0_list, b0_list = self.get_A0(var_subset)
-            return [
-                (Ai, bi) for Ai, bi in zip(A0_list + A_list[0], b0_list + A_list[1])
-            ]
+        return [A0.get_matrix(var_dict)], np.array([1.0])
 
     def sample_parameters_landmarks(self, landmarks: np.ndarray):
         """Used by RobustPoseLifter, RangeOnlyLocLifter: the default way of adding landmarks to parameters."""
