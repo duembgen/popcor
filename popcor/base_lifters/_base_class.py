@@ -682,7 +682,7 @@ class BaseClass(object):
             var_dict = self.var_dict
         A0 = PolyMatrix()
         A0[self.HOM, self.HOM] = 1.0
-        return A0.get_matrix(var_dict)
+        return [A0.get_matrix(var_dict)], [1.0]
 
     def get_A_b_list(self, A_list, var_subset=None):
         """get equality constraint tuples (Ai, bi) s.t. x.t @ Ai @ bi, 0

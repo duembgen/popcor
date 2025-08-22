@@ -1,14 +1,5 @@
 """
 A class for solving rotation averaging problems.
-
-Some notes and conventions:
-- The rotation matrices are called R_i.
-- We consider two different forms of "lifting":
-    - "no" corresponds to the rank-1 version, where we define x = [1, c_1, ..., c_N] with each c_i = R_i.flatten("C"), x in (d**2 x N + 1)
-    - "bm" corresponds to the rank-d version, where we define X.T = [R_0.T; R_1.T; ...; R_N.T], X in (d x (N + 1)*d), and R_0 is the world frame.
-- According to above conventions, HOM is either 1 or R_0, the world frame.
-- Relative measurements are defined such that R_j = R_i @ R_ij
-
 """
 
 from typing import List
@@ -28,6 +19,11 @@ DEBUG = True
 
 
 def get_orthogonal_constraints(key, hom, d, level):
+    """Return A, b lists enforcing orthogonality constraints for variable `key`.
+
+    Produces constraints encoding R'R = I (diagonal == 1 and off-diagonal == 0)
+    for either the rank-1 ("no") or Burer-Monteiro ("bm") formulation.
+    """
     A_list = []
     b_list = []
     for i in range(d):
@@ -66,7 +62,7 @@ def get_orthogonal_constraints(key, hom, d, level):
 
 
 class RotationLifter(StateLifter):
-    """Rotation averaging problem.
+    """Rotation averaging problem lifter.
 
     We solve the following optimization problem:
 
@@ -81,14 +77,13 @@ class RotationLifter(StateLifter):
     .. math::
         \\theta = \\begin{bmatrix} R_1 & R_2 & \\ldots & R_N \\end{bmatrix}
 
-
     We can alternatively replace the absolute-measurement terms by
 
     .. math::
         || R_i - R_w \\tilde{R}_{i} ||_F^2
 
     where :math:`R_w` is an arbitrary world frame that we can also optimize over, transforming the solutions
-    by :math:`R_w^{-1}R_i` after to move the world frame to the origin. Using this formulation, all
+    by :math:`R_w^{-1}R_i` afterwards to move the world frame to the origin. Using this formulation, all
     measurements are binary factors, which may simplify implementation.
 
     We consider two different formulations of the problem:
@@ -102,6 +97,8 @@ class RotationLifter(StateLifter):
 
     .. math::
         X = \\begin{bmatrix} R_1^\\top \\\\ \\vdots \\\\ R_N^\\top \\end{bmatrix}
+
+    According to the above conventions, HOM is either 1 or R_0, the world frame.
     """
 
     LEVELS = ["no", "bm"]
@@ -110,10 +107,8 @@ class RotationLifter(StateLifter):
 
     # whether or not to include the determinant constraints in the known constraints.
     ADD_DETERMINANT = False
-
     NOISE = 1e-3
 
-    # Add any parameters here that describe the problem (e.g. number of landmarks etc.)
     def __init__(
         self,
         level="no",
@@ -124,6 +119,7 @@ class RotationLifter(StateLifter):
         n_rel=1,
         sparsity="chain",
     ):
+        """Initialize a RotationLifter instance with problem dimensions and options."""
         assert n_rel in [
             0,
             1,
@@ -141,6 +137,7 @@ class RotationLifter(StateLifter):
 
     @property
     def var_dict(self):
+        """Return dictionary mapping variable names to their dimensions in the lifted representation."""
         if self.level == "no":
             # self.HOM is the scalar homogenization variable
             var_dict = {self.HOM: 1}
@@ -152,7 +149,7 @@ class RotationLifter(StateLifter):
         return var_dict
 
     def sample_theta(self):
-        """Generate a random new feasible point."""
+        """Generate a random feasible set of rotations theta shaped (d, n_rot * d)."""
         C = np.empty((self.d, self.n_rot * self.d))
         for i in range(self.n_rot):
             if self.d == 2:
@@ -165,7 +162,7 @@ class RotationLifter(StateLifter):
         return C
 
     def get_x(self, theta=None, parameters=None, var_subset=None) -> np.ndarray:
-        """Get the lifted vector x given theta and parameters."""
+        """Return the lifted variable x (vector or stacked matrices) for given theta and var_subset."""
         if theta is None:
             theta = self.theta
         if parameters is None:
@@ -180,6 +177,7 @@ class RotationLifter(StateLifter):
                     x_data.append(1.0)
                 elif "c" in key:
                     i = int(key.split("_")[1])
+                    # column-major flattening to match vec(R)
                     x_data += list(theta[:, i * self.d : (i + 1) * self.d].flatten("F"))
                 else:
                     raise ValueError(f"untreated key {key}")
@@ -200,10 +198,11 @@ class RotationLifter(StateLifter):
             raise ValueError(f"Unknown level {self.level} for RotationLifter")
 
     def get_theta(self, x: np.ndarray) -> np.ndarray:
+        """Recover theta (d x n_rot*d) from lifted variable x for current level."""
         if self.level == "no":
             if np.ndim(x) == 2:
                 assert x.shape[1] == 1
-
+                x = x.flatten()
             C_flat = x[1 : 1 + self.n_rot * self.d**2]
             return C_flat.reshape((self.d, self.n_rot * self.d), order="F")
         elif self.level == "bm":
@@ -211,22 +210,21 @@ class RotationLifter(StateLifter):
             # We want to return theta in the form [R*_1, R*_2, ..., R*_N]
             # where each R*_i := R_0.T @ R_i
 
-            # d x d
+            # d x d (original world frame)
             R0 = x[: self.d, : self.d].T
 
             # nd x d: [R_1.T; R_2.T; ...; R_N.T]
-            Ri = np.array(x[self.d : (self.n_rot + 1) * self.d, : self.d])
+            Ri = np.array(x[self.d : (self.n_rot + 1) * self.d, : self.d]).T
 
             # return d x nd: [R*_1, R*_2, ..., R*_N]
-            Ri_world = R0.T @ Ri.T
+            Ri_world = R0.T @ Ri
             return Ri_world
         else:
             raise ValueError(f"Unknown level {self.level} for RotationLifter")
 
     def add_relative_measurement(self, i, j, noise) -> np.ndarray:
-        """
-        || R_j - R_i @ R_ij ||_F^2
-
+        """Create a noisy relative measurement R_ij = R_i.T @ R_j with additive rotation noise.
+        error terms: || R_j - R_i @ R_ij ||_F^2
         measurements: R_ij = R_i.T @ R_j
         """
         R_i = self.theta[:, i * self.d : (i + 1) * self.d]
@@ -246,11 +244,9 @@ class RotationLifter(StateLifter):
             return R_gt
 
     def add_absolute_measurement(self, i, noise, n_meas=1) -> List[np.ndarray]:
-        """
-        || R_i - R_w @ R_wi ||
-
-        measurements:
-                        R_wi = R_w.T @ R_i
+        """Create one or more noisy absolute measurements of rotation R_i (relative to world).
+        error terms: || R_i - R_w @ R_wi ||_F^2
+        measurements: R_wi = R_w.T @ R_i
         """
         R_gt = self.theta[:, i * self.d : (i + 1) * self.d]
         y = []
@@ -271,6 +267,7 @@ class RotationLifter(StateLifter):
         return y
 
     def simulate_y(self, noise: float | None = None) -> dict:
+        """Simulate measurement dictionary y given current theta and noise level."""
         if noise is None:
             noise = self.NOISE
 
@@ -279,7 +276,8 @@ class RotationLifter(StateLifter):
             for i in range(self.n_rot):
                 y[i] = self.add_absolute_measurement(i, noise, self.n_abs)
         else:
-            y[0] = self.add_absolute_measurement(0, 0.0, 1)  # add prior
+            # add prior if no absolute measurements exist
+            y[0] = self.add_absolute_measurement(0, 0.0, 1)
 
         if self.n_rel > 0:
             if self.sparsity == "chain":
@@ -291,6 +289,7 @@ class RotationLifter(StateLifter):
         return y
 
     def get_Q(self, noise: float | None = None, output_poly: bool = False):
+        """Return the cost matrix Q (poly or ndarray) constructed from simulated measurements."""
         if noise is None:
             noise = self.NOISE
         if self.y_ is None:
@@ -299,7 +298,7 @@ class RotationLifter(StateLifter):
         return self.get_Q_from_y(self.y_, output_poly=output_poly)
 
     def get_Q_from_y(self, y, output_poly=False):
-        """param y: list of noisy rotation matrices."""
+        """Construct the quadratic cost (PolyMatrix or ndarray) from measurement dictionary y."""
         Q = PolyMatrix()
 
         for key, R in y.items():
@@ -308,10 +307,8 @@ class RotationLifter(StateLifter):
                 assert isinstance(R, list)
                 for Rk in R:
                     if self.level == "no":
-                        # treat unary factors
-                        # Rk is measured
-                        # f(R) = sum_k || R  - Rk ||_F^2
-                        #      = sum_k 2tr(I) - 2tr(R'Rk)
+                        # unary factors: f(R) = sum_k || R  - Rk ||_F^2 = sum_k 2tr(I) - 2tr(R'Rk)
+                        # Rk is measured rotation
                         Q_test = PolyMatrix()
                         Q_test[self.HOM, f"c_{key}"] -= Rk.flatten("F")[None, :]
                         # Not adding below to be consistent with "bm" case, where we cannot
@@ -326,8 +323,7 @@ class RotationLifter(StateLifter):
                         Q += Q_test
 
                     elif self.level == "bm":
-                        # in this case, we use self.HOM as a world frame.
-                        # f(R) = sum_i || R - HOM @ Rk ||
+                        # use HOM as a world frame: f(R) = sum_i || R - HOM @ Rk ||
                         # compare with below:
                         # R corresponds to Rj, HOM corresponds to Ri
                         Q_test = PolyMatrix()
@@ -395,6 +391,7 @@ class RotationLifter(StateLifter):
             return Q.get_matrix(self.var_dict)
 
     def test_and_add(self, A_list, Ai, output_poly, b_list=[], bi=0.0):
+        """Test that constraint Ai holds at current theta then append it to A_list and b_list."""
         x = self.get_x()
         Ai_sparse = Ai.get_matrix(self.var_dict)
         err = np.trace(np.atleast_2d(x.T @ Ai_sparse @ x)) - bi
@@ -406,6 +403,7 @@ class RotationLifter(StateLifter):
         b_list.append(bi)
 
     def get_A0(self, var_subset=None):
+        """Return the homogenization constraint A0 for chosen level (either h^2=1, or H'H=I)."""
         if var_subset is None:
             var_subset = self.var_dict
         if self.level == "no":
@@ -418,10 +416,15 @@ class RotationLifter(StateLifter):
             return [Ai.get_matrix(var_subset) for Ai in A_orth], b_orth
 
     def get_A_known(self, var_dict=None, output_poly=False, add_redundant=False):
+        """Return known linear constraints (A and b). If level 'no' returns A_list; if 'bm' returns (A_list, b_list)."""
         A_list = []
         b_list = []
         if var_dict is None:
             var_dict = self.var_dict
+
+        if self.level == "bm" and add_redundant:
+            print("No known redundant constraints for level bm")
+            add_redundant = False
 
         for k in range(self.n_rot):
             if f"c_{k}" in var_dict:
@@ -467,10 +470,6 @@ class RotationLifter(StateLifter):
                     )
 
             if add_redundant and f"c_{k}" in var_dict:
-                if self.level == "bm":
-                    print("No known redundant constraints for level bm")
-                    continue
-
                 # enforce diagonal == 1 for RR' = I
                 for i in range(self.d):
                     Ei = np.zeros((self.d, self.d))
@@ -504,12 +503,10 @@ class RotationLifter(StateLifter):
                         Ai = PolyMatrix(symmetric=True)
                         Ai[f"c_{k}", f"c_{k}"] = constraint
                         self.test_and_add(A_list, Ai, output_poly, b_list, 0.0)
-        if self.level == "bm":
-            return A_list, b_list
-        else:
-            return A_list
+        return A_list, b_list
 
     def plot(self, estimates={}):
+        """Plot ground-truth frames and optional estimated frames; returns (fig, ax)."""
         import itertools
 
         import matplotlib.pyplot as plt
