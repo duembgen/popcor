@@ -1,3 +1,5 @@
+import warnings
+
 import matplotlib.pylab as plt
 import numpy as np
 import scipy.sparse as sp
@@ -109,7 +111,7 @@ class AutoTight(object):
         var_dict=None,
         method=METHOD,
         verbose=False,
-    ) -> list:
+    ) -> tuple[list, np.ndarray | list]:
         """Generate list of learned constraints by sampling the lifter.
 
         :param lifter: StateLifter object
@@ -131,10 +133,19 @@ class AutoTight(object):
         if verbose:
             print(f"get basis ({basis.shape})): {time.time() - t1:4.4f}")
         t1 = time.time()
-        A_learned = AutoTight.generate_matrices(lifter, basis, var_dict=var_dict)
-        if verbose:
-            print(f"get matrices ({len(A_learned)}): {time.time() - t1:4.4f}")
-        return A_learned
+        if lifter.level == "bm":
+            A_learned = AutoTight.generate_matrices(
+                lifter, basis[:, 1:], var_dict=var_dict
+            )
+            b_learned = -basis[:, 0]
+            if verbose:
+                print(f"get matrices ({len(A_learned)}): {time.time() - t1:4.4f}")
+            return A_learned, b_learned
+        else:
+            A_learned = AutoTight.generate_matrices(lifter, basis, var_dict=var_dict)
+            if verbose:
+                print(f"get matrices ({len(A_learned)}): {time.time() - t1:4.4f}")
+            return A_learned, [0] * len(A_learned)
 
     @staticmethod
     def get_A_learned_simple(
@@ -223,6 +234,8 @@ class AutoTight(object):
     def generate_Y(lifter, factor=FACTOR, ax=None, var_subset=None, param_subset=None):
         # need at least dim_Y different random setups
         dim_Y = lifter.get_dim_Y(var_subset, param_subset)
+        if lifter.level == "bm":
+            dim_Y += lifter.get_dim_P(param_subset)
         n_seeds = int(dim_Y * factor)
         Y = np.empty((n_seeds, dim_Y))
         for seed in range(n_seeds):
@@ -237,12 +250,20 @@ class AutoTight(object):
                     ax.scatter(*theta[:, :2].T)
 
             x = lifter.get_x(theta=theta, parameters=parameters, var_subset=var_subset)
-            X = np.outer(x, x)
+            if np.ndim(x) == 1:
+                x = x[:, None]
+            X = x @ x.T
 
             # generates [1*x, a1*x, ..., aK*x]
             p = lifter.get_p(parameters=parameters, param_subset=param_subset)
             assert p[0] == 1
-            Y[seed, :] = np.kron(p, get_vec(X))
+
+            row = get_vec(X)
+            if lifter.level == "bm":
+                # in Burer-Monteiro, we need to add the leading 1.
+                row = np.hstack([np.array([1.0]), np.array(row)])
+
+            Y[seed, :] = np.kron(p, row)
         return Y
 
     @staticmethod
@@ -266,8 +287,9 @@ class AutoTight(object):
         # if there is a known list of constraints, add them to the Y so that resulting nullspace is orthogonal to them
         if basis_known is not None:
             if len(A_known):
-                print(
-                    "Warning: ignoring given A_known because basis_all is also given."
+                warnings.warn(
+                    "Ignoring given A_known because basis_all is also given.",
+                    UserWarning,
                 )
             Y = np.vstack([Y, basis_known.T])
         elif len(A_known):

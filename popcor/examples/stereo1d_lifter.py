@@ -156,7 +156,7 @@ class Stereo1DLifter(StateLifter):
 
         if add_redundant:
             A_known += self.get_A_known_redundant(var_dict, output_poly)
-        return A_known
+        return A_known, [0] * len(A_known)
 
     def get_A_known_redundant(self, var_dict=None, output_poly=False):
         import itertools
@@ -181,7 +181,7 @@ class Stereo1DLifter(StateLifter):
                 A_known.append(A)
             else:
                 A_known.append(A.get_matrix(variables=self.var_dict))
-        return A_known
+        return A_known, [0] * len(A_known)
 
     def get_cost(self, theta, y):
         if np.ndim(theta) == 0 or (np.ndim(theta) == 1 and len(theta) == 1):

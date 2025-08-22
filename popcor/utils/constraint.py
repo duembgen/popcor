@@ -143,6 +143,7 @@ class Constraint(object):
         mat_param_dict=None,
         known=False,
         template_idx=0,
+        rhs=0,
     ):
         self.index = index
         self.mat_var_dict = mat_var_dict
@@ -162,6 +163,8 @@ class Constraint(object):
 
         # list of applied constraints derived from this constraint.
         self.applied_list = []
+        # what this cosntraint equals to: Ax = rhs
+        self.rhs = rhs
 
     @staticmethod
     # @profile

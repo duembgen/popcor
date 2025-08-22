@@ -267,25 +267,30 @@ class AutoTemplate(object):
         elif tightness == "cost":
             return cost_tight
 
-    def get_A_list(self, var_dict=None):
+    def get_A_b_list(self, var_dict=None):
+        A_list, b_list = self.lifter.get_A0()
+        A_b_list = list(zip(A_list, b_list))
         if var_dict is None:
-            A_known = []
             if self.use_known:
-                A_known += [constraint.A_sparse_ for constraint in self.templates_known]
-            return A_known + [constraint.A_sparse_ for constraint in self.constraints]
-        else:
-            A_known = []
-            if self.use_known:
-                A_known += [constraint.A_poly_ for constraint in self.templates_known]
-            A_list_poly = A_known + [
-                constraint.A_poly_ for constraint in self.constraints
+                A_b_list += [
+                    (constraint.A_sparse_, constraint.rhs)
+                    for constraint in self.templates_known
+                ]
+            return A_b_list + [
+                (constraint.A_sparse_, constraint.rhs)
+                for constraint in self.constraints
             ]
-            return [A.get_matrix(var_dict) for A in A_list_poly]
-
-    def get_A_b_list(self):
-        A_list = self.get_A_list()
-        A_b_list_all = self.lifter.get_A_b_list(A_list)
-        return A_b_list_all
+        else:
+            A_b_list = []
+            if self.use_known:
+                A_b_list += [
+                    (constraint.A_poly_, constraint.rhs)
+                    for constraint in self.templates_known
+                ]
+            A_list_poly = A_b_list + [
+                (constraint.A_poly_, constraint.rhs) for constraint in self.constraints
+            ]
+            return [(A.get_matrix(var_dict), b) for A, b in A_list_poly]
 
     def generate_minimal_subset(
         self,
@@ -453,7 +458,7 @@ class AutoTemplate(object):
                     self.solver_vars.update(
                         {
                             f"local {solution_idx} {error_name}": err
-                            for error_name, err in error_dict.items()
+                            for error_name, err in error_dict.items()  # type: ignore
                         }
                     )
 
@@ -517,7 +522,7 @@ class AutoTemplate(object):
 
         if x is not None:
             theta = self.lifter.get_theta(x)
-            cost = self.lifter.get_cost(theta, self.solver_vars["y"])
+            cost = self.lifter.get_cost(theta, self.solver_vars["y"])  # type: ignore
             data_dict["global theta"] = theta
             data_dict["global cost"] = cost
             return True
@@ -825,7 +830,7 @@ class AutoTemplate(object):
                 )
             )
         df = pd.DataFrame(
-            series, dtype="Sparse[float]", index=templates_poly.variable_dict_i
+            series, dtype="Sparse[float]", index=templates_poly.variable_dict_i  # type: ignore
         )
         df.dropna(axis=1, how="all", inplace=True)
 
@@ -1033,7 +1038,7 @@ class AutoTemplate(object):
 
         vmin = min(-np.max(Q), np.min(Q))
         vmax = max(np.max(Q), -np.min(Q))
-        norm = matplotlib.colors.SymLogNorm(10**-5, vmin=vmin, vmax=vmax)
+        norm = matplotlib.colors.SymLogNorm(10**-5, vmin=vmin, vmax=vmax)  # type: ignore
         im1 = axs[1].matshow(Q, norm=norm)
 
         for ax in axs:
@@ -1227,11 +1232,14 @@ class AutoTemplate(object):
     def apply(self, lifter: StateLifter, use_known: bool = False) -> list:
         """Apply the learned templates to a new lifter."""
         constraints = lifter.apply_templates(self.templates)
-
+        A_0, b_0 = lifter.get_A0()
         if use_known:
             # if we set use_known=True in running AutoTemplate, then we learned only
             # constraints that were not already known, so we need to add them to the
             # overall set of constraints.
-            A_known = lifter.get_A_known()
+            A_known, b_known = lifter.get_A_known()
             assert isinstance(A_known, list)
-        return A_known + [c.A_sparse_ for c in constraints]  # type: ignore
+            A_b_list = list(zip(A_0 + A_known, b_0 + b_known))
+        else:
+            A_b_list = list(zip(A_0, b_0))
+        return A_b_list + [(c.A_sparse_, c.rhs) for c in constraints]  # type: ignore

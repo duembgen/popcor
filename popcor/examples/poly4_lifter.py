@@ -57,9 +57,9 @@ class Poly4Lifter(PolyLifter):
         A_1[self.HOM, "z0"] = -1
         A_1["t", "t"] = 2
         if output_poly:
-            return [A_1]
+            return [A_1], [0]
         else:
-            return [A_1.get_matrix(self.var_dict)]
+            return [A_1.get_matrix(self.var_dict)], [0]
 
     def generate_random_setup(self):
         self.theta_ = np.array([-1])
