@@ -17,6 +17,8 @@ from cert_tools.sdp_solvers import solve_sdp
 from popcor.examples import RotationLifter
 from popcor.utils.plotting_tools import plot_matrix
 
+PLOT = False
+
 
 def plot_matrices(A_known, Q):
     n_cols = min(1 + len(A_known), 10)
@@ -123,10 +125,13 @@ def test_solve_local():
                 # 0.5 is found empirically
                 np.testing.assert_allclose(theta_i, lifter.theta, atol=0.5)
 
-        _, ax = lifter.plot(estimates=estimates)
-        handles, labels = ax.get_legend_handles_labels()
-        ax.legend(handles[:3], labels[:3], loc="lower left", bbox_to_anchor=(0.0, 1.0))
-        plt.show(block=False)
+        if PLOT:
+            _, ax = lifter.plot(estimates=estimates)
+            handles, labels = ax.get_legend_handles_labels()
+            ax.legend(
+                handles[:3], labels[:3], loc="lower left", bbox_to_anchor=(0.0, 1.0)
+            )
+            plt.show(block=False)
     print("done")
 
 
@@ -149,8 +154,8 @@ def test_solve_sdp():
         A_known = lifter.get_A_known()
         constraints = lifter.get_A_b_list(A_known)
 
-        if noise == 0:
-             plot_matrices(A_known, Q)
+        if noise == 0 and PLOT:
+            plot_matrices(A_known, Q)
 
         X, info = solve_sdp(Q, constraints, verbose=False)
 
@@ -163,9 +168,11 @@ def test_solve_sdp():
             np.testing.assert_allclose(theta_sdp, lifter.theta, atol=1e-5)
 
         estimates.update({"init gt": lifter.theta, f"SDP noise {noise:.2f}": theta_sdp})
-    fig, ax = lifter.plot(estimates=estimates)
-    _, ax = lifter.plot(estimates=estimates)
-    plt.show(block=False)
+
+    if PLOT:
+        fig, ax = lifter.plot(estimates=estimates)
+        _, ax = lifter.plot(estimates=estimates)
+        plt.show(block=False)
     return
 
 
