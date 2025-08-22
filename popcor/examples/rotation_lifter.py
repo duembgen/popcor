@@ -402,7 +402,7 @@ class RotationLifter(StateLifter):
             A_list.append(Ai_sparse)
         b_list.append(bi)
 
-    def get_A0(self, var_subset=None):
+    def get_A0(self, var_subset=None) -> tuple[list, list]:
         """Return the homogenization constraint A0 for chosen level (either h^2=1, or H'H=I)."""
         if var_subset is None:
             var_subset = self.var_dict
@@ -413,7 +413,7 @@ class RotationLifter(StateLifter):
             A_orth, b_orth = get_orthogonal_constraints(
                 self.HOM, None, self.d, self.level
             )
-            return [Ai.get_matrix(var_subset) for Ai in A_orth], b_orth
+            return [Ai.get_matrix(var_subset) for Ai in A_orth], list(b_orth)
 
     def get_A_known(self, var_dict=None, output_poly=False, add_redundant=False):
         """Return known linear constraints (A and b). If level 'no' returns A_list; if 'bm' returns (A_list, b_list)."""
@@ -590,8 +590,9 @@ if __name__ == "__main__":
     plt.show(block=False)
 
     Q = lifter.get_Q_from_y(y=y, output_poly=False)
-    A_known = lifter.get_A_known(output_poly=False, add_redundant=True)
-    constraints = lifter.get_A_b_list(A_known)
+    A_known, b_known = lifter.get_A_known(output_poly=False, add_redundant=True)
+    A_0, b_0 = lifter.get_A0()
+    constraints = list(zip(A_known + A_0, b_known + b_0))
 
     fig, axs = plt.subplots(1, len(constraints) + 1)
     fig.set_size_inches(3 * (len(constraints) + 1), 3)

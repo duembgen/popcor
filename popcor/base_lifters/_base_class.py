@@ -684,14 +684,14 @@ class BaseClass(object):
                         raise ValueError(errors)
         return max_violation, j_bad
 
-    def get_A0(self, var_subset=None) -> tuple[list, np.ndarray | list]:
+    def get_A0(self, var_subset=None) -> tuple[list, list]:
         if var_subset is not None:
             var_dict = {k: self.var_dict[k] for k in var_subset}
         else:
             var_dict = self.var_dict
         A0 = PolyMatrix()
         A0[self.HOM, self.HOM] = 1.0
-        return [A0.get_matrix(var_dict)], np.array([1.0])
+        return [A0.get_matrix(var_dict)], [1.0]
 
     def sample_parameters_landmarks(self, landmarks: np.ndarray):
         """Used by RobustPoseLifter, RangeOnlyLocLifter: the default way of adding landmarks to parameters."""

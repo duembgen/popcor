@@ -268,8 +268,8 @@ class AutoTemplate(object):
             return cost_tight
 
     def get_A_b_list(self, var_dict=None):
-        A_list, b_list = self.lifter.get_A0()
-        A_b_list = list(zip(A_list, b_list))
+        A_0, b_0 = self.lifter.get_A0()
+        A_b_list = list(zip(A_0, b_0))
         if var_dict is None:
             if self.use_known:
                 A_b_list += [
@@ -1232,6 +1232,7 @@ class AutoTemplate(object):
     def apply(self, lifter: StateLifter, use_known: bool = False) -> list:
         """Apply the learned templates to a new lifter."""
         constraints = lifter.apply_templates(self.templates)
+
         A_0, b_0 = lifter.get_A0()
         if use_known:
             # if we set use_known=True in running AutoTemplate, then we learned only
