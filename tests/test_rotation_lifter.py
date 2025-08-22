@@ -1,3 +1,10 @@
+"""
+Tests for RotationLifter behaviors including measurement generation, local solvers,
+and semidefinite programming (SDP) relaxations. Covers consistency between rank-1
+and rank-d lifters, correctness of the forward measurement model, convergence of
+a local solver under varying noise levels, and recovery via an SDP relaxation.
+"""
+
 import math
 
 import matplotlib.pyplot as plt
@@ -15,7 +22,7 @@ def plot_matrices(A_known, Q):
     n_cols = min(1 + len(A_known), 10)
     n_rows = math.ceil((len(A_known) + 1) / n_cols)
     fig, axs = plt.subplots(n_rows, n_cols)
-    fig.set_size_inches(n_rows * n_cols, 3 * n_rows)
+    fig.set_size_inches(3 * n_cols, 3 * n_rows)
     axs = axs.flatten()
     for i in range(len(A_known)):
         assert isinstance(A_known[i], sp.csc_matrix)
@@ -26,10 +33,7 @@ def plot_matrices(A_known, Q):
 
 @pytest.mark.parametrize("d", [2, 3])
 def test_rank1_vs_rankd(d):
-    """
-    Make sure that the rank-1 and rank-d lifters give the same cost
-    for the same measurements
-    """
+    """Ensure rank-1 and rank-d RotationLifter formulations yield identical costs."""
     n_rot = 3
     n_abs = 2
 
@@ -50,21 +54,18 @@ def test_rank1_vs_rankd(d):
     Q2 = r2.get_Q_from_y(y, output_poly=False)
 
     cost1 = x1.T @ Q1 @ x1
-    cost2 = np.trace(x2.T @ Q2 @ x2)  # + (n_rot + n_abs + 1) * d
+    cost2 = np.trace(x2.T @ Q2 @ x2)
     assert abs(cost1 - cost2) < 1e-10
 
-    # actual cost should be
+    # actual optimal cost should be
     # 2 sum_ij tr(I) - 2 sum_ij tr(Ri.T@R_ij@R_j)
-    #                ==========our cost =========
     cost_optimal = cost1 + 2 * (n_abs * n_rot + n_rot - 1) * d
     assert abs(cost_optimal) < 1e-8
 
 
 @pytest.mark.parametrize("d", [2, 3])
 def test_measurements(d, level="no"):
-    """
-    Make sure that the forward model for measurements is correct
-    """
+    """Verify that the simulated measurements match the lifter's internal rotations."""
     np.random.seed(0)
     n_abs = 2
     n_rot = 3
@@ -93,7 +94,7 @@ def test_measurements(d, level="no"):
 
 
 def test_solve_local():
-
+    """Test the local solver's convergence from different initializations and noise levels."""
     d = 3
     n_abs = 1
     n_rot = 4
@@ -115,14 +116,14 @@ def test_solve_local():
             assert np.any(np.abs(theta_init - theta_gt) > 1e-1)
             estimates[f"init random {i}"] = theta_i
 
-            # make sure that we converge to the ground truth in zero-noise setting
+            # check convergence tolerance depending on noise
             if noise == 0.0:
                 np.testing.assert_allclose(theta_i, lifter.theta, atol=1e-5)
             else:
                 # 0.5 is found empirically
                 np.testing.assert_allclose(theta_i, lifter.theta, atol=0.5)
 
-        fig, ax = lifter.plot(estimates=estimates)
+        _, ax = lifter.plot(estimates=estimates)
         handles, labels = ax.get_legend_handles_labels()
         ax.legend(handles[:3], labels[:3], loc="lower left", bbox_to_anchor=(0.0, 1.0))
         plt.show(block=False)
@@ -130,6 +131,7 @@ def test_solve_local():
 
 
 def test_solve_sdp():
+    """Solve the SDP relaxation and compare the recovered rotations to ground truth."""
     d = 3
     n_abs = 1
     n_rot = 4
@@ -145,10 +147,10 @@ def test_solve_sdp():
 
         assert isinstance(Q, sp.csc_matrix)
         A_known = lifter.get_A_known()
-        constraints = lifter.get_A_b_list(lifter.get_A_known())
+        constraints = lifter.get_A_b_list(A_known)
 
-        # if noise == 0:
-        #     plot_matrices(A_known, Q)
+        if noise == 0:
+             plot_matrices(A_known, Q)
 
         X, info = solve_sdp(Q, constraints, verbose=False)
 
@@ -156,13 +158,13 @@ def test_solve_sdp():
         print(f"EVR at noise {noise:.2f}: {info_rank['EVR']:.2e}")
         if noise <= 1:
             assert info_rank["EVR"] > 1e8
-
         theta_sdp = lifter.get_theta(x.flatten())
         if noise == 0.0:
             np.testing.assert_allclose(theta_sdp, lifter.theta, atol=1e-5)
 
         estimates.update({"init gt": lifter.theta, f"SDP noise {noise:.2f}": theta_sdp})
     fig, ax = lifter.plot(estimates=estimates)
+    _, ax = lifter.plot(estimates=estimates)
     plt.show(block=False)
     return
 

@@ -687,8 +687,8 @@ class BaseClass(object):
     def get_A_b_list(self, A_list, var_subset=None):
         """get equality constraint tuples (Ai, bi) s.t. x.t @ Ai @ bi, 0
 
-        :param A_list: normally, this is just the list of equality constaints that equal zero. We will add the homogenization.
-                       for certain cases, such as the RotationLifter with level="bm", this is already a tuple of (Ai, bi).
+        :param A_list: Normally, this is just the list of equality constaints that equal zero. We will add the homogenization.
+                       For certain cases, such as the RotationLifter with level="bm", this is already a tuple of (Ai, bi).
 
         """
         if var_subset is None:
