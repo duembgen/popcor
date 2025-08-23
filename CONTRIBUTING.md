@@ -1,4 +1,4 @@
-# How to contribute to POPR
+# How to contribute to POPCOR
 
 We welcome any contributions to POPR! Contributions are done through pull requests. 
 

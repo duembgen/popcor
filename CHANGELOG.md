@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased] -- 2025-08-22
+## [Unreleased] -- 2025-08-23
 
 (0.0.0a)=
 ### Added
@@ -15,11 +15,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Documentation instructions in CONTRIBUTING.md
 - Unit tests and notebook for RotationLifter
 - StateLifter: started support for rank-d instead of rank-1 formulations
+- Added more documentation and type hints
 
 (0.0.0c)=
 ### Changed
 - RangeOnlyLifter: default sampling for landmarks in RO is now the one filling space
 - RangeOnlyLifter: theta is sampled at least MIN_DIST away from landmarks
+- Always returning constraints matrices along with right-hand-side values
 
 (0.0.0a)=
 ### Fixed
