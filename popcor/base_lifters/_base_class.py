@@ -508,8 +508,10 @@ class BaseClass(object):
             A_list.append(A_poly)
         return A_list
 
-    def get_constraint_rank(self, A_list_poly, output_sorted=False):
+    def get_constraint_rank(self, A_list_poly, b_known=None, output_sorted=False):
         """Find the number of independent constraints when they are of the form A_i @ x = 0.
+
+        For bm lifting, X is nxd, thus we check the linear independence of vec(A_i @ X).
 
         :param A_list_poly: list of constraints matrices
 
@@ -521,12 +523,18 @@ class BaseClass(object):
         current_rank = 0
         independent_indices = []
         dependent_indices = []
-        basis_incremental = np.zeros((len(x), 0))
+        if self.level == "bm":  # type: ignore
+            basis_incremental = np.zeros((x.size + 1, 0))
+        else:
+            basis_incremental = np.zeros((x.size, 0))
         for i, Ai in enumerate(A_list_poly):
             if isinstance(Ai, PolyMatrix):
                 new_candidate = (Ai.get_matrix(self.var_dict) @ x).reshape((-1, 1))
             else:
-                new_candidate = (Ai @ x).reshape((-1, 1))
+                new_candidate = (Ai @ x).flatten()[:, None]
+            if self.level == "bm":  # type: ignore
+                assert b_known is not None
+                new_candidate = np.vstack([new_candidate, b_known[i]])
             basis_candidate = np.hstack([basis_incremental, new_candidate])
             new_rank = np.linalg.matrix_rank(basis_candidate)
             if new_rank == current_rank + 1:

@@ -68,9 +68,11 @@ class Poly6Lifter(PolyLifter):
             A_list.append(B_0)
 
         if output_poly:
-            return A_list
+            return A_list, [0.0] * len(A_list)
         else:
-            return [A_i.get_matrix(self.var_dict) for A_i in A_list]
+            return [A_i.get_matrix(self.var_dict) for A_i in A_list], [0.0] * len(
+                A_list
+            )
 
     def get_D(self, that):
         D = np.array(

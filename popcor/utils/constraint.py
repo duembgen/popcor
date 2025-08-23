@@ -223,6 +223,7 @@ class Constraint(object):
         index: int = 0,
         template_idx: int = 0,
         compute_polyrow_b=False,
+        rhs=0,
     ):
         Ai_sparse_small = A_poly.get_matrix(variables=mat_var_dict)
         ai = get_vec(Ai_sparse_small, correct=True)
@@ -244,6 +245,7 @@ class Constraint(object):
             index=index,
             mat_var_dict=mat_var_dict,
             template_idx=template_idx,
+            rhs=rhs,
         )
 
     @staticmethod

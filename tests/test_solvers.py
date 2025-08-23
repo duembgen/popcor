@@ -134,7 +134,10 @@ def test_cost(noise=0.0):
         cost = lifter.get_cost(theta, y)
 
         x = lifter.get_x(theta)
-        costQ = x.T @ Q @ x
+        if np.ndim(x) == 2 and x.shape[1] > 1:
+            costQ = np.trace(x.T @ Q @ x)
+        else:
+            costQ = x.T @ Q @ x
 
         assert abs(cost - costQ) < 1e-6, (cost, costQ)
         if noise == 0 and not isinstance(lifter, PolyLifter) and not lifter.robust:

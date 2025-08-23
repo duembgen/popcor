@@ -510,7 +510,7 @@ class RobustPoseLifter(StateLifter, ABC):
                             constraint[j] = -1.0
                             Ai[f"c", f"w_{i}"] = constraint[:, None]
                             self.test_and_add(A_list, Ai, output_poly=output_poly)
-        return A_list
+        return A_list, [0.0] * len(A_list)
 
     def get_B_known(self):
         """Get inequality constraints of the form x.T @ B @ x <= 0.

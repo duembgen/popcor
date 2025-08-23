@@ -737,8 +737,8 @@ class AutoTemplate(object):
 
         # TODO(FD) we should not always recompute from scratch, but it's not very expensive so it's okay for now.
         target_dict = self.lifter.get_var_dict(unroll_keys=unroll)
-        for i, Ai in enumerate(
-            self.lifter.get_A_known(var_dict=target_dict, output_poly=True)
+        for i, (Ai, bi) in enumerate(
+            zip(*self.lifter.get_A_known(var_dict=target_dict, output_poly=True))
         ):
             template = Constraint.init_from_A_poly(
                 lifter=self.lifter,
@@ -748,6 +748,7 @@ class AutoTemplate(object):
                 template_idx=self.constraint_index,
                 mat_var_dict=self.lifter.var_dict,
                 compute_polyrow_b=True,
+                rhs=bi,
             )
             self.constraint_index += 1
             templates_known.append(template)

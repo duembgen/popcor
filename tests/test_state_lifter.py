@@ -44,33 +44,48 @@ def test_ravel():
 
 
 def test_known_constraints():
+    raise_error = False
     for lifter in all_lifters():
-        A_known = lifter.get_A_known()
-        constraints_test_with_tol(lifter, A_known, tol=1e-10)
+        try:
+            A_known, b_known = lifter.get_A_known()
+        except ValueError:
+            raise_error = True
+            print(f"Error in {lifter}")
+            continue
+
+        constraints_test_with_tol(lifter, A_known, b_known, tol=1e-10)
 
         B_known = lifter.get_B_known()
         x = lifter.get_x(theta=lifter.theta)
         for Bi in B_known:
             assert x.T @ Bi @ x <= 0
+    if raise_error:
+        raise ValueError("Some lifters could not provide known constraints.")
 
 
 def test_constraint_rank():
+    raise_error = False
     for lifter in all_lifters():
         assert isinstance(lifter, StateLifter)
         try:
-            A_known = lifter.get_A_known(add_redundant=False)
+            A_known, b_known = lifter.get_A_known(add_redundant=False)
             pass
         except TypeError:
-            A_known = lifter.get_A_known()
-        rank = lifter.get_constraint_rank(A_known)
+            print(f"lifter {lifter} does not support add_redundant!")
+            A_known, b_known = lifter.get_A_known()
+            raise_error = True
+
+        rank = lifter.get_constraint_rank(A_known, b_known=b_known)
         assert rank == len(A_known)
+    if raise_error:
+        raise ValueError("Some lifters could not provide known constraints.")
 
 
 def test_vec_mat():
     """Make sure that we can go back and forth from vec to mat."""
     for lifter in all_lifters():
         try:
-            A_known = lifter.get_A_known()
+            A_known, b_known = lifter.get_A_known()
         except AttributeError:
             print(f"could not get A_known of {lifter}")
             A_known = []
@@ -96,7 +111,7 @@ def test_vec_mat():
 
             a_poly = lifter.convert_a_to_polyrow(a)
             a_test = lifter.convert_polyrow_to_a(a_poly)
-            np.testing.assert_allclose(a, a_test)
+            np.testing.assert_allclose(np.asarray(a), np.asarray(a_test))
 
 
 def test_levels():

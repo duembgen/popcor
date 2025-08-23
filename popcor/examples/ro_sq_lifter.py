@@ -139,7 +139,7 @@ class RangeOnlySqLifter(RangeOnlyLifter):
                             A_list.append(A)
                         else:
                             A_list.append(A.get_matrix(self.var_dict))
-        return A_list
+        return A_list, [0.0] * len(A_list)
 
     def get_residuals(self, t, y, ad=False):
         return super().get_residuals(t, y, ad=ad, squared=True)
