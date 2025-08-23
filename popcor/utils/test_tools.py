@@ -51,8 +51,10 @@ Lifters = [
     (Stereo1DLifter, dict(n_landmarks=n_landmarks, param_level="p")),  # skip
     (Stereo2DLifter, dict(n_landmarks=n_landmarks)),
     (Stereo3DLifter, dict(n_landmarks=n_landmarks)),
-    (RotationLifter, dict(d=2)),  # ok
-    (RotationLifter, dict(d=3)),  # ok
+    (RotationLifter, dict(d=2, level="no")),  
+    (RotationLifter, dict(d=3, level="no")),  
+    (RotationLifter, dict(d=2, level="bm")),  
+    (RotationLifter, dict(d=3, level="bm")),  
 ]
 
 ExampleLifters = [
@@ -66,21 +68,27 @@ ExampleLifters = [
 ]
 
 
-def constraints_test_with_tol(lifter, A_list, tol):
-    x = lifter.get_x().astype(float).reshape((-1, 1))
-    for Ai in A_list:
-        err = abs((x.T @ Ai @ x)[0, 0])
+def constraints_test_with_tol(lifter, A_list, b_list, tol):
+    x = lifter.get_x().astype(float)
+    if np.ndim(x) == 1:
+        x = x[:, None]
+    for i, Ai in enumerate(A_list):
+        if b_list is None:
+            bi = 0.0
+        else:
+            bi = b_list[i]
+        err = abs(np.trace(x.T @ Ai @ x) - bi)
         assert err < tol, err
 
         ai = get_vec(Ai.toarray())
-        xvec = get_vec(np.outer(x, x))
+        xvec = get_vec(x @ x.T)
         assert isinstance(ai, np.ndarray)
-        np.testing.assert_allclose(ai @ xvec, 0.0, atol=tol)
+        np.testing.assert_allclose(ai @ xvec, bi, atol=tol)
 
         ai = get_vec(Ai)
-        xvec = get_vec(np.outer(x, x))
+        xvec = get_vec(x @ x.T)
         assert isinstance(ai, np.ndarray)
-        np.testing.assert_allclose(ai @ xvec, 0.0, atol=tol)
+        np.testing.assert_allclose(ai @ xvec, bi, atol=tol)
 
 
 # Below, we always reset seeds to make sure tests are reproducible.

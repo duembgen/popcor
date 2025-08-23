@@ -1,3 +1,8 @@
+"""Module for automatic constraint generation using nullspace methods."""
+
+import warnings
+from typing import Iterable
+
 import matplotlib.pylab as plt
 import numpy as np
 import scipy.sparse as sp
@@ -12,36 +17,22 @@ from popcor.utils.plotting_tools import add_colorbar, initialize_discrete_cbar
 class AutoTight(object):
     """Class for automatic constraint generation."""
 
-    # consider singular value zero below this
-    EPS_SVD = 1e-5
+    EPS_SVD: float = 1e-5  # consider singular value zero below this
+    METHOD: str = "qrp"  # basis pursuit method: 'qr', 'qrp', 'svd'
+    NORMALIZE: bool = False  # normalize learned Ai or not
+    FACTOR: float = 1.2  # how much to oversample (>= 1)
+    N_CLEANING_STEPS: int = 1  # number of times we remove bad samples from data matrix
+    LOCAL_MAXITER: int = 100  # maximum number of iterations of local solver
+    REDUCE_DEPENDENT: bool = False  # find and remove linearly dependent constraints
 
-    # basis pursuit method, can be
-    # - qr: qr decomposition
-    # - qrp: qr decomposition with permutations (sparser), recommended
-    # - svd: svd
-    METHOD = "qrp"
-
-    # normalize learned Ai or not
-    NORMALIZE = False
-
-    # how much to oversample (>= 1)
-    FACTOR = 1.2
-
-    # number of times we remove bad samples from data matrix
-    N_CLEANING_STEPS = 1  # was 3
-
-    # maximum number of iterations of local solver
-    LOCAL_MAXITER = 100
-
-    # find and remove linearly dependent constraints
-    REDUCE_DEPENDENT = False
-
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     @staticmethod
-    def clean_Y(basis_new, Y, s, plot=False):
-        errors = np.abs(basis_new @ Y.T)  # Nb x n x n x Ns = Nb x Ns
+    def clean_Y(
+        basis_new: np.ndarray, Y: np.ndarray, s: np.ndarray, plot: bool = False
+    ) -> list:
+        errors = np.abs(basis_new @ Y.T)  # Nb x Ns
         if np.all(errors < 1e-10):
             return []
         bad_bins = np.unique(np.argmax(errors, axis=1))
@@ -54,22 +45,26 @@ class AutoTight(object):
         return bad_bins
 
     @staticmethod
-    def test_S_cutoff(S, corank, eps_svd=None):
+    def test_S_cutoff(S: np.ndarray, corank: int, eps_svd: float | None = None) -> None:
         if eps_svd is None:
             eps_svd = AutoTight.EPS_SVD
         if corank > 1:
             try:
-                assert abs(S[-corank]) / eps_svd < 1e-1  # 1e-1  1e-10
-                assert abs(S[-corank - 1]) / eps_svd > 10  # 1e-11 1e-10
+                assert abs(S[-corank]) / eps_svd < 1e-1
+                assert abs(S[-corank - 1]) / eps_svd > 10
             except AssertionError:
                 print(f"there might be a problem with the chosen threshold {eps_svd}:")
                 print(S[-corank], eps_svd, S[-corank - 1])
 
     @staticmethod
     def get_basis_sparse(
-        lifter, var_list, param_list, A_known=[], plot=False, eps_svd=None
-    ):
-
+        lifter,
+        var_list: list,
+        param_list: list,
+        A_known: list = [],
+        plot: bool = False,
+        eps_svd: float | None = None,
+    ) -> list:
         Y = AutoTight.generate_Y_sparse(
             lifter, var_subset=var_list, param_subset=param_list, factor=1.0
         )
@@ -89,7 +84,6 @@ class AutoTight(object):
             )
         if plot:
             plot_matrix = np.vstack([t.b_[None, :] for t in constraints])
-
             cmap, norm, colorbar_yticks = initialize_discrete_cbar(plot_matrix)
             X_dim = lifter.get_dim_X(var_list)
             fig, ax = plt.subplots()
@@ -105,21 +99,12 @@ class AutoTight(object):
     @staticmethod
     def get_A_learned(
         lifter,
-        A_known=[],
-        var_dict=None,
-        method=METHOD,
-        verbose=False,
-    ) -> list:
-        """Generate list of learned constraints by sampling the lifter.
-
-        :param lifter: StateLifter object
-        :param A_known: list of known constraints, if given, will generate basis that is orthogonal to these given constraints.
-        :param var_dict: variable dictionary, if None, will use all variables
-        :param method: method to use for basis generation, can be 'qr', 'qrp', or 'svd'. 'qrp' is recommended.
-        :param verbose: if True, will print timing information
-
-        :return: list of learned constraints.
-        """
+        A_known: list = [],
+        var_dict: dict | list | None = None,
+        method: str = METHOD,
+        verbose: bool = False,
+    ) -> tuple[list, list]:
+        """Generate list of learned constraints by sampling the lifter."""
         import time
 
         t1 = time.time()
@@ -131,18 +116,27 @@ class AutoTight(object):
         if verbose:
             print(f"get basis ({basis.shape})): {time.time() - t1:4.4f}")
         t1 = time.time()
-        A_learned = AutoTight.generate_matrices(lifter, basis, var_dict=var_dict)
-        if verbose:
-            print(f"get matrices ({len(A_learned)}): {time.time() - t1:4.4f}")
-        return A_learned
+        if lifter.level == "bm":
+            A_learned = AutoTight.generate_matrices(
+                lifter, basis[:, 1:], var_dict=var_dict
+            )
+            b_learned = -basis[:, 0]
+            if verbose:
+                print(f"get matrices ({len(A_learned)}): {time.time() - t1:4.4f}")
+            return A_learned, list(b_learned)
+        else:
+            A_learned = AutoTight.generate_matrices(lifter, basis, var_dict=var_dict)
+            if verbose:
+                print(f"get matrices ({len(A_learned)}): {time.time() - t1:4.4f}")
+            return A_learned, [0] * len(A_learned)
 
     @staticmethod
     def get_A_learned_simple(
         lifter,
-        A_known=[],
-        var_dict=None,
-        method=METHOD,
-        verbose=False,
+        A_known: list = [],
+        var_dict: Iterable | None = None,
+        method: str = METHOD,
+        verbose: bool = False,
     ) -> list:
         """Simplified version of get_A_learned that does not consider parameters."""
         import time
@@ -174,14 +168,15 @@ class AutoTight(object):
         return A_learned
 
     @staticmethod
-    def generate_Y_simple(lifter, var_subset, factor):
+    def generate_Y_simple(
+        lifter, var_subset: Iterable | None = None, factor: float = 1.0
+    ) -> np.ndarray:
         # need at least dim_Y different random setups
         dim_Y = lifter.get_dim_X(var_subset)
         n_seeds = int(dim_Y * factor)
         Y = np.empty((n_seeds, dim_Y))
         for seed in range(n_seeds):
             np.random.seed(seed)
-
             theta = lifter.sample_theta()
             x = lifter.get_x(theta=theta, parameters=None, var_subset=var_subset)
             X = np.outer(x, x)
@@ -189,45 +184,47 @@ class AutoTight(object):
         return Y
 
     @staticmethod
-    def generate_Y_sparse(lifter, var_subset, param_subset, factor=FACTOR, ax=None):
+    def generate_Y_sparse(
+        lifter, var_subset: list, param_subset: list, factor: float = FACTOR, ax=None
+    ) -> np.ndarray:
         from popcor.base_lifters import StateLifter
 
         assert isinstance(lifter, StateLifter)
         assert lifter.HOM in param_subset
 
-        # need at least dim_Y different random setups
         dim_Y = lifter.get_dim_Y(var_subset, param_subset)
         n_seeds = int(dim_Y * factor)
         Y = np.empty((n_seeds, dim_Y))
         for seed in range(n_seeds):
             np.random.seed(seed)
-
             theta = lifter.sample_theta()
             parameters = lifter.sample_parameters(theta)
-
             if seed < 10 and ax is not None:
                 if np.ndim(lifter.theta) == 1:
                     ax.scatter(np.arange(len(theta)), theta)
                 else:
                     ax.scatter(*theta[:, :2].T)
-
             x = lifter.get_x(theta=theta, parameters=parameters, var_subset=var_subset)
             X = np.outer(x, x)
-
-            # generates [1*x, a1*x, ..., aK*x]
             p = lifter.get_p(parameters=parameters, param_subset=param_subset)
             Y[seed, :] = np.kron(p, get_vec(X))
         return Y
 
     @staticmethod
-    def generate_Y(lifter, factor=FACTOR, ax=None, var_subset=None, param_subset=None):
-        # need at least dim_Y different random setups
+    def generate_Y(
+        lifter,
+        factor: float = FACTOR,
+        ax=None,
+        var_subset: Iterable | None = None,
+        param_subset: Iterable | None = None,
+    ) -> np.ndarray:
         dim_Y = lifter.get_dim_Y(var_subset, param_subset)
+        if lifter.level == "bm":
+            dim_Y += lifter.get_dim_P(param_subset)
         n_seeds = int(dim_Y * factor)
         Y = np.empty((n_seeds, dim_Y))
         for seed in range(n_seeds):
             np.random.seed(seed)
-
             theta = lifter.sample_theta()
             parameters = lifter.sample_parameters(theta)
             if seed < 10 and ax is not None:
@@ -235,39 +232,35 @@ class AutoTight(object):
                     ax.scatter(np.arange(len(theta)), theta)
                 else:
                     ax.scatter(*theta[:, :2].T)
-
             x = lifter.get_x(theta=theta, parameters=parameters, var_subset=var_subset)
-            X = np.outer(x, x)
-
-            # generates [1*x, a1*x, ..., aK*x]
+            if np.ndim(x) == 1:
+                x = x[:, None]
+            X = x @ x.T
             p = lifter.get_p(parameters=parameters, param_subset=param_subset)
             assert p[0] == 1
-            Y[seed, :] = np.kron(p, get_vec(X))
+            row = get_vec(X)
+            if lifter.level == "bm":
+                row = np.hstack([np.array([1.0]), np.array(row)])
+            Y[seed, :] = np.kron(p, row)
         return Y
 
     @staticmethod
     def get_basis(
         lifter,
-        Y,
+        Y: np.ndarray,
         A_known: list = [],
         basis_known: np.ndarray | None = None,
-        method=METHOD,
-        eps_svd=None,
-    ):
-        """Generate basis from lifted state matrix Y.
-
-        :param A_known: if given, will generate basis that is orthogonal to these given constraints.
-
-        :return: basis, S
-        """
+        method: str = METHOD,
+        eps_svd: float | None = None,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """Generate basis from lifted state matrix Y."""
         if eps_svd is None:
             eps_svd = AutoTight.EPS_SVD
-
-        # if there is a known list of constraints, add them to the Y so that resulting nullspace is orthogonal to them
         if basis_known is not None:
             if len(A_known):
-                print(
-                    "Warning: ignoring given A_known because basis_all is also given."
+                warnings.warn(
+                    "Ignoring given A_known because basis_all is also given.",
+                    UserWarning,
                 )
             Y = np.vstack([Y, basis_known.T])
         elif len(A_known):
@@ -275,21 +268,19 @@ class AutoTight(object):
                 [lifter.augment_using_zero_padding(get_vec(a)) for a in A_known]
             )
             Y = np.vstack([Y, A])
-
         basis, info = get_nullspace(Y, method=method, tolerance=eps_svd)
-
         basis[np.abs(basis) < lifter.EPS_SPARSE] = 0.0
         return basis, info["values"]
 
     @staticmethod
     def generate_matrices_simple(
         lifter,
-        basis,
-        normalize=NORMALIZE,
-        sparse=True,
-        trunc_tol=1e-10,
-        var_dict=None,
-    ):
+        basis: np.ndarray,
+        normalize: bool = NORMALIZE,
+        sparse: bool = True,
+        trunc_tol: float = 1e-10,
+        var_dict: Iterable | None = None,
+    ) -> list:
         """
         Generate constraint matrices from the rows of the nullspace basis matrix.
         """
@@ -297,92 +288,85 @@ class AutoTight(object):
             n_basis = len(basis)
         except Exception:
             n_basis = basis.shape[0]
-
         if isinstance(var_dict, list):
             var_dict = lifter.get_var_dict(var_dict)
-
         from popcor.base_lifters import StateLifter
 
         assert isinstance(lifter, StateLifter)
-
         A_list = []
         for i in range(n_basis):
             ai = basis[i]
             Ai = lifter.get_mat(ai, sparse=sparse, correct=True, var_dict=None)
-            # Normalize the matrix
             if normalize and not sparse:
-                # Ai /= np.max(np.abs(Ai))
                 assert isinstance(Ai, np.ndarray)
-                Ai /= np.linalg.norm(Ai, p=2)  # type: ignore
+                Ai /= np.linalg.norm(Ai, ord=2)
             elif normalize and sparse:
                 Ai /= splinalg.norm(Ai, ord="fro")
-            # Sparsify and truncate
             if sparse:
-                Ai.eliminate_zeros()  # type: ignore
+                assert isinstance(Ai, (sp.csr_matrix, sp.csc_matrix))
+                Ai.eliminate_zeros()
             else:
-                Ai[np.abs(Ai) < trunc_tol] = 0.0  # type: ignore
-            # add to list
+                assert isinstance(Ai, np.ndarray)
+                Ai[np.abs(Ai) < trunc_tol] = 0.0
             A_list.append(Ai)
         return A_list
 
     @staticmethod
     def generate_matrices(
         lifter,
-        basis,
-        normalize=NORMALIZE,
-        sparse=True,
-        trunc_tol=1e-10,
-        var_dict=None,
-    ):
+        basis: np.ndarray,
+        normalize: bool = NORMALIZE,
+        sparse: bool = True,
+        trunc_tol: float = 1e-10,
+        var_dict: dict | list | None = None,
+    ) -> list:
         """
         Generate constraint matrices from the rows of the nullspace basis matrix.
         """
         from popcor.base_lifters import StateLifter
 
         assert isinstance(lifter, StateLifter)
-
         try:
             n_basis = len(basis)
         except Exception:
             n_basis = basis.shape[0]
-
         if isinstance(var_dict, list):
             var_dict = lifter.get_var_dict(var_dict)
-
         A_list = []
         basis_reduced = []
         for i in range(n_basis):
             ai = lifter.get_reduced_a(bi=basis[i], var_subset=var_dict, sparse=True)
             basis_reduced.append(ai)
         basis_reduced = sp.vstack(basis_reduced)
-
+        assert isinstance(basis_reduced, sp.csr_matrix)
         if AutoTight.REDUCE_DEPENDENT:
             bad_idx = find_dependent_columns(basis_reduced.T, tolerance=1e-6)
         else:
             bad_idx = []
-
-        for i in range(basis_reduced.shape[0]):  # type: ignore
+        for i in range(basis_reduced.shape[0]):
             if i in bad_idx:
                 continue
-            ai = basis_reduced[[i], :].toarray().flatten()  # type: ignore
+            ai = basis_reduced[[i], :].toarray().flatten()
             Ai = lifter.get_mat(ai, sparse=sparse, correct=True, var_dict=None)
-            # Normalize the matrix
+
             if normalize and not sparse:
-                # Ai /= np.max(np.abs(Ai))
-                Ai /= np.linalg.norm(Ai, p=2)  # type: ignore
+                assert isinstance(Ai, np.ndarray)
+                Ai /= np.linalg.norm(Ai, ord=2)
             elif normalize and sparse:
                 Ai /= splinalg.norm(Ai, ord="fro")
-            # Sparsify and truncate
             if sparse:
-                Ai.eliminate_zeros()  # type: ignore
+                assert isinstance(Ai, (sp.csr_matrix, sp.csc_matrix))
+                Ai.eliminate_zeros()
             else:
-                Ai[np.abs(Ai) < trunc_tol] = 0.0  # type: ignore
-            # add to list
+                assert isinstance(Ai, np.ndarray)
+                Ai[np.abs(Ai) < trunc_tol] = 0.0
             A_list.append(Ai)
         return A_list
 
     @staticmethod
-    def get_duality_gap(cost_local, cost_sdp, relative=True):
+    def get_duality_gap(
+        cost_local: float, cost_sdp: float, relative: bool = True
+    ) -> float:
         if relative:
             return (cost_local - cost_sdp) / abs(cost_sdp)
         else:

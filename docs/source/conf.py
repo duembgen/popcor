@@ -120,6 +120,9 @@ html_static_path = ["_static"]
 # Do not show "View Page Source"
 html_show_sourcelink = False
 
+# Make sure that inheriting classes do not show the docstring of the parent class
+autodoc_inherit_docstrings = False
+
 
 def setup(app):
     app.add_css_file("custom_css")

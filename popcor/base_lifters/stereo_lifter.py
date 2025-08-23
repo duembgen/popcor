@@ -1,3 +1,4 @@
+import warnings
 from abc import ABC, abstractmethod
 
 import numpy as np
@@ -227,8 +228,11 @@ class StereoLifter(StateLifter, ABC):
         a3) cz @ pj * u_zj + tz*u_zj  - h*h = 0
            ------1z-------   --2z---
         """
-        print("not using known stereo templates because they depend on the landmarks.")
-        return []
+        warnings.warn(
+            "Not using known stereo templates because they depend on the landmarks.",
+            UserWarning,
+        )
+        return [], []
 
         # x contains: [c1, c2, c3, t]
         # z contains: [u_xj, u_yj, u_zj, H.O.T.]

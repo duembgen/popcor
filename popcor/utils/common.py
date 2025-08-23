@@ -1,25 +1,29 @@
+"""Common utilities for symmetric matrix vectorization and sparsity handling."""
+
 import itertools
+from typing import Any, Dict, List, Sequence, Tuple
 
 import numpy as np
 import scipy.sparse as sp
 
 
-def upper_triangular(p):
-    """Given vector, get the half kronecker product."""
+def upper_triangular(p: np.ndarray) -> np.ndarray:
+    """Return the vectorized upper-triangular part of the outer product of p."""
     return np.outer(p, p)[np.triu_indices(len(p))]
 
 
-def diag_indices(n):
-    """Given the half kronecker product, return diagonal elements"""
+def diag_indices(n: int) -> np.ndarray:
+    """Return indices of diagonal elements in the vectorized upper-triangular matrix."""
     z = np.empty((n, n))
     z[np.triu_indices(n)] = range(int(n * (n + 1) / 2))
     return np.diag(z).astype(int)
 
 
-def get_aggregate_sparsity(matrix_list_sparse):
-    agg_ii = []
-    agg_jj = []
-    for i, A_sparse in enumerate(matrix_list_sparse):
+def get_aggregate_sparsity(matrix_list_sparse: Sequence[sp.spmatrix]) -> sp.csr_matrix:
+    """Aggregate sparsity pattern from a list of sparse matrices."""
+    agg_ii: List[int] = []
+    agg_jj: List[int] = []
+    for A_sparse in matrix_list_sparse:
         assert isinstance(A_sparse, sp.spmatrix)
         ii, jj = A_sparse.nonzero()  # type: ignore
         agg_ii += list(ii)
@@ -27,12 +31,12 @@ def get_aggregate_sparsity(matrix_list_sparse):
     return sp.csr_matrix(([1.0] * len(agg_ii), (agg_ii, agg_jj)), A_sparse.shape)
 
 
-def unravel_multi_index_triu(flat_indices, shape):
-    """Equivalent of np.multi_index_triu, but using only the upper-triangular part of matrix."""
-    i_upper = []
-    j_upper = []
-
-    # for 4 x 4, this would give [4, 7, 9, 11]
+def unravel_multi_index_triu(
+    flat_indices: Sequence[int], shape: Tuple[int, int]
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Convert flat indices to (i, j) indices for upper-triangular part of a matrix."""
+    i_upper: List[int] = []
+    j_upper: List[int] = []
     cutoffs = np.cumsum(list(range(1, shape[0] + 1))[::-1])
     for idx in flat_indices:
         i = np.where(idx < cutoffs)[0][0]
@@ -45,31 +49,33 @@ def unravel_multi_index_triu(flat_indices, shape):
     return np.array(i_upper), np.array(j_upper)
 
 
-def ravel_multi_index_triu(index_tuple, shape):
-    """Equivalent of np.multi_index_triu, but using only the upper-triangular part of matrix."""
+def ravel_multi_index_triu(
+    index_tuple: Tuple[np.ndarray, np.ndarray], shape: Tuple[int, int]
+) -> List[int]:
+    """Convert (i, j) indices to flat indices for upper-triangular part of a matrix."""
     ii, jj = index_tuple
-
     triu_mask = jj >= ii
     i_upper = ii[triu_mask]
     j_upper = jj[triu_mask]
-    flat_indices = []
+    flat_indices: List[int] = []
     for i, j in zip(i_upper, j_upper):
-        # for i == 0: idx = j
-        # for i == 1: idx = shape[0] + j
-        # for i == 2: idx = shape[0] + shape[0]-1 + j
         idx = np.sum(range(shape[0] - i, shape[0])) + j
         flat_indices.append(idx)
     return flat_indices
 
 
-def create_symmetric(vec, eps_sparse, correct=False, sparse=False):
-    """Create a symmetric matrix from the vectorized elements of the upper half"""
+def create_symmetric(
+    vec: np.ndarray | sp.csr_matrix | sp.csc_matrix,
+    eps_sparse: float,
+    correct: bool = False,
+    sparse: bool = False,
+) -> np.ndarray | sp.csr_array:
+    """Create a symmetric matrix from the vectorized upper-triangular elements."""
 
-    def get_dim_x(len_vec):
+    def get_dim_x(len_vec: int) -> int:
         return int(0.5 * (-1 + np.sqrt(1 + 8 * len_vec)))
 
-    try:
-        # vec is dense
+    if isinstance(vec, np.ndarray):
         len_vec = len(vec)
         dim_x = get_dim_x(len_vec)
         triu = np.triu_indices(n=dim_x)
@@ -77,16 +83,14 @@ def create_symmetric(vec, eps_sparse, correct=False, sparse=False):
         triu_i_nnz = triu[0][mask]
         triu_j_nnz = triu[1][mask]
         vec_nnz = vec[mask]
-    except Exception:
-        # vec is sparse
+    else:
         len_vec = vec.shape[1]
         dim_x = get_dim_x(len_vec)
         vec.data[np.abs(vec.data) < eps_sparse] = 0
         vec.eliminate_zeros()
-        ii, jj = vec.nonzero()  # vec is 1 x jj
+        ii, jj = vec.nonzero()
         triu_i_nnz, triu_j_nnz = unravel_multi_index_triu(jj, (dim_x, dim_x))
         vec_nnz = np.array(vec[ii, jj]).flatten()
-    # assert dim_x == self.get_dim_x(var_dict)
 
     if sparse:
         offdiag = triu_i_nnz != triu_j_nnz
@@ -95,7 +99,6 @@ def create_symmetric(vec, eps_sparse, correct=False, sparse=False):
         triu_j = triu_j_nnz[offdiag]
         diag_i = triu_i_nnz[diag]
         if correct:
-            # divide off-diagonal elements by sqrt(2)
             vec_nnz_off = vec_nnz[offdiag] / np.sqrt(2)
         else:
             vec_nnz_off = vec_nnz[offdiag]
@@ -110,12 +113,9 @@ def create_symmetric(vec, eps_sparse, correct=False, sparse=False):
         )
     else:
         Ai = np.zeros((dim_x, dim_x))
-
         if correct:
-            # divide all elements by sqrt(2)
             Ai[triu_i_nnz, triu_j_nnz] = vec_nnz / np.sqrt(2)
             Ai[triu_j_nnz, triu_i_nnz] = vec_nnz / np.sqrt(2)
-            # undo operation for diagonal
             Ai[range(dim_x), range(dim_x)] *= np.sqrt(2)
         else:
             Ai[triu_i_nnz, triu_j_nnz] = vec_nnz
@@ -123,17 +123,17 @@ def create_symmetric(vec, eps_sparse, correct=False, sparse=False):
     return Ai
 
 
-def get_vec(mat, correct=True, sparse=False) -> np.ndarray | sp.csr_matrix | None:
-    """Convert NxN Symmetric matrix to (N+1)N/2 vectorized version that preserves inner product.
-
-    :param mat: (spmatrix or ndarray) symmetric matrix
-    :return: ndarray
-    """
+def get_vec(
+    mat: np.ndarray | sp.csc_matrix | sp.csr_matrix,
+    correct: bool = True,
+    sparse: bool = False,
+) -> np.ndarray | sp.csr_matrix:
+    """Convert NxN symmetric matrix to vectorized upper-triangular form preserving inner product."""
     from copy import deepcopy
 
     mat = deepcopy(mat)
     if correct:
-        if isinstance(mat, sp.csc_matrix):
+        if isinstance(mat, (sp.csc_matrix, sp.csr_matrix)):
             ii, jj = mat.nonzero()
             mat[ii, jj] *= np.sqrt(2.0)
             diag = ii == jj
@@ -146,9 +146,8 @@ def get_vec(mat, correct=True, sparse=False) -> np.ndarray | sp.csr_matrix | Non
         ii, jj = mat.nonzero()
         if len(ii) == 0:
             # got an empty matrix -- this can happen depending on the parameter values.
-            return None
+            raise ValueError
         triu_mask = jj >= ii
-
         flat_indices = ravel_multi_index_triu([ii[triu_mask], jj[triu_mask]], mat.shape)  # type: ignore
         data = np.array(mat[ii[triu_mask], jj[triu_mask]]).flatten()  # type: ignore
         vec_size = int(mat.shape[0] * (mat.shape[0] + 1) / 2)  # type: ignore
@@ -159,12 +158,12 @@ def get_vec(mat, correct=True, sparse=False) -> np.ndarray | sp.csr_matrix | Non
         return np.array(mat[np.triu_indices(n=mat.shape[0])]).flatten()  # type: ignore
 
 
-def get_labels(p, zi, zj, var_dict):
-    labels = []
+def get_labels(p: str, zi: str, zj: str, var_dict: Dict[str, int]) -> List[str]:
+    """Generate labels for matrix/vector elements based on variable sizes."""
+    labels: List[str] = []
     size_i = var_dict[zi]
     size_j = var_dict[zj]
     if zi == zj:
-        # only upper diagonal for i == j
         key_pairs = itertools.combinations_with_replacement(range(size_i), 2)
     else:
         key_pairs = itertools.product(range(size_i), range(size_j))

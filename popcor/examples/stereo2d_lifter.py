@@ -1,4 +1,5 @@
-# import autograd.numpy as np
+"""Stereo2DLifter class for 2D stereo localization example."""
+
 import numpy as np
 
 from popcor.base_lifters import StereoLifter
@@ -6,13 +7,16 @@ from popcor.utils.geometry import convert_phi_to_theta, convert_theta_to_phi
 from popcor.utils.stereo2d_problem import _cost, local_solver
 
 
-def change_dimensions(a, y, x):
+def change_dimensions(
+    a: np.ndarray, y: np.ndarray, x: np.ndarray
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Reshape and concatenate arrays for stereo localization."""
     p_w = np.concatenate([a, np.ones((a.shape[0], 1))], axis=1)
     y_mat = np.c_[[*y]]  # N x 2
     return p_w[:, :, None], y_mat[:, :, None], x[:, None]
 
 
-GTOL = 1e-6
+GTOL: float = 1e-6
 
 
 class Stereo2DLifter(StereoLifter):
@@ -39,12 +43,17 @@ class Stereo2DLifter(StereoLifter):
 
     where :math:`f_u, f_v` are horizontal and vertical focal lengths, :math:`c_u,c_v` are image center points in pixels and :math:`b` is the camera baseline.
 
-    This example is treated in more details in `this paper <https://arxiv.org/abs/2308.05783>`_.
+    This example is treated in more detail in `this paper <https://arxiv.org/abs/2308.05783>`_.
     """
 
-    def __init__(self, n_landmarks, level="no", param_level="no", variable_list=None):
-        self.W = np.stack([np.eye(2)] * n_landmarks)
-
+    def __init__(
+        self,
+        n_landmarks: int,
+        level: str = "no",
+        param_level: str = "no",
+        variable_list: list | None = None,
+    ):
+        self.W: np.ndarray = np.stack([np.eye(2)] * n_landmarks)
         super().__init__(
             n_landmarks=n_landmarks,
             level=level,
@@ -54,14 +63,16 @@ class Stereo2DLifter(StereoLifter):
         )
 
     @property
-    def M_matrix(self):
-        f_u = 484.5
-        c_u = 322
-        b = 0.24
+    def M_matrix(self) -> np.ndarray:
+        f_u: float = 484.5
+        c_u: float = 322
+        b: float = 0.24
         return np.array([[f_u, c_u, f_u * b / 2], [f_u, c_u, -f_u * b / 2]])
 
-    def get_cost(self, theta, y, W=None):
-
+    def get_cost(
+        self, theta: np.ndarray, y: np.ndarray, W: np.ndarray | None = None
+    ) -> float:
+        """Compute the cost for given parameters."""
         if W is None:
             W = self.W
         a = self.landmarks
@@ -74,8 +85,15 @@ class Stereo2DLifter(StereoLifter):
         else:
             return cost
 
-    def local_solver(self, t0, y, W=None, verbose=False, **kwargs):
-
+    def local_solver(
+        self,
+        t0: np.ndarray,
+        y: np.ndarray,
+        W: np.ndarray | None = None,
+        verbose: bool = False,
+        **kwargs
+    ) -> tuple[np.ndarray | None, dict, float]:
+        """Run local solver for stereo localization."""
         if W is None:
             W = self.W
         a = self.landmarks
@@ -87,7 +105,6 @@ class Stereo2DLifter(StereoLifter):
         )
         if StereoLifter.NORMALIZE:
             cost /= self.n_landmarks * self.d
-        # cost /= self.n_landmarks * self.d
         theta_hat = convert_phi_to_theta(phi_hat)
         info = {"success": success, "msg": "converged", "cost": cost}
         if success:
