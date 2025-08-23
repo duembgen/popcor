@@ -190,7 +190,7 @@
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">What’s new</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#change-log">Change Log</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#unreleased-2025-08-22">[Unreleased] – 2025-08-22</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#unreleased-2025-08-23">[Unreleased] – 2025-08-23</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#added">Added</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#changed">Changed</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#fixed">Fixed</a></li>
@@ -208,7 +208,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="contributing.html#how-to-contribute-to-popr">How to contribute to POPR</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#how-to-contribute-to-popcor">How to contribute to POPCOR</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="contributing.html#general-guidelines">General guidelines</a></li>
 <li class="toctree-l3"><a class="reference internal" href="contributing.html#adding-a-new-lifter-class">Adding a new lifter class</a></li>
 <li class="toctree-l3"><a class="reference internal" href="contributing.html#adding-new-functionalities">Adding new functionalities</a></li>
@@ -254,8 +254,8 @@
 <p>All notable changes to this project will be documented in this file.</p>
 <p>The format is based on <a class="reference external" href="http://keepachangelog.com/">Keep a Changelog</a>
 and this project adheres to <a class="reference external" href="http://semver.org/">Semantic Versioning</a>.</p>
-<section id="unreleased-2025-08-22">
-<h3>[Unreleased] – 2025-08-22<a class="headerlink" href="#unreleased-2025-08-22" title="Link to this heading"></a></h3>
+<section id="unreleased-2025-08-23">
+<h3>[Unreleased] – 2025-08-23<a class="headerlink" href="#unreleased-2025-08-23" title="Link to this heading"></a></h3>
 <section id="added">
 <span id="a"></span><h4>Added<a class="headerlink" href="#added" title="Link to this heading"></a></h4>
 <ul class="simple">
@@ -265,6 +265,7 @@ and this project adheres to <a class="reference external" href="http://semver.or
 <li><p>Documentation instructions in CONTRIBUTING.md</p></li>
 <li><p>Unit tests and notebook for RotationLifter</p></li>
 <li><p>StateLifter: started support for rank-d instead of rank-1 formulations</p></li>
+<li><p>Added more documentation and type hints</p></li>
 </ul>
 </section>
 <section id="changed">
@@ -272,6 +273,7 @@ and this project adheres to <a class="reference external" href="http://semver.or
 <ul class="simple">
 <li><p>RangeOnlyLifter: default sampling for landmarks in RO is now the one filling space</p></li>
 <li><p>RangeOnlyLifter: theta is sampled at least MIN_DIST away from landmarks</p></li>
+<li><p>Always returning constraints matrices along with right-hand-side values</p></li>
 </ul>
 </section>
 <section id="fixed">
