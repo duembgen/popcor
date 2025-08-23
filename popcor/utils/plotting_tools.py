@@ -6,6 +6,19 @@ from poly_matrix.poly_matrix import PolyMatrix
 
 from popcor.utils.geometry import get_C_r_from_theta
 
+LINESTYLES = [
+    "-",  # solid
+    "--",  # dashed
+    "-.",  # dash-dot
+    ":",  # dotted
+    (0, (5, 2)),  # long dash, short gap
+    (0, (1, 1)),  # very fine dashed (dot style)
+    (0, (3, 5, 1, 5)),  # dash, gap, dot, gap
+    (0, (5, 10)),  # widely spaced dashes
+    (0, (3, 1, 1, 1, 1, 1)),  # dash-dot-dot
+    (0, (2, 4, 6, 4)),  # mixed dash lengths
+]
+
 
 def import_plt():
     import shutil
