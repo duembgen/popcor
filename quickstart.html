@@ -129,6 +129,8 @@
 <li class="toctree-l3"><a class="reference internal" href="api/utils.html#module-popcor.utils.common">Helpers for matrix and vector operations</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="api/utils.html#popcor.utils.common.create_symmetric"><code class="docutils literal notranslate"><span class="pre">create_symmetric()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/utils.html#popcor.utils.common.diag_indices"><code class="docutils literal notranslate"><span class="pre">diag_indices()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#popcor.utils.common.get_aggregate_sparsity"><code class="docutils literal notranslate"><span class="pre">get_aggregate_sparsity()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#popcor.utils.common.get_labels"><code class="docutils literal notranslate"><span class="pre">get_labels()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/utils.html#popcor.utils.common.get_vec"><code class="docutils literal notranslate"><span class="pre">get_vec()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/utils.html#popcor.utils.common.ravel_multi_index_triu"><code class="docutils literal notranslate"><span class="pre">ravel_multi_index_triu()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/utils.html#popcor.utils.common.unravel_multi_index_triu"><code class="docutils literal notranslate"><span class="pre">unravel_multi_index_triu()</span></code></a></li>
@@ -343,12 +345,13 @@ optimum of the nonconvex polynomial problem, by solving an SDP.</p>
 <span class="n">Q</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_Q</span><span class="p">()</span>
 
 <span class="c1"># the equality constraints</span>
-<span class="n">A_known</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_A_known</span><span class="p">()</span>
+<span class="n">A_known</span><span class="p">,</span> <span class="n">b_known</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_A_known</span><span class="p">()</span>
 
 <span class="c1"># the homogenization constraint</span>
-<span class="n">A_0</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_A0</span><span class="p">()</span>
+<span class="n">A_0</span><span class="p">,</span> <span class="n">b_0</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_A0</span><span class="p">()</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">A_0</span> <span class="o">+</span> <span class="n">A_known</span><span class="p">,</span> <span class="n">b_0</span> <span class="o">+</span> <span class="n">b_known</span><span class="p">))</span>
 
-<span class="n">X</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">solve_sdp</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="p">[(</span><span class="n">A_0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[(</span><span class="n">A_i</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="k">for</span> <span class="n">A_i</span> <span class="ow">in</span> <span class="n">A_known</span><span class="p">])</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">solve_sdp</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">X</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
 <span class="c1"># if X is rank one, the global optimum can be found in element X_10 of the matrix.</span>
@@ -359,7 +362,6 @@ optimum of the nonconvex polynomial problem, by solving an SDP.</p>
 <span class="n">x</span><span class="p">,</span> <span class="n">info_rank</span> <span class="o">=</span> <span class="n">rank_project</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">theta_round</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
-<span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">theta_round</span> <span class="o">-</span> <span class="n">lifter</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-5</span>
 </pre></div>
 </div>
 </section>
@@ -378,7 +380,8 @@ If successful, the output is a set of constraints that leads to a tight SDP rela
 <p>More information on how to use AutoTight can be found <a class="reference internal" href="api/algorithms.html#autotight"><span class="std std-ref">here</span></a> and a simple example is given next.</p>
 <section id="example-tightening-the-sdp-relaxation-using-autotight">
 <h3><strong>Example: tightening the SDP relaxation using AutoTight</strong><a class="headerlink" href="#example-tightening-the-sdp-relaxation-using-autotight" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cert_tools.sdp_solvers</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve_sdp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;Test the AutoTight example from the documentation.&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cert_tools.sdp_solvers</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve_sdp</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">popcor.auto_tight</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoTight</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">popcor.examples.stereo1d_lifter</span><span class="w"> </span><span class="kn">import</span> <span class="n">Stereo1DLifter</span>
@@ -389,15 +392,15 @@ If successful, the output is a set of constraints that leads to a tight SDP rela
 
 <span class="c1"># solve the SDP -- it is not cost tight!</span>
 <span class="n">Q</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_Q</span><span class="p">(</span><span class="n">noise</span><span class="o">=</span><span class="mf">1e-1</span><span class="p">)</span>
-<span class="n">A_known</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_A_known</span><span class="p">()</span>
-<span class="n">A_0</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_A0</span><span class="p">()</span>
+<span class="n">A_known</span><span class="p">,</span> <span class="n">b_known</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_A_known</span><span class="p">()</span>
+<span class="n">A_0</span><span class="p">,</span> <span class="n">b_0</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_A0</span><span class="p">()</span>
 
 <span class="c1"># solve locally starting at ground truth</span>
 <span class="n">x</span><span class="p">,</span> <span class="n">info_local</span><span class="p">,</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">local_solver</span><span class="p">(</span><span class="n">lifter</span><span class="o">.</span><span class="n">theta</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">lifter</span><span class="o">.</span><span class="n">y_</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 <span class="k">assert</span> <span class="n">info_local</span><span class="p">[</span><span class="s2">&quot;success&quot;</span><span class="p">]</span>
 
-<span class="n">constraints</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_A_b_list</span><span class="p">(</span><span class="n">A_list</span><span class="o">=</span><span class="n">A_known</span><span class="p">)</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">A_0</span> <span class="o">+</span> <span class="n">A_known</span><span class="p">,</span> <span class="n">b_0</span> <span class="o">+</span> <span class="n">b_known</span><span class="p">))</span>
 <span class="n">X</span><span class="p">,</span> <span class="n">info_sdp</span> <span class="o">=</span> <span class="n">solve_sdp</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
 
 <span class="n">gap</span> <span class="o">=</span> <span class="n">auto_tight</span><span class="o">.</span><span class="n">get_duality_gap</span><span class="p">(</span>
@@ -406,8 +409,9 @@ If successful, the output is a set of constraints that leads to a tight SDP rela
 <span class="k">assert</span> <span class="n">gap</span> <span class="o">&gt;</span> <span class="mf">0.1</span>
 
 <span class="c1"># learn matrices and solve again</span>
-<span class="n">A_learned</span> <span class="o">=</span> <span class="n">auto_tight</span><span class="o">.</span><span class="n">get_A_learned</span><span class="p">(</span><span class="n">lifter</span><span class="p">)</span>
-<span class="n">constraints</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_A_b_list</span><span class="p">(</span><span class="n">A_list</span><span class="o">=</span><span class="n">A_learned</span><span class="p">)</span>
+<span class="n">A_learned</span><span class="p">,</span> <span class="n">b_learned</span> <span class="o">=</span> <span class="n">auto_tight</span><span class="o">.</span><span class="n">get_A_learned</span><span class="p">(</span><span class="n">lifter</span><span class="p">)</span>
+<span class="n">A_0</span><span class="p">,</span> <span class="n">b_0</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_A0</span><span class="p">()</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">A_0</span> <span class="o">+</span> <span class="n">A_learned</span><span class="p">,</span> <span class="n">b_0</span> <span class="o">+</span> <span class="n">b_learned</span><span class="p">))</span>
 <span class="n">X</span><span class="p">,</span> <span class="n">info_sdp_learned</span> <span class="o">=</span> <span class="n">solve_sdp</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
 <span class="n">gap</span> <span class="o">=</span> <span class="n">auto_tight</span><span class="o">.</span><span class="n">get_duality_gap</span><span class="p">(</span>
     <span class="n">info_local</span><span class="p">[</span><span class="s2">&quot;cost&quot;</span><span class="p">],</span> <span class="n">info_sdp_learned</span><span class="p">[</span><span class="s2">&quot;cost&quot;</span><span class="p">],</span> <span class="n">relative</span><span class="o">=</span><span class="kc">True</span>
@@ -418,8 +422,6 @@ If successful, the output is a set of constraints that leads to a tight SDP rela
 
 <span class="c1"># problem: if we change landmarks, the constraints do not generalize!</span>
 <span class="n">new_lifter</span> <span class="o">=</span> <span class="n">Stereo1DLifter</span><span class="p">(</span><span class="n">n_landmarks</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-<span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">new_lifter</span><span class="o">.</span><span class="n">landmarks</span> <span class="o">==</span> <span class="n">lifter</span><span class="o">.</span><span class="n">landmarks</span><span class="p">)</span>
-
 </pre></div>
 </div>
 </section>
@@ -430,7 +432,9 @@ If successful, the output is a set of constraints that leads to a tight SDP rela
 <p>More information on how to use AutoTemplate can be found <a class="reference internal" href="api/algorithms.html#autotemplate"><span class="std std-ref">here</span></a> and a simple example is given next.</p>
 <section id="example-tightening-a-different-problem-using-autotemplate">
 <h3><strong>Example: tightening a different problem using AutoTemplate</strong><a class="headerlink" href="#example-tightening-a-different-problem-using-autotemplate" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="n">new_lifter</span><span class="o">.</span><span class="n">test_constraints</span><span class="p">(</span><span class="n">A_learned</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;raise&quot;</span><span class="p">,</span> <span class="n">n_seeds</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
 
 <span class="n">test_autotemplate</span><span class="p">():</span>
 <span class="sd">&quot;&quot;&quot;Test the AutoTemplate example from the documentation.&quot;&quot;&quot;</span>
@@ -451,12 +455,10 @@ If successful, the output is a set of constraints that leads to a tight SDP rela
 
 <span class="c1"># apply the templates to a different lifter</span>
 <span class="n">new_lifter</span> <span class="o">=</span> <span class="n">Stereo1DLifter</span><span class="p">(</span><span class="n">n_landmarks</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">param_level</span><span class="o">=</span><span class="s2">&quot;p&quot;</span><span class="p">)</span>
-<span class="n">A_learned</span> <span class="o">=</span> <span class="n">auto_template</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">new_lifter</span><span class="p">,</span> <span class="n">use_known</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
+<span class="n">constraints</span> <span class="o">=</span> <span class="n">auto_template</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">new_lifter</span><span class="p">,</span> <span class="n">use_known</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">Q</span> <span class="o">=</span> <span class="n">new_lifter</span><span class="o">.</span><span class="n">get_Q</span><span class="p">(</span><span class="n">noise</span><span class="o">=</span><span class="mf">1e-1</span><span class="p">)</span>
 
 <span class="c1"># adds homogenization constraint and all b_i terms</span>
-<span class="n">constraints</span> <span class="o">=</span> <span class="n">new_lifter</span><span class="o">.</span><span class="n">get_A_b_list</span><span class="p">(</span><span class="n">A_list</span><span class="o">=</span><span class="n">A_learned</span><span class="p">)</span>
 <span class="n">X</span><span class="p">,</span> <span class="n">info_sdp</span> <span class="o">=</span> <span class="n">solve_sdp</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
 
 <span class="c1"># evaluate duality gap</span>

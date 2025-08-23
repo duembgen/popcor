@@ -125,6 +125,8 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../api/utils.html#module-popcor.utils.common">Helpers for matrix and vector operations</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#popcor.utils.common.create_symmetric"><code class="docutils literal notranslate"><span class="pre">create_symmetric()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#popcor.utils.common.diag_indices"><code class="docutils literal notranslate"><span class="pre">diag_indices()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#popcor.utils.common.get_aggregate_sparsity"><code class="docutils literal notranslate"><span class="pre">get_aggregate_sparsity()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#popcor.utils.common.get_labels"><code class="docutils literal notranslate"><span class="pre">get_labels()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#popcor.utils.common.get_vec"><code class="docutils literal notranslate"><span class="pre">get_vec()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#popcor.utils.common.ravel_multi_index_triu"><code class="docutils literal notranslate"><span class="pre">ravel_multi_index_triu()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#popcor.utils.common.unravel_multi_index_triu"><code class="docutils literal notranslate"><span class="pre">unravel_multi_index_triu()</span></code></a></li>
@@ -242,7 +244,8 @@
            <div itemprop="articleBody">
              
   <h1>Source code for popcor.base_lifters.stereo_lifter</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.sparse</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sp</span>
@@ -473,8 +476,11 @@
 <span class="sd">        a3) cz @ pj * u_zj + tz*u_zj  - h*h = 0</span>
 <span class="sd">           ------1z-------   --2z---</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;not using known stereo templates because they depend on the landmarks.&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;Not using known stereo templates because they depend on the landmarks.&quot;</span><span class="p">,</span>
+            <span class="ne">UserWarning</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[],</span> <span class="p">[]</span>
 
         <span class="c1"># x contains: [c1, c2, c3, t]</span>
         <span class="c1"># z contains: [u_xj, u_yj, u_zj, H.O.T.]</span>

@@ -125,6 +125,8 @@
 <li class="toctree-l3"><a class="reference internal" href="api/utils.html#module-popcor.utils.common">Helpers for matrix and vector operations</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="api/utils.html#popcor.utils.common.create_symmetric"><code class="docutils literal notranslate"><span class="pre">create_symmetric()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/utils.html#popcor.utils.common.diag_indices"><code class="docutils literal notranslate"><span class="pre">diag_indices()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#popcor.utils.common.get_aggregate_sparsity"><code class="docutils literal notranslate"><span class="pre">get_aggregate_sparsity()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#popcor.utils.common.get_labels"><code class="docutils literal notranslate"><span class="pre">get_labels()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/utils.html#popcor.utils.common.get_vec"><code class="docutils literal notranslate"><span class="pre">get_vec()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/utils.html#popcor.utils.common.ravel_multi_index_triu"><code class="docutils literal notranslate"><span class="pre">ravel_multi_index_triu()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/utils.html#popcor.utils.common.unravel_multi_index_triu"><code class="docutils literal notranslate"><span class="pre">unravel_multi_index_triu()</span></code></a></li>
@@ -250,6 +252,7 @@
  | <a href="#D"><strong>D</strong></a>
  | <a href="#E"><strong>E</strong></a>
  | <a href="#G"><strong>G</strong></a>
+ | <a href="#I"><strong>I</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#P"><strong>P</strong></a>
@@ -308,6 +311,8 @@
 </li>
       <li><a href="api/algorithms.html#popcor.AutoTight.get_A_learned">get_A_learned() (popcor.AutoTight static method)</a>
 </li>
+      <li><a href="api/utils.html#popcor.utils.common.get_aggregate_sparsity">get_aggregate_sparsity() (in module popcor.utils.common)</a>
+</li>
       <li><a href="api/lifters.html#popcor.base_lifters.StateLifter.get_B_known">get_B_known() (popcor.base_lifters.StateLifter method)</a>
 </li>
       <li><a href="api/lifters.html#popcor.base_lifters.StateLifter.get_cost">get_cost() (popcor.base_lifters.StateLifter method)</a>
@@ -316,6 +321,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/algorithms.html#popcor.AutoTight.get_duality_gap">get_duality_gap() (popcor.AutoTight static method)</a>
 </li>
+      <li><a href="api/utils.html#popcor.utils.common.get_labels">get_labels() (in module popcor.utils.common)</a>
+</li>
       <li><a href="api/lifters.html#popcor.base_lifters.StateLifter.get_Q">get_Q() (popcor.base_lifters.StateLifter method)</a>
 </li>
       <li><a href="api/lifters.html#popcor.base_lifters.StateLifter.get_theta">get_theta() (popcor.base_lifters.StateLifter method)</a>
@@ -323,6 +330,20 @@
       <li><a href="api/utils.html#popcor.utils.common.get_vec">get_vec() (in module popcor.utils.common)</a>
 </li>
       <li><a href="api/lifters.html#popcor.base_lifters.StateLifter.get_x">get_x() (popcor.base_lifters.StateLifter method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/utils.html#popcor.utils.constraint.Constraint.init_from_A_poly">init_from_A_poly() (popcor.utils.constraint.Constraint static method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/utils.html#popcor.utils.constraint.Constraint.init_from_b">init_from_b() (popcor.utils.constraint.Constraint static method)</a>
+</li>
+      <li><a href="api/utils.html#popcor.utils.constraint.Constraint.init_from_polyrow_b">init_from_polyrow_b() (popcor.utils.constraint.Constraint static method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -401,6 +422,8 @@
       <li><a href="api/lifters.html#popcor.base_lifters.StateLifter.sample_parameters">sample_parameters() (popcor.base_lifters.StateLifter method)</a>
 </li>
       <li><a href="api/lifters.html#popcor.base_lifters.StateLifter.sample_theta">sample_theta() (popcor.base_lifters.StateLifter method)</a>
+</li>
+      <li><a href="api/utils.html#popcor.utils.constraint.Constraint.scale_to_new_lifter">scale_to_new_lifter() (popcor.utils.constraint.Constraint method)</a>
 </li>
       <li><a href="api/lifters.html#popcor.base_lifters.StateLifter">StateLifter (class in popcor.base_lifters)</a>
 </li>

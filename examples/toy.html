@@ -129,6 +129,8 @@
 <li class="toctree-l3"><a class="reference internal" href="../api/utils.html#module-popcor.utils.common">Helpers for matrix and vector operations</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../api/utils.html#popcor.utils.common.create_symmetric"><code class="docutils literal notranslate"><span class="pre">create_symmetric()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../api/utils.html#popcor.utils.common.diag_indices"><code class="docutils literal notranslate"><span class="pre">diag_indices()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/utils.html#popcor.utils.common.get_aggregate_sparsity"><code class="docutils literal notranslate"><span class="pre">get_aggregate_sparsity()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/utils.html#popcor.utils.common.get_labels"><code class="docutils literal notranslate"><span class="pre">get_labels()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../api/utils.html#popcor.utils.common.get_vec"><code class="docutils literal notranslate"><span class="pre">get_vec()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../api/utils.html#popcor.utils.common.ravel_multi_index_triu"><code class="docutils literal notranslate"><span class="pre">ravel_multi_index_triu()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../api/utils.html#popcor.utils.common.unravel_multi_index_triu"><code class="docutils literal notranslate"><span class="pre">unravel_multi_index_triu()</span></code></a></li>
@@ -251,15 +253,14 @@
 <h2><span class="section-number">2.1. </span>Univariate Polynomials<a class="headerlink" href="#univariate-polynomials" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="popcor.examples.Poly4Lifter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">popcor.examples.</span></span><span class="sig-name descname"><span class="pre">Poly4Lifter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">poly_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'A'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/popcor/examples/poly4_lifter.html#Poly4Lifter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#popcor.examples.Poly4Lifter" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">popcor.examples.</span></span><span class="sig-name descname"><span class="pre">Poly4Lifter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">poly_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'A'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/popcor/examples/poly4_lifter.html#Poly4Lifter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#popcor.examples.Poly4Lifter" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="../api/lifters.html#popcor.base_lifters.PolyLifter" title="popcor.base_lifters.poly_lifter.PolyLifter"><code class="xref py py-class docutils literal notranslate"><span class="pre">PolyLifter</span></code></a></p>
-<p>Fourth-degree polynomial examples.</p>
+<p>Fourth-degree polynomial lifter.</p>
 <p>Two types are provided:</p>
 <ul class="simple">
 <li><p>poly_type=”A”: one global minimum, one local minimum</p></li>
 <li><p>poly_type=”B”: two global minima</p></li>
 </ul>
-<p>Simple univariate polynomial lifter, mostly for testing and pedagogical purposes.</p>
 </dd></dl>
 
 <figure class="align-center" id="id1">
@@ -276,15 +277,14 @@
 </figure>
 <dl class="py class">
 <dt class="sig sig-object py" id="popcor.examples.Poly6Lifter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">popcor.examples.</span></span><span class="sig-name descname"><span class="pre">Poly6Lifter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">poly_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'A'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/popcor/examples/poly6_lifter.html#Poly6Lifter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#popcor.examples.Poly6Lifter" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">popcor.examples.</span></span><span class="sig-name descname"><span class="pre">Poly6Lifter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">poly_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'A'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/popcor/examples/poly6_lifter.html#Poly6Lifter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#popcor.examples.Poly6Lifter" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="../api/lifters.html#popcor.base_lifters.PolyLifter" title="popcor.base_lifters.poly_lifter.PolyLifter"><code class="xref py py-class docutils literal notranslate"><span class="pre">PolyLifter</span></code></a></p>
 <p>Sixth-degree polynomial examples.</p>
 <p>Two types are provided:</p>
 <ul class="simple">
-<li><p>poly_type=”A”: one global minimum, two local minima, 2 local maxima</p></li>
+<li><p>poly_type=”A”: one global minimum, two local minima, two local maxima</p></li>
 <li><p>poly_type=”B”: one global minimum, one local minimum, one local maximum</p></li>
 </ul>
-<p>Simple univariate polynomial lifter, mostly for testing and pedagogical purposes.</p>
 </dd></dl>
 
 <figure class="align-center" id="id3">
@@ -304,7 +304,7 @@
 <h2><span class="section-number">2.2. </span>Other Toy Examples<a class="headerlink" href="#other-toy-examples" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="popcor.examples.Stereo1DLifter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">popcor.examples.</span></span><span class="sig-name descname"><span class="pre">Stereo1DLifter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_landmarks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'no'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/popcor/examples/stereo1d_lifter.html#Stereo1DLifter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#popcor.examples.Stereo1DLifter" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">popcor.examples.</span></span><span class="sig-name descname"><span class="pre">Stereo1DLifter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_landmarks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'no'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/popcor/examples/stereo1d_lifter.html#Stereo1DLifter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#popcor.examples.Stereo1DLifter" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="../api/lifters.html#popcor.base_lifters.StateLifter" title="popcor.base_lifters.state_lifter.StateLifter"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateLifter</span></code></a></p>
 <p>Toy example for stereo localization in 1D. We minimize the following cost function:</p>
 <div class="math notranslate nohighlight">
