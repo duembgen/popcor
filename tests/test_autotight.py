@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 
 from popcor import AutoTight
@@ -15,16 +17,16 @@ SEED = 3
 def test_constraints():
     # testing qrp, our go-to method, for all example lifters
     for lifter in all_lifters(SEED):
-        A_learned = AutoTight.get_A_learned(lifter=lifter, method="qrp")
-        constraints_test_with_tol(lifter, A_learned, tol=1e-4)
+        A_learned, b_learned = AutoTight.get_A_learned(lifter=lifter, method="qrp")
+        constraints_test_with_tol(lifter, A_learned, b_learned, tol=1e-4)
 
 
 def test_constraints_params():
     # for a couple of representative lifters, checking that all parameter levels are working
     for param_level in ["no", "p", "ppT"]:
         for lifter in example_lifters(seed=SEED, param_level=param_level):
-            A_learned = AutoTight.get_A_learned(lifter=lifter, verbose=False)
-            constraints_test_with_tol(lifter, A_learned, tol=1e-4)
+            A_learned, b_learned = AutoTight.get_A_learned(lifter=lifter, verbose=False)
+            constraints_test_with_tol(lifter, A_learned, b_learned, tol=1e-4)
 
 
 def test_constraints_methods():
@@ -32,10 +34,12 @@ def test_constraints_methods():
     for lifter in example_lifters(seed=SEED, param_level="p"):
         num_learned = None
         for method in ["qrp", "svd", "qr"]:
-            A_learned = AutoTight.get_A_learned(
-                lifter=lifter, verbose=False, method=method
-            )
-            constraints_test_with_tol(lifter, A_learned, tol=1e-4)
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=UserWarning)
+                A_learned, b_learned = AutoTight.get_A_learned(
+                    lifter=lifter, verbose=False, method=method
+                )
+            constraints_test_with_tol(lifter, A_learned, b_learned, tol=1e-4)
 
             # make sure each method finds the same number of matrices
             if num_learned is None:
@@ -46,35 +50,27 @@ def test_constraints_methods():
 
 def test_constraints_stereo():
     np.random.seed(0)
-    n_landmarks = 1  # z_0 and z_1
-
+    warnings.filterwarnings("ignore", category=UserWarning)
     for param_level in ["p", "ppT"]:
-        print(f"1D, {param_level}")
-        lifter = Stereo1DLifter(n_landmarks=n_landmarks, param_level=param_level)
-        A_learned = AutoTight.get_A_learned(lifter)
+        print(f"learning Stereo1D, {param_level}")
+        lifter = Stereo1DLifter(n_landmarks=1, param_level=param_level)
+        A_learned, b_learned = AutoTight.get_A_learned(lifter)
         lifter.test_constraints(A_learned, errors="raise", n_seeds=1)
 
-        print(f"2D, {param_level}")
-        lifter = Stereo2DLifter(
-            n_landmarks=n_landmarks, param_level=param_level, level="urT"
-        )
-        A_learned = AutoTight.get_A_learned(lifter)
+        print(f"learning Stereo2D, {param_level}")
+        lifter = Stereo2DLifter(n_landmarks=1, param_level=param_level, level="urT")
+        A_learned, b_learned = AutoTight.get_A_learned(lifter)
         lifter.test_constraints(A_learned, errors="raise", n_seeds=1)
 
-        print(f"3D, {param_level}")
-        lifter = Stereo3DLifter(
-            n_landmarks=n_landmarks, param_level=param_level, level="urT"
-        )
-        A_learned = AutoTight.get_A_learned(lifter)
+        print(f"learning Stereo3D, {param_level}")
+        lifter = Stereo3DLifter(n_landmarks=1, param_level=param_level, level="urT")
+        A_learned, b_learned = AutoTight.get_A_learned(lifter)
         lifter.test_constraints(A_learned, errors="raise", n_seeds=1)
 
 
 if __name__ == "__main__":
-    # import pytest
-    # pytest.main([__file__, "-s"])
-    # print("all tests passed")
-
     test_constraints_stereo()
     test_constraints()
     test_constraints_params()
     test_constraints_methods()
+    print("all tests passed")

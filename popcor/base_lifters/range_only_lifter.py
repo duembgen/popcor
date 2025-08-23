@@ -1,3 +1,4 @@
+import warnings
 from abc import ABC, abstractmethod
 
 import autograd.numpy as anp
@@ -178,16 +179,15 @@ class RangeOnlyLifter(StateLifter, ABC):
                 sample = (
                     np.random.rand(self.landmarks.shape[1])
                 ) * self.SCALE  # between 0 and SCALE
-                if np.all(
-                    np.linalg.norm(sample[None, :] - self.landmarks, axis=1)
-                    > self.MIN_DIST
-                ):
-                    samples[i, :] = sample
-                elif j == MAX_TRIALS - 1:
-                    print(
-                        f"Warning: did not find valid sample in {MAX_TRIALS} trials. Using last sample."
+                distances = np.linalg.norm(sample[None, :] - self.landmarks, axis=1)
+                if np.all(distances > self.MIN_DIST):
+                    break
+                if j == MAX_TRIALS - 1:
+                    warnings.warn(
+                        f"Did not find valid sample in {MAX_TRIALS} trials. Using last sample with distances {distances.round(4)}.",
+                        UserWarning,
                     )
-                    samples[i, :] = sample
+            samples[i, :] = sample
         return samples.flatten("C")
 
     def get_residuals(self, t, y, squared=True, ad=False):

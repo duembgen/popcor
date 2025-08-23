@@ -36,12 +36,13 @@ def test_solve_sdp():
     Q = lifter.get_Q()
 
     # the equality constraints
-    A_known = lifter.get_A_known()
+    A_known, b_known = lifter.get_A_known()
 
     # the homogenization constraint
-    A_0 = lifter.get_A0()
+    A_0, b_0 = lifter.get_A0()
+    constraints = list(zip(A_0 + A_known, b_0 + b_known))
 
-    X, info = solve_sdp(Q, [(A_0, 1.0)] + [(A_i, 0.0) for A_i in A_known])
+    X, info = solve_sdp(Q, constraints)
     assert X is not None
 
     # if X is rank one, the global optimum can be found in element X_10 of the matrix.
@@ -68,15 +69,15 @@ def test_autotight():
 
     # solve the SDP -- it is not cost tight!
     Q = lifter.get_Q(noise=1e-1)
-    A_known = lifter.get_A_known()
-    A_0 = lifter.get_A0()
+    A_known, b_known = lifter.get_A_known()
+    A_0, b_0 = lifter.get_A0()
 
     # solve locally starting at ground truth
     x, info_local, cost = lifter.local_solver(lifter.theta, y=lifter.y_)
     assert x is not None
     assert info_local["success"]
 
-    constraints = lifter.get_A_b_list(A_list=A_known)
+    constraints = list(zip(A_0 + A_known, b_0 + b_known))
     X, info_sdp = solve_sdp(Q, constraints)
 
     gap = auto_tight.get_duality_gap(
@@ -85,8 +86,9 @@ def test_autotight():
     assert gap > 0.1
 
     # learn matrices and solve again
-    A_learned = auto_tight.get_A_learned(lifter)
-    constraints = lifter.get_A_b_list(A_list=A_learned)
+    A_learned, b_learned = auto_tight.get_A_learned(lifter)
+    A_0, b_0 = lifter.get_A0()
+    constraints = list(zip(A_0 + A_learned, b_0 + b_learned))
     X, info_sdp_learned = solve_sdp(Q, constraints)
     gap = auto_tight.get_duality_gap(
         info_local["cost"], info_sdp_learned["cost"], relative=True
@@ -124,12 +126,10 @@ def test_autotemplate():
 
     # apply the templates to a different lifter
     new_lifter = Stereo1DLifter(n_landmarks=5, param_level="p")
-    A_learned = auto_template.apply(new_lifter, use_known=True)
-
+    constraints = auto_template.apply(new_lifter, use_known=True)
     Q = new_lifter.get_Q(noise=1e-1)
 
     # adds homogenization constraint and all b_i terms
-    constraints = new_lifter.get_A_b_list(A_list=A_learned)
     X, info_sdp = solve_sdp(Q, constraints)
 
     # evaluate duality gap
@@ -149,9 +149,10 @@ def test_autotemplate_literal():
     new_lifter = Stereo1DLifter(n_landmarks=5, param_level="p")
 
     Q = new_lifter.get_Q(noise=1e-1)
-    A_known = new_lifter.get_A_known()
-    A_red = new_lifter.get_A_known_redundant()
-    constraints = new_lifter.get_A_b_list(A_list=A_known + A_red)
+    A_0, b_0 = new_lifter.get_A0()
+    A_known, b_known = new_lifter.get_A_known()
+    A_red, b_red = new_lifter.get_A_known_redundant()
+    constraints = list(zip(A_0 + A_known + A_red, b_0 + b_known + b_red))
 
     X, info_sdp = solve_sdp(Q, constraints)
 
@@ -163,16 +164,15 @@ def test_autotemplate_literal():
 
 
 if __name__ == "__main__":
-    # import warnings
-    # make sure warnings raise errors, for debugging
-    # warnings.simplefilter("error")
+    import warnings
 
-    # import pytest
-    # pytest.main([__file__, "-s"])
-    # print("all tests passed")
+    # make sure warnings raise errors, for debugging
+    warnings.simplefilter("error")
+    warnings.simplefilter("ignore", UserWarning)
 
     test_setup_problem()
     test_solve_sdp()
     test_autotight()
     test_autotemplate()
     test_autotemplate_literal()
+    print("all tests passed")

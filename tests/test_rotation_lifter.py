@@ -151,8 +151,9 @@ def test_solve_sdp():
         Q = lifter.get_Q_from_y(y=y, output_poly=False)
 
         assert isinstance(Q, sp.csc_matrix)
-        A_known = lifter.get_A_known()
-        constraints = lifter.get_A_b_list(A_known)
+        A_known, b_known = lifter.get_A_known()
+        A_0, b_0 = lifter.get_A0()
+        constraints = list(zip(A_0 + A_known, b_0 + b_known))
 
         if noise == 0 and PLOT:
             plot_matrices(A_known, Q)
@@ -163,7 +164,7 @@ def test_solve_sdp():
         print(f"EVR at noise {noise:.2f}: {info_rank['EVR']:.2e}")
         if noise <= 1:
             assert info_rank["EVR"] > 1e8
-        theta_sdp = lifter.get_theta(x.flatten())
+        theta_sdp = lifter.get_theta(x)
         if noise == 0.0:
             np.testing.assert_allclose(theta_sdp, lifter.theta, atol=1e-5)
 

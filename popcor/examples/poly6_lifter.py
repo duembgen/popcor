@@ -1,4 +1,8 @@
+"""Poly6Lifter class for sixth-degree polynomial examples."""
+
 import numpy as np
+import scipy.sparse as sp
+from poly_matrix import PolyMatrix
 
 from popcor.base_lifters import PolyLifter
 
@@ -8,22 +12,25 @@ class Poly6Lifter(PolyLifter):
 
     Two types are provided:
 
-    - poly_type="A": one global minimum, two local minima, 2 local maxima
+    - poly_type="A": one global minimum, two local minima, two local maxima
     - poly_type="B": one global minimum, one local minimum, one local maximum
     """
 
     @property
-    def VARIABLE_LIST(self):
+    def VARIABLE_LIST(self) -> list[list[str]]:
         return [[self.HOM, "t", "z0", "z1"]]
 
-    def __init__(self, poly_type="A"):
+    def __init__(self, poly_type: str = "A") -> None:
         assert poly_type in ["A", "B"]
-        self.poly_type = poly_type
+        self.poly_type: str = poly_type
         super().__init__(degree=6)
 
-    def get_Q(self, output_poly=False, noise=None):
+    def get_Q(
+        self, output_poly: bool = False, noise: float | None = None
+    ) -> np.ndarray:
+        """Returns the Q matrix for the selected polynomial type."""
         if output_poly:
-            raise ValueError("output_poly not implemented for Poly4Lifter.")
+            raise ValueError("output_poly not implemented for Poly6Lifter.")
         if self.poly_type == "A":
             return 0.1 * np.array(
                 [
@@ -42,11 +49,19 @@ class Poly6Lifter(PolyLifter):
                     [0, 0.2685, -0.0667, 0.0389],
                 ]
             )
+        else:
+            raise ValueError(f"Unknown poly_type: {self.poly_type}")
 
-    def get_A_known(self, output_poly=False, add_redundant=True, var_dict=None):
+    def get_A_known(
+        self,
+        output_poly: bool = False,
+        add_redundant: bool = True,
+        var_dict: dict | None = None,
+    ) -> tuple[list, list[float]]:
+        """Returns the list of known A matrices and their corresponding values."""
         from poly_matrix import PolyMatrix
 
-        A_list = []
+        A_list: list = []
 
         # z_0 = t^2
         A_1 = PolyMatrix(symmetric=True)
@@ -68,11 +83,14 @@ class Poly6Lifter(PolyLifter):
             A_list.append(B_0)
 
         if output_poly:
-            return A_list
+            return A_list, [0.0] * len(A_list)
         else:
-            return [A_i.get_matrix(self.var_dict) for A_i in A_list]
+            return [A_i.get_matrix(self.var_dict) for A_i in A_list], [0.0] * len(
+                A_list
+            )
 
-    def get_D(self, that):
+    def get_D(self, that: float) -> np.ndarray:
+        """Returns the D matrix for the given value."""
         D = np.array(
             [
                 [1.0, 0.0, 0.0, 0.0],
@@ -83,7 +101,8 @@ class Poly6Lifter(PolyLifter):
         )
         return D
 
-    def generate_random_setup(self):
+    def generate_random_setup(self) -> None:
+        """Initializes a random setup for theta_."""
         self.theta_ = np.array([-1])
 
 

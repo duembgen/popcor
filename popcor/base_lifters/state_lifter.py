@@ -1,3 +1,4 @@
+import warnings
 from abc import abstractmethod
 
 import numpy as np
@@ -45,7 +46,10 @@ class StateLifter(BaseClass):
             self.variable_list = self.VARIABLE_LIST
 
         if (param_level != "no") and (n_parameters == 1):
-            print("Warning: make sure to give the correct n_parameters for the level.")
+            warnings.warn(
+                "Warning: make sure to give the correct n_parameters for the level.",
+                category=UserWarning,
+            )
 
         super().__init__(d, param_level, n_parameters)
 
@@ -150,9 +154,9 @@ class StateLifter(BaseClass):
     def get_cost(self, theta, y: np.ndarray | None = None) -> float:
         """Compute the cost of the given state theta. This uses the simple form
         x.T @ Q @ x. Consider overwriting this for more efficient computations."""
-        print(
-            "Warning: using default get_cost, which may be less efficient than a custom one."
-        )
+        # print(
+        #     "Warning: using default get_cost, which may be less efficient than a custom one."
+        # )
         if y is not None:
             Q = self.get_Q_from_y(y)
         else:
@@ -198,7 +202,9 @@ class StateLifter(BaseClass):
                 f"Warning: ignoreing method argument {method} in local_solver, using default (IPOPT)."
             )
 
-        Constraints = self.get_A_b_list(A_list=self.get_A_known())
+        A_0, b_0 = self.get_A0()
+        A_known, b_known = self.get_A_known()
+        Constraints = list(zip(A_0 + A_known, b_0 + b_known))
         x0 = self.get_x(theta=t0)
         if np.ndim(x0) == 1:
             x0 = x0.reshape((-1, 1))

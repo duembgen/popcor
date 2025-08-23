@@ -1,3 +1,5 @@
+"""RangeOnlyNonSqLifter class for localization in 2D or 3D using non-squared lifting."""
+
 import numpy as np
 import scipy.sparse as sp
 from poly_matrix import PolyMatrix
@@ -33,18 +35,20 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
     - :math:`\\theta` is now the flattened vector of positions :math:`p_n` and also normal vectors :math:`z_{nk}`.
     """
 
-    TIGHTNESS = "rank"
-    LEVELS = ["normals", "simple"]
-    LEVEL_NAMES = {
-        "normals": "$\\boldymbol{y}_n$",
+    TIGHTNESS: str = "rank"
+    LEVELS: list[str] = ["normals", "simple"]
+    LEVEL_NAMES: dict[str, str] = {
+        "normals": "$\\boldsymbol{y}_n$",
         "simple": "$z_n$",
     }
-    MONOMIAL_DEGREE = 1
-
-    SCALE = 1.0
+    MONOMIAL_DEGREE: int = 1
+    SCALE: float = 1.0
 
     @staticmethod
-    def create_good(n_positions, n_landmarks, d=2):
+    def create_good(
+        n_positions: int, n_landmarks: int, d: int = 2
+    ) -> "RangeOnlyNsqLifter":
+        """Create a lifter with good initial positions."""
         landmarks, theta = RangeOnlyLifter.create_good(n_positions, n_landmarks, d)
         lifter = RangeOnlyNsqLifter(n_positions, n_landmarks, d)
         lifter.overwrite_theta(theta)
@@ -52,7 +56,10 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
         return lifter
 
     @staticmethod
-    def create_bad(n_positions, n_landmarks, d=2):
+    def create_bad(
+        n_positions: int, n_landmarks: int, d: int = 2
+    ) -> "RangeOnlyNsqLifter":
+        """Create a lifter with bad initial positions."""
         landmarks, theta = RangeOnlyLifter.create_bad(n_positions, n_landmarks, d)
         lifter = RangeOnlyNsqLifter(n_positions, n_landmarks, d)
         lifter.overwrite_theta(theta)
@@ -60,7 +67,10 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
         return lifter
 
     @staticmethod
-    def create_bad_fixed(n_positions, n_landmarks, d=2):
+    def create_bad_fixed(
+        n_positions: int, n_landmarks: int, d: int = 2
+    ) -> "RangeOnlyNsqLifter":
+        """Create a lifter with fixed bad initial positions."""
         landmarks, theta = RangeOnlyLifter.create_bad_fixed(n_positions, n_landmarks, d)
         lifter = RangeOnlyNsqLifter(n_positions, n_landmarks, d)
         lifter.overwrite_theta(theta)
@@ -69,13 +79,13 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
 
     def __init__(
         self,
-        n_positions,
-        n_landmarks,
-        d,
-        W=None,
-        level="normals",
-        variable_list=None,
-        param_level="no",
+        n_positions: int,
+        n_landmarks: int,
+        d: int,
+        W: np.ndarray | None = None,
+        level: str = "normals",
+        variable_list: list | None = None,
+        param_level: str = "no",
     ):
         if level == "simple":
             raise NotImplementedError("simple is not implemented yet.")
@@ -90,13 +100,14 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
         )
 
     @property
-    def VARIABLE_LIST(self):
+    def VARIABLE_LIST(self) -> list[list[str]]:
         return [
             [self.HOM, "x_0"],
             [self.HOM, "x_0"] + [f"z_0_{i}" for i in range(self.n_landmarks)],
         ]
 
-    def get_all_variables(self):
+    def get_all_variables(self) -> list[list[str]]:
+        """Return all variables used in the lifting."""
         vars = [self.HOM]
         vars += [f"x_{i}" for i in range(self.n_positions)]
         vars += [
@@ -106,7 +117,13 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
         ]
         return [vars]
 
-    def get_A_known(self, var_dict=None, output_poly=False, add_redundant=False):
+    def get_A_known(
+        self,
+        var_dict: dict | None = None,
+        output_poly: bool = False,
+        add_redundant: bool = False,
+    ) -> list[np.ndarray | PolyMatrix]:
+        """Return known quadratic constraints for the lifted variables."""
         if var_dict is None:
             var_dict = self.var_dict
 
@@ -124,20 +141,31 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
                         A_list.append(A.get_matrix(self.var_dict))
 
         elif self.level == "simple":
-            # enfore that y_{nk}^2 = ||p_n - a_k||^2 = ||p_n||^2 - 2a_k^T p_n + ||a_k||^2
+            # enforce that y_{nk}^2 = ||p_n - a_k||^2 = ||p_n||^2 - 2a_k^T p_n + ||a_k||^2
             raise NotImplementedError(
                 "get_A_known not implemented yet for simple level"
             )
         return A_list
 
-    def get_residuals(self, t, y, ad=False):
+    def get_residuals(
+        self, t: np.ndarray, y: np.ndarray, ad: bool = False
+    ) -> np.ndarray:
+        """Compute residuals for the cost function."""
         return super().get_residuals(t, y, ad=ad, squared=False)
 
-    def get_cost(self, theta, y, sub_idx=None, ad=False):
+    def get_cost(
+        self,
+        theta: np.ndarray,
+        y: np.ndarray,
+        sub_idx: int | None = None,
+        ad: bool = False,
+    ) -> float:
+        """Compute the cost from theta and y."""
         residuals = self.get_residuals(theta, y, ad=ad)
         return self.get_cost_from_res(residuals, sub_idx, ad=ad)
 
-    def get_normals(self, theta=None):
+    def get_normals(self, theta: np.ndarray | None = None) -> np.ndarray:
+        """Compute normal vectors for each position-landmark pair."""
         if theta is None:
             theta = self.theta
 
@@ -148,7 +176,13 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
             self.landmarks[None, :, :] - theta, axis=2
         )[:, :, None]
 
-    def get_x(self, theta=None, parameters=None, var_subset=None):
+    def get_x(
+        self,
+        theta: np.ndarray | None = None,
+        parameters: np.ndarray | dict | None = None,
+        var_subset: list[str] | dict[str, int] | None = None,
+    ) -> np.ndarray:
+        """Return the lifted variable vector x for the given theta."""
         if var_subset is None:
             var_subset = self.var_dict
         if theta is None:
@@ -175,7 +209,8 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
         assert len(x_data) == self.get_dim_x(var_subset)
         return np.array(x_data)
 
-    def get_J_lifting(self, t):
+    def get_J_lifting(self, t: np.ndarray) -> sp.csr_array:
+        """Return the Jacobian of the lifting (currently not implemented)."""
         pos = t.reshape((-1, self.d))
         ii = []
         jj = []
@@ -192,7 +227,10 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
         )
         return J_lifting
 
-    def get_Q_from_y(self, y, output_poly: bool = False):
+    def get_Q_from_y(
+        self, y: np.ndarray, output_poly: bool = False
+    ) -> np.ndarray | PolyMatrix | sp.csr_matrix | sp.csc_matrix:
+        """Return the quadratic cost matrix Q for the given y."""
         Q = PolyMatrix()
         for k in range(self.n_landmarks):
             for i in range(self.n_positions):
@@ -214,11 +252,14 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
         else:
             return Q.get_matrix(self.var_dict)
 
-    def simulate_y(self, noise: float | None = None, squared: bool = True):
+    def simulate_y(
+        self, noise: float | None = None, squared: bool = True
+    ) -> np.ndarray:
+        """Simulate measurements y (distances) with optional noise."""
         return super().simulate_y(noise=noise, squared=False)
 
     @property
-    def var_dict(self):
+    def var_dict(self) -> dict[str, int]:
         var_dict = {self.HOM: 1}
         var_dict.update({f"x_{n}": self.d for n in range(self.n_positions)})
         var_dict.update(
@@ -239,10 +280,8 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
         else:
             raise ValueError(f"Unknown level {self.level}")
 
-    def get_valid_samples(
-        self,
-        n_samples,
-    ):
+    def get_valid_samples(self, n_samples: int) -> np.ndarray:
+        """Return valid samples for the lifted variables."""
         samples = super().get_valid_samples(n_samples)
 
         # TODO(FD): maybe this should be moved to theta.
@@ -250,7 +289,7 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
         normals /= np.linalg.norm(normals, axis=2)[:, :, None]
         return np.hstack([samples, normals.reshape(normals.shape[0], -1)])
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"rangeonlyloc{self.d}d_{self.level}"
 
 

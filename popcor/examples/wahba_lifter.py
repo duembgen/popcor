@@ -1,78 +1,89 @@
-# import autograd.numpy as np
+"""WahbaLifter class for robust pose registration with point-to-point measurements."""
+
+import autograd.numpy as anp
 import numpy as np
+import scipy.sparse as sp
+from poly_matrix import PolyMatrix
 
 from popcor.base_lifters import RobustPoseLifter
 from popcor.utils.geometry import get_C_r_from_theta
 from popcor.utils.plotting_tools import plot_frame
 
-N_TRYS = 10
+N_TRYS: int = 10
 
 # TODO(FD) for some reason this is not required as opposed to what is stated in Heng's paper
 # and it currently breaks tightness (might be a bug in my implementation though)
-USE_INEQ = False
+USE_INEQ: bool = False
 
-NORMALIZE = False
+NORMALIZE: bool = False
 
 
 class WahbaLifter(RobustPoseLifter):
+    """Robust pose lifter for point-to-point registration.
 
-    NOISE = 1e-2  # inlier noise
-    NOISE_OUT = 1.0  # outlier noise
+    Doc under construction.
 
-    def __init__(self, *args, **kwargs):
-        """This example is treated in more details in `this paper <https://arxiv.org/abs/2308.05783>`_,
-        under the name "PPR" (point-to-point registration).
-        """
-        # only introduced this for the documentation -- otherwise the RobustPoseLifter __init__ is shown.
+    In the meantime, this example is treated in more detail in `this paper <https://arxiv.org/abs/2308.05783>`_,
+    under the name "PPR".
+
+    """
+
+    NOISE: float = 1e-2  # inlier noise
+    NOISE_OUT: float = 1.0  # outlier noise
+
+    def __init__(self, *args, **kwargs) -> None:
         return super().__init__(*args, **kwargs)
 
-    def h_list(self, t):
+    def h_list(self, t: np.ndarray) -> list:
         """
-        We want to inforce that
-        - norm(t) <= 10 (default)
-        as constraints h_j(t)<=0
+        Returns constraints h_j(t) <= 0, e.g., norm(t) <= 10 (default).
         """
         default = super().h_list(t)
         return default
 
-    def get_random_position(self):
+    def get_random_position(self) -> np.ndarray:
+        """Generates a random position within the allowed distance."""
         return np.random.uniform(
             -0.5 * self.MAX_DIST ** (1 / self.d),
             0.5 * self.MAX_DIST ** (1 / self.d),
             size=self.d,
         )
 
-    def get_B_known(self):
-        """Get inequality constraints of the form x.T @ B @ x <= 0"""
+    def get_B_known(self) -> list:
+        """Get inequality constraints of the form x.T @ B @ x <= 0."""
         if not USE_INEQ:
             return []
-
         default = super().get_B_known()
         return default
 
-    def term_in_norm(self, R, t, pi, ui):
+    def term_in_norm(
+        self, R: np.ndarray, t: np.ndarray, pi: np.ndarray, ui: np.ndarray
+    ) -> np.ndarray:
+        """Computes the term inside the norm for residual calculation."""
         return R @ pi + t - ui
 
-    def residual_sq(self, R, t, pi, ui):
-        # TODO: can easily extend below to matrix-weighted
+    def residual_sq(
+        self, R: np.ndarray, t: np.ndarray, pi: np.ndarray, ui: np.ndarray
+    ) -> float | anp.numpy_boxes.ArrayBox:
+        """Computes the squared residual for a landmark measurement."""
         W = np.eye(self.d)
         term = self.term_in_norm(R, t, pi, ui)
-        res_sq = term.T @ W @ term
+        if isinstance(term, np.ndarray):
+            res_sq = float(term.T @ W @ term)
+        else:
+            res_sq = term.T @ W @ term
         if NORMALIZE:
             return res_sq / (self.n_landmarks * self.d) ** 2
         return res_sq
 
-    def plot_setup(self):
+    def plot_setup(self) -> tuple | None:
+        """Plots the pose and landmarks setup for d=2."""
         if self.d != 2:
             print("Plotting currently only supported for d=2")
-            return
+            return None
         import matplotlib.pylab as plt
 
         fig, ax = plt.subplots()
-
-        # R, t = get_C_r_from_theta(self.theta, self.d)
-        # ax.scatter(*t, color="k", label="pose")
-
         ax.axis("equal")
         t_wc_w, C_cw = plot_frame(ax, self.theta, label="pose", color="gray", d=2)
 
@@ -80,11 +91,7 @@ class WahbaLifter(RobustPoseLifter):
             w = self.theta[-self.n_landmarks :]
             for i in range(self.y_.shape[0]):
                 ax.scatter(*self.landmarks[i], color=f"C{i}", label="landmarks")
-
-                # this vector is in camera coordinates
                 t_cpi_c = self.y_[i]
-                # t_cpi_w: vector from camera to pi in world coordinates
-
                 ax.plot(
                     [t_wc_w[0], self.landmarks[i][0]],
                     [t_wc_w[1], self.landmarks[i][1]],
@@ -101,7 +108,8 @@ class WahbaLifter(RobustPoseLifter):
         ax.axis("equal")
         return fig, ax
 
-    def simulate_y(self, noise: float | None = None):
+    def simulate_y(self, noise: float | None = None) -> np.ndarray:
+        """Simulates landmark measurements with noise and outliers."""
         if noise is None:
             noise = self.NOISE
 
@@ -132,7 +140,7 @@ class WahbaLifter(RobustPoseLifter):
                     break
             if not valid_measurement and self.robust:
                 self.plot_setup()
-                raise ValueError("did not find a valid measurement.")
+                raise ValueError("Did not find a valid measurement.")
             y[i] = y_i
         self.y_ = y
         return y
@@ -142,7 +150,8 @@ class WahbaLifter(RobustPoseLifter):
         noise: float | None = None,
         output_poly: bool = False,
         use_cliques: list = [],
-    ):
+    ) -> np.ndarray | PolyMatrix | sp.csr_matrix | sp.csc_matrix:
+        """Returns the quadratic cost matrix Q for the current measurements."""
         if noise is None:
             noise = self.NOISE
 
@@ -151,21 +160,17 @@ class WahbaLifter(RobustPoseLifter):
         Q = self.get_Q_from_y(self.y_, output_poly=output_poly, use_cliques=use_cliques)
         return Q
 
-    def get_Q_from_y(self, y, output_poly: bool = False, use_cliques: list = []):
+    def get_Q_from_y(
+        self,
+        y: np.ndarray,
+        output_poly: bool = False,
+        use_cliques: list = [],
+    ) -> np.ndarray | PolyMatrix | sp.csr_matrix | sp.csc_matrix:
         """
-        every cost term can be written as
+        Returns the quadratic cost matrix Q from measurements y.
+        Every cost term can be written as:
         (1 + wi)/b^2  r^2(x, zi) + (1 - wi)
-
-        residual term:
-        (Rpi + t - ui).T Wi (Rpi + t - ui) =
-        [t', vec(R)'] @ [I (pi x I)]' @ Wi @ [I (pi x I)] @ [t ; vec(R)]
-        ------x'-----   -----Pi'-----
-        - 2 [t', vec(R)'] @ [I (pi x I)]' Wi @ ui
-            -----x'------   ---------Pi_xl--------
-        + ui.T @ Wi @ ui
-        -----Pi_ll------
         """
-
         if len(use_cliques):
             js = use_cliques
         else:
@@ -195,12 +200,10 @@ class WahbaLifter(RobustPoseLifter):
                 Qi /= self.beta**2
                 Pi_ll /= self.beta**2
                 Pi_xl /= self.beta**2
-                # Q["x", "x"] += Qi
                 Q["t", "t"] += Qi[: self.d, : self.d]
                 Q["t", "c"] += Qi[: self.d, self.d :]
                 Q["c", "c"] += Qi[self.d :, self.d :]
 
-                # Q["x", self.HOM] += Pi_xl
                 Q["t", self.HOM] += Pi_xl[: self.d, :]
                 Q["c", self.HOM] += Pi_xl[self.d :, :]
                 Q[self.HOM, self.HOM] += (
@@ -210,7 +213,6 @@ class WahbaLifter(RobustPoseLifter):
                     self.HOM, f"w_{i}"
                 ] += -0.5  # from (1 - wi), 0.5 cause on off-diagonal
                 if self.level == "xwT":
-                    # Q[f"z_{i}", "x"] += 0.5 * Qi
                     Q[f"z_{i}", "t"] += 0.5 * Qi[:, : self.d]
                     Q[f"z_{i}", "c"] += 0.5 * Qi[:, self.d :]
 
@@ -220,18 +222,15 @@ class WahbaLifter(RobustPoseLifter):
                 elif self.level == "xxT":
                     Q["z_0", f"w_{i}"] += 0.5 * Qi.flatten()[:, None]
 
-                    # Q["x", f"w_{i}"] += Pi_xl
                     Q["t", f"w_{i}"] += Pi_xl[: self.d, :]
                     Q["c", f"w_{i}"] += Pi_xl[self.d :, :]
 
                     Q[self.HOM, f"w_{i}"] += 0.5 * Pi_ll
             else:
-                # Q["x", "x"] += Qi
                 Q["t", "t"] += Qi[: self.d, : self.d]
                 Q["t", "c"] += Qi[: self.d, self.d :]
                 Q["c", "c"] += Qi[self.d :, self.d :]
 
-                # Q["x", self.HOM] += Pi_xl
                 Q["t", self.HOM] += Pi_xl[: self.d, :]
                 Q["c", self.HOM] += Pi_xl[self.d :, :]
                 Q[self.HOM, self.HOM] += Pi_ll  # on diagonal
@@ -240,6 +239,6 @@ class WahbaLifter(RobustPoseLifter):
         Q_sparse = 0.5 * Q.get_matrix(variables=self.var_dict)
         return Q_sparse
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         appendix = "_robust" if self.robust else ""
         return f"wahba_{self.d}d_{self.level}_{self.param_level}{appendix}"

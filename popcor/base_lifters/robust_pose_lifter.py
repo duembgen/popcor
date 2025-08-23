@@ -31,6 +31,20 @@ BETA = 0.1
 
 
 class RobustPoseLifter(StateLifter, ABC):
+    """RobustPoseLifter is a general class for point-to-point, point-to-line, and point-to-plane registration problems,
+    with starndard or robust loss functions.
+
+    The goal is to regress an unknown pose based on extrinsic measurements.
+
+    See :class:`~popcor.examples.WahbaLifter` for point-to-point registration,
+    and :class:`~popcor.examples.MonoLifter`) for point-to-line registration.
+
+    Implemented lifting functions are:
+
+        - xwT: :math:`x \\otimes w`
+        - xxT: :math:`x \\otimes x`
+    """
+
     LEVELS = ["no", "xwT", "xxT"]
     PARAM_LEVELS = ["no", "p", "ppT"]
     LEVEL_NAMES = {"no": "no", "xwT": "x kron w", "xxT": "x kron x"}
@@ -65,18 +79,6 @@ class RobustPoseLifter(StateLifter, ABC):
         robust=False,
         beta=BETA,
     ):
-        """RobustPoseLifter is a general class for point-to-point, point-to-line, and point-to-plane registration problems,
-        with starndard or robust loss functions.
-
-        The goal is to regress an unknown pose based on extrinsic measurements.
-
-        See class:`~popcor.examples.WahbaLifter` for point-to-point registration and :class:`~popcor.examples.MonoLifter`) for point-to-line registration.
-
-        Implemented lifting functions are:
-
-            - xwT: :math:`x \\otimes w`
-            - xxT: :math:`x \\otimes x`
-        """
         self.beta = beta
         self.n_landmarks = n_landmarks
 
@@ -84,8 +86,6 @@ class RobustPoseLifter(StateLifter, ABC):
         self.level = level
         if variable_list == "all":
             variable_list = self.get_all_variables()
-        # elif variable_list is None:
-        #    self.variable_list = self.VARIABLE_LIST
 
         if not robust:
             assert level == "no"
@@ -510,7 +510,7 @@ class RobustPoseLifter(StateLifter, ABC):
                             constraint[j] = -1.0
                             Ai[f"c", f"w_{i}"] = constraint[:, None]
                             self.test_and_add(A_list, Ai, output_poly=output_poly)
-        return A_list
+        return A_list, [0.0] * len(A_list)
 
     def get_B_known(self):
         """Get inequality constraints of the form x.T @ B @ x <= 0.

@@ -12,7 +12,7 @@ def test_canonical_operations():
     n_landmarks = 1  # z_0 and z_1
     lifter = Stereo2DLifter(n_landmarks=n_landmarks, param_level="p", level="no")
 
-    var_subset = "x"
+    var_subset = ["x"]
     # fmt: off
     Ai_sub = np.array(
         [
@@ -31,6 +31,7 @@ def test_canonical_operations():
 
     ai = get_vec(Ai_sub)
     # zero-pad to emulate an augmented basis vector
+    assert isinstance(ai, np.ndarray)
     bi = lifter.augment_using_zero_padding(ai)
     ai_test = lifter.get_reduced_a(bi, var_subset=var_subset)
     assert isinstance(ai_test, np.ndarray)
@@ -38,7 +39,7 @@ def test_canonical_operations():
     np.testing.assert_allclose(ai, ai_test)
 
     # will return a 9 x 9 matrix with zero padding.
-    Ai_test = lifter.get_mat(ai_test, var_dict={var_subset: 6})
+    Ai_test = lifter.get_mat(ai_test, var_dict={"x": 6})
     assert isinstance(Ai, sp.csc_matrix)
     assert isinstance(Ai_test, sp.csc_matrix)
     np.testing.assert_allclose(Ai.toarray(), Ai_test.toarray())
@@ -60,6 +61,7 @@ def test_b_to_a():
             x_sub = get_vec(np.outer(x, x))
 
             # test that bi_sub @ x_aug holds (including parameters in x_aug)
+            assert isinstance(x_sub, np.ndarray)
             x_sub_aug = lifter.augment_using_parameters(x_sub)
 
             assert len(x_sub_aug) == len(bi_sub)

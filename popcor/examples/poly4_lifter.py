@@ -1,10 +1,12 @@
+"""Poly4Lifter class for fourth-degree polynomial lifter examples."""
+
 import numpy as np
 
 from popcor.base_lifters import PolyLifter
 
 
 class Poly4Lifter(PolyLifter):
-    """Fourth-degree polynomial examples.
+    """Fourth-degree polynomial lifter.
 
     Two types are provided:
 
@@ -13,40 +15,38 @@ class Poly4Lifter(PolyLifter):
     """
 
     @property
-    def VARIABLE_LIST(self):
+    def VARIABLE_LIST(self) -> list[list[str]]:
         return [[self.HOM, "t", "z0"]]
 
-    def __init__(self, poly_type="A"):
+    def __init__(self, poly_type: str = "A") -> None:
         # actual minimum
         assert poly_type in ["A", "B"]
-        self.poly_type = poly_type
+        self.poly_type: str = poly_type
         super().__init__(degree=4)
 
-    def get_Q(self, output_poly=False, noise=None):
+    def get_Q(
+        self, output_poly: bool = False, noise: float | None = None
+    ) -> np.ndarray:
+        """Returns the Q matrix for the selected polynomial type."""
         if output_poly:
             raise ValueError("output_poly not implemented for Poly4Lifter.")
         if self.poly_type == "A":
-            # fmt: off
-            # noqa
-            Q = np.r_[
-                np.c_[2, 1, 0],
-                np.c_[1, -1 / 2, -1 / 3],
-                np.c_[0, -1 / 3, 1 / 4]
+            # Q matrix for type A
+            return np.r_[
+                np.c_[2, 1, 0], np.c_[1, -1 / 2, -1 / 3], np.c_[0, -1 / 3, 1 / 4]
             ]
-            # fmt: on
         elif self.poly_type == "B":
-            # below is constructed such that f'(t) = (t-1)*(t-2)*(t-3)
-            # fmt: off
-            # noqa
-            Q = np.r_[
-                np.c_[3, -3, 0],
-                np.c_[-3, 11 / 2, -1],
-                np.c_[0, -1, 1 / 4]
-            ]
-            # fmt: on
-        return Q
+            # Q matrix for type B, constructed such that f'(t) = (t-1)*(t-2)*(t-3)
+            return np.r_[np.c_[3, -3, 0], np.c_[-3, 11 / 2, -1], np.c_[0, -1, 1 / 4]]
+        else:
+            raise ValueError(f"Unknown poly_type: {self.poly_type}")
 
-    def get_A_known(self, output_poly=False, add_redundant=False, var_dict=None):
+    def get_A_known(
+        self,
+        output_poly: bool = False,
+        add_redundant: bool = False,
+        var_dict: dict | None = None,
+    ) -> tuple[list[np.ndarray] | list, list[int]]:
         from poly_matrix import PolyMatrix
 
         if add_redundant:
@@ -57,15 +57,14 @@ class Poly4Lifter(PolyLifter):
         A_1[self.HOM, "z0"] = -1
         A_1["t", "t"] = 2
         if output_poly:
-            return [A_1]
+            return [A_1], [0]
         else:
-            return [A_1.get_matrix(self.var_dict)]
+            return [A_1.get_matrix(self.var_dict)], [0]
 
-    def generate_random_setup(self):
-        self.theta_ = np.array([-1])
+    def generate_random_setup(self) -> None:
+        self.theta_: np.ndarray = np.array([-1])
 
-    def get_D(self, that):
-        """Not currently used."""
+    def get_D(self, that: float) -> np.ndarray:
         D = np.array(
             [
                 [1.0, 0.0, 0.0],
@@ -82,10 +81,10 @@ if __name__ == "__main__":
     import matplotlib.pylab as plt
 
     # Get the directory two levels up from this file
-    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    base_dir: str = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-    thetas = np.linspace(-2, 3, 100)
-    poly_lifter = Poly4Lifter(poly_type="A")
+    thetas: np.ndarray = np.linspace(-2, 3, 100)
+    poly_lifter: Poly4Lifter = Poly4Lifter(poly_type="A")
     fig, ax = poly_lifter.plot(thetas)
     fig.savefig(os.path.join(base_dir, "docs", "figures", "poly4_lifter_A.png"))
 
