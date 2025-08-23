@@ -315,7 +315,40 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">RotationLifter</span><span class="p">(</span><span class="n">StateLifter</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Rotation averaging problem lifter.</span>
 
-<span class="sd">    See class-level docstring for details on problem formulation and lifted representations.</span>
+<span class="sd">    We solve the following optimization problem:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        f(\\theta) = \\min_{R_0, R_1, \\ldots, R_N \\in \\mathrm{SO}^d}</span>
+<span class="sd">        \\sum_{i,j \\in \\mathcal{E}} || R_i - R_j \\tilde{R}_{ij} ||_F^2</span>
+<span class="sd">        + \\sum_{i=\\in\\mathcal{A}} || R_i - \\tilde{R}_i ||_F^2</span>
+
+<span class="sd">    where :math:`\\tilde{R}_{ij}` are the relative measurements, :math:`\\tilde{R}_{i}` are the absolute measurements,</span>
+<span class="sd">    and the unknowns are</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \\theta = \\begin{bmatrix} R_1 &amp; R_2 &amp; \\ldots &amp; R_N \\end{bmatrix}</span>
+
+
+<span class="sd">    We can alternatively replace the absolute-measurement terms by</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        || R_i - R_w \\tilde{R}_{i} ||_F^2</span>
+
+<span class="sd">    where :math:`R_w` is an arbitrary world frame that we can also optimize over, transforming the solutions</span>
+<span class="sd">    by :math:`R_w^{-1}R_i` after to move the world frame to the origin. Using this formulation, all</span>
+<span class="sd">    measurements are binary factors, which may simplify implementation.</span>
+
+<span class="sd">    We consider two different formulations of the problem:</span>
+
+<span class="sd">    - level &quot;no&quot; corresponds to the rank-1 version:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        x = \\begin{bmatrix} 1, \\mathrm{vec}(R_1), \\ldots, \\mathrm{vec}(R_N) \\end{bmatrix}^T</span>
+
+<span class="sd">    - level &quot;bm&quot; corresponds to the rank-d version (bm=Burer-Monteiro).</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        X = \\begin{bmatrix} R_1^\\top \\\\ \\vdots \\\\ R_N^\\top \\end{bmatrix}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">LEVELS</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;no&quot;</span><span class="p">,</span> <span class="s2">&quot;bm&quot;</span><span class="p">]</span>
