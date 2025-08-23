@@ -67,7 +67,40 @@ def get_orthogonal_constraints(
 class RotationLifter(StateLifter):
     """Rotation averaging problem lifter.
 
-    See class-level docstring for details on problem formulation and lifted representations.
+    We solve the following optimization problem:
+
+    .. math::
+        f(\\theta) = \\min_{R_0, R_1, \\ldots, R_N \\in \\mathrm{SO}^d}
+        \\sum_{i,j \\in \\mathcal{E}} || R_i - R_j \\tilde{R}_{ij} ||_F^2
+        + \\sum_{i=\\in\\mathcal{A}} || R_i - \\tilde{R}_i ||_F^2
+
+    where :math:`\\tilde{R}_{ij}` are the relative measurements, :math:`\\tilde{R}_{i}` are the absolute measurements,
+    and the unknowns are
+
+    .. math::
+        \\theta = \\begin{bmatrix} R_1 & R_2 & \\ldots & R_N \\end{bmatrix}
+
+
+    We can alternatively replace the absolute-measurement terms by
+
+    .. math::
+        || R_i - R_w \\tilde{R}_{i} ||_F^2
+
+    where :math:`R_w` is an arbitrary world frame that we can also optimize over, transforming the solutions
+    by :math:`R_w^{-1}R_i` after to move the world frame to the origin. Using this formulation, all
+    measurements are binary factors, which may simplify implementation.
+
+    We consider two different formulations of the problem:
+
+    - level "no" corresponds to the rank-1 version:
+
+    .. math::
+        x = \\begin{bmatrix} 1, \\mathrm{vec}(R_1), \\ldots, \\mathrm{vec}(R_N) \\end{bmatrix}^T
+
+    - level "bm" corresponds to the rank-d version (bm=Burer-Monteiro).
+
+    .. math::
+        X = \\begin{bmatrix} R_1^\\top \\\\ \\vdots \\\\ R_N^\\top \\end{bmatrix}
     """
 
     LEVELS: List[str] = ["no", "bm"]
