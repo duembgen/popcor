@@ -454,7 +454,7 @@ class AutoTemplate(object):
             for key, qcqp_that_local in info.items():
                 if key.startswith("local solution"):
                     solution_idx = key.strip("local solution ")
-                    error_dict = self.lifter.get_error(qcqp_that_local)
+                    error_dict = self.lifter.get_error(np.asarray(qcqp_that_local))
                     self.solver_vars.update(
                         {
                             f"local {solution_idx} {error_name}": err
@@ -589,11 +589,13 @@ class AutoTemplate(object):
         if self.use_incremental:
             for c in self.templates:
                 ai = get_vec(c.A_poly_.get_matrix(mat_var_dict))
+                assert isinstance(ai, np.ndarray)
                 bi = self.lifter.augment_using_zero_padding(ai, param_dict)
                 a_vectors.append(bi)
         if self.use_known:
             for c in self.templates_known_sub:
                 ai = get_vec(c.A_poly_.get_matrix(mat_var_dict))
+                assert isinstance(ai, np.ndarray)
                 bi = self.lifter.augment_using_zero_padding(ai, param_dict)
                 a_vectors.append(bi)
         Y = np.vstack([Y] + a_vectors)

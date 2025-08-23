@@ -353,14 +353,14 @@ class RangeOnlySqLifter(RangeOnlyLifter):
             sub_idx_x = self.get_sub_idx_x(sub_idx)
             return 2 * J.T[:, sub_idx_x] @ Q[sub_idx_x, :][:, sub_idx_x] @ x[sub_idx_x]  # type: ignore
 
-    def get_J(self, t: np.ndarray, y: np.ndarray) -> sp.csr_array:
-        J = sp.csr_array(
+    def get_J(self, t: np.ndarray, y: np.ndarray) -> sp.csr_matrix:
+        J = sp.csr_matrix(
             (np.ones(self.N), (range(1, self.N + 1), range(self.N))),
             shape=(self.N + 1, self.N),
         )
         J_lift = self.get_J_lifting(t)
         J = sp.vstack([J, J_lift])
-        assert isinstance(J, sp.csr_array)
+        assert isinstance(J, sp.csr_matrix)
         return J
 
     def get_hess(self, t: np.ndarray, y: np.ndarray) -> np.ndarray:

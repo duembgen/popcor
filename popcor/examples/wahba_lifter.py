@@ -1,5 +1,6 @@
 """WahbaLifter class for robust pose registration with point-to-point measurements."""
 
+import autograd.numpy as anp
 import numpy as np
 import scipy.sparse as sp
 from poly_matrix import PolyMatrix
@@ -63,11 +64,14 @@ class WahbaLifter(RobustPoseLifter):
 
     def residual_sq(
         self, R: np.ndarray, t: np.ndarray, pi: np.ndarray, ui: np.ndarray
-    ) -> float:
+    ) -> float | anp.numpy_boxes.ArrayBox:
         """Computes the squared residual for a landmark measurement."""
         W = np.eye(self.d)
         term = self.term_in_norm(R, t, pi, ui)
-        res_sq = float(term.T @ W @ term)
+        if isinstance(term, np.ndarray):
+            res_sq = float(term.T @ W @ term)
+        else:
+            res_sq = term.T @ W @ term
         if NORMALIZE:
             return res_sq / (self.n_landmarks * self.d) ** 2
         return res_sq

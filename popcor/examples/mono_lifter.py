@@ -2,6 +2,7 @@
 
 from copy import deepcopy
 
+import autograd.numpy as anp
 import numpy as np
 from poly_matrix.poly_matrix import PolyMatrix
 
@@ -45,18 +46,10 @@ class MonoLifter(RobustPoseLifter):
         - tan(a/2)*t3 >= sqrt(t1**2 + t2**2)
         """
         default = super().h_list(t, *args, **kwargs)
-        try:
-            import autograd.numpy as anp
-
-            return default + [
-                anp.sum(t[:-1] ** 2) - anp.tan(FOV / 2) ** 2 * t[-1] ** 2,  # type: ignore
-                -t[-1],
-            ]
-        except ModuleNotFoundError:
-            return default + [
-                np.sum(t[:-1] ** 2) - np.tan(FOV / 2) ** 2 * t[-1] ** 2,
-                -t[-1],
-            ]
+        return default + [
+            anp.sum(t[:-1] ** 2) - anp.tan(FOV / 2) ** 2 * t[-1] ** 2,  # type: ignore
+            -t[-1],
+        ]
 
     def get_random_position(self, *args, **kwargs) -> np.ndarray:
         pc_cw = np.random.rand(self.d) * 0.1
@@ -101,10 +94,14 @@ class MonoLifter(RobustPoseLifter):
         ui: np.ndarray,
         *args,
         **kwargs,
-    ) -> float:
+    ) -> float | anp.numpy_boxes.ArrayBox:
         W = np.eye(self.d) - np.outer(ui, ui)
         term = self.term_in_norm(R, t, pi, ui, *args, **kwargs)
-        res = float(term.T @ W @ term)
+        if isinstance(term, np.ndarray):
+            res = float(term.T @ W @ term)
+        else:
+            res = term.T @ W @ term
+
         if NORMALIZE:
             res /= (self.n_landmarks * self.d) ** 2
         return res

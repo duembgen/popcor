@@ -196,7 +196,7 @@ def initialize_discrete_cbar(values):
 
 def plot_basis(
     basis_poly: PolyMatrix,
-    variables_j: dict,
+    variables_j: Iterable,
     variables_i: Iterable | None = None,
     fname_root: str = "",
     discrete: bool = True,

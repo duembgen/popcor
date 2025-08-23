@@ -180,7 +180,7 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
         self,
         theta: np.ndarray | None = None,
         parameters: np.ndarray | dict | None = None,
-        var_subset: list[str] | dict | None = None,
+        var_subset: list[str] | dict[str, int] | None = None,
     ) -> np.ndarray:
         """Return the lifted variable vector x for the given theta."""
         if var_subset is None:
