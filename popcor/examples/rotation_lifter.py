@@ -9,6 +9,7 @@ from poly_matrix.poly_matrix import PolyMatrix
 from scipy.spatial.transform import Rotation
 
 from popcor.base_lifters import StateLifter
+from popcor.utils.plotting_tools import LINESTYLES
 
 METHOD: str = "CG"
 SOLVER_KWARGS: dict = dict(
@@ -457,14 +458,15 @@ class RotationLifter(StateLifter):
             )
             label = None
 
-        linestyles = itertools.cycle(["--", "-.", ":"])
+        linestyles = itertools.cycle(LINESTYLES)
         for label, theta in estimates.items():
+            ls = next(linestyles)
             for i in range(self.n_rot):
                 plot_frame(
                     ax=ax,
                     theta=theta[:, i * self.d : (i + 1) * self.d],
                     label=label,
-                    ls=next(linestyles),
+                    ls=ls,
                     scale=1.0,
                     marker="",
                     r_wc_w=np.hstack([i * 2.0] + [0.0] * (self.d - 1)),  # type: ignore
