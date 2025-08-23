@@ -1,5 +1,6 @@
 """RotationAveraging class for rotation averaging and synchronization problems."""
 
+import warnings
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
@@ -174,8 +175,16 @@ class RotationLifter(StateLifter):
             return C_flat.reshape((self.d, self.n_rot * self.d), order="F")
         elif self.level == "bm":
             R0 = x[: self.d, : self.d].T
+
+            I = R0.T @ R0
+            scale_R = I[0, 0]
+            np.testing.assert_allclose(np.diag(I), scale_R)
+            warnings.warn(f"R0 is scaled by {scale_R}", UserWarning)
+
             Ri = np.array(x[self.d : (self.n_rot + 1) * self.d, : self.d]).T
-            Ri_world = R0.T @ Ri
+            np.testing.assert_allclose(np.diag(Ri.T @ Ri), scale_R)
+            Ri_world = R0.T @ Ri / scale_R
+            np.testing.assert_allclose(np.diag(Ri_world.T @ Ri_world), 1.0)
             return Ri_world
         else:
             raise ValueError(f"Unknown level {self.level} for RotationLifter")

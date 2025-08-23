@@ -135,16 +135,17 @@ def test_solve_local():
     print("done")
 
 
-def test_solve_sdp():
+@pytest.mark.parametrize("level", ["no", "bm"])
+def test_solve_sdp(level):
     """Solve the SDP relaxation and compare the recovered rotations to ground truth."""
     d = 3
     n_abs = 1
-    n_rot = 4
+    n_rot = 5
     estimates = {}
-    for noise in [0.0, 0.2]:
+    for noise in [0, 1e-3, 0.2]:
         np.random.seed(2)
         lifter = RotationLifter(
-            d=d, n_abs=n_abs, n_rot=n_rot, sparsity="chain", level="no"
+            d=d, n_abs=n_abs, n_rot=n_rot, sparsity="chain", level=level
         )
 
         y = lifter.simulate_y(noise=noise)
@@ -160,13 +161,23 @@ def test_solve_sdp():
 
         X, info = solve_sdp(Q, constraints, verbose=False)
 
-        x, info_rank = rank_project(X, p=1)
+        if lifter.level == "no":
+            x, info_rank = rank_project(X, p=1)
+            theta_sdp = lifter.get_theta(x)
+        else:
+            X, info_rank = rank_project(X, p=lifter.d)
+            theta_sdp = lifter.get_theta(X)
+
         print(f"EVR at noise {noise:.2f}: {info_rank['EVR']:.2e}")
         if noise <= 1:
             assert info_rank["EVR"] > 1e8
-        theta_sdp = lifter.get_theta(x)
+
+        error = lifter.get_error(theta_sdp)
         if noise == 0.0:
-            np.testing.assert_allclose(theta_sdp, lifter.theta, atol=1e-5)
+            np.testing.assert_allclose(theta_sdp, lifter.theta, atol=1e-8)
+            assert error < 1e-10
+        elif noise < 1e-2:
+            assert error < 1e-2
 
         estimates.update({"init gt": lifter.theta, f"SDP noise {noise:.2f}": theta_sdp})
 
@@ -178,7 +189,8 @@ def test_solve_sdp():
 
 
 if __name__ == "__main__":
-    test_solve_sdp()
+    test_solve_sdp(level="no")
+    test_solve_sdp(level="bm")
     test_solve_local()
 
     test_measurements(d=2, level="no")
