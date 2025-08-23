@@ -1,4 +1,14 @@
+"""Stereo1DLifter class for 1D stereo localization example.
+
+This module provides the Stereo1DLifter class, a pedagogical example for 1D stereo localization.
+It demonstrates cost minimization for landmark-based localization, as described in
+https://arxiv.org/abs/2308.05783 and used in the Quick Start Guide.
+"""
+
+from typing import Iterable
+
 import numpy as np
+import scipy.sparse as sp
 from poly_matrix.least_squares_problem import LeastSquaresProblem
 from poly_matrix.poly_matrix import PolyMatrix
 
@@ -22,29 +32,31 @@ class Stereo1DLifter(StateLifter):
 
     NOISE = 0.1
 
-    def __init__(self, n_landmarks, param_level="no"):
-        self.n_landmarks = n_landmarks
-        self.d = 1
-        self.W = 1.0
+    def __init__(self, n_landmarks: int, param_level: str = "no") -> None:
+        self.n_landmarks: int = n_landmarks
+        self.d: int = 1
+        self.W: float = 1.0
 
         # will be initialized later
-        self.landmarks_ = None
+        self.landmarks_: np.ndarray | None = None
 
         super().__init__(param_level=param_level, d=self.d, n_parameters=n_landmarks)
 
     @property
-    def landmarks(self):
+    def landmarks(self) -> np.ndarray:
         if self.landmarks_ is None:
             self.landmarks_ = np.random.rand(self.n_landmarks, self.d)
         return self.landmarks_
 
-    def sample_parameters(self, theta=None):
+    def sample_parameters(self, theta: np.ndarray | None = None) -> dict:
+        """Sample parameters for the landmarks."""
         if self.parameters_ is None:
             return self.sample_parameters_landmarks(self.landmarks)
         landmarks = np.random.rand(self.n_landmarks, self.d)
         return self.sample_parameters_landmarks(landmarks)
 
-    def sample_theta(self):
+    def sample_theta(self) -> np.ndarray | None:
+        """Sample a valid theta not too close to any landmark."""
         x_try = np.random.rand(1)
         counter = 0
         while np.min(np.abs(x_try - self.landmarks)) <= 1e-2:
@@ -52,10 +64,15 @@ class Stereo1DLifter(StateLifter):
             counter += 1
             if counter >= 1000:
                 print("Warning: couldn't find valid setup")
-                return
+                return None
         return x_try
 
-    def get_x(self, theta=None, parameters=None, var_subset=None):
+    def get_x(
+        self,
+        theta: np.ndarray | None = None,
+        parameters: dict | None = None,
+        var_subset: Iterable | None = None,
+    ) -> np.ndarray:
         """
         :param var_subset: list of variables to include in x vector. Set to None for all.
         """
@@ -91,22 +108,26 @@ class Stereo1DLifter(StateLifter):
         return np.hstack(x_data)
 
     @property
-    def var_dict(self):
+    def var_dict(self) -> dict:
         vars = [self.HOM, "x"] + [f"z_{j}" for j in range(self.n_landmarks)]
         return {v: 1 for v in vars}
 
     @property
-    def param_dict(self):
+    def param_dict(self) -> dict:
         return self.param_dict_landmarks
 
-    def simulate_y(self, noise: float | None = None):
+    def simulate_y(self, noise: float | None = None) -> np.ndarray:
+        """Simulate noisy measurements y."""
         if noise is None:
             noise = self.NOISE
         return 1 / (self.theta - self.landmarks.flatten()) + np.random.normal(
             scale=noise, loc=0, size=self.n_landmarks
         )
 
-    def get_Q(self, noise: float | None = None, output_poly: bool = False):
+    def get_Q(
+        self, noise: float | None = None, output_poly: bool = False
+    ) -> np.ndarray | PolyMatrix | sp.csr_matrix | sp.csc_matrix:
+        """Return the quadratic cost matrix Q for the current measurements."""
         if self.landmarks is None:
             raise ValueError("self.landmarks must be initialized before calling get_Q.")
         if noise is None:
@@ -118,7 +139,10 @@ class Stereo1DLifter(StateLifter):
 
         return self.get_Q_from_y(y, output_poly=output_poly)
 
-    def get_Q_from_y(self, y, output_poly: bool = False):
+    def get_Q_from_y(
+        self, y: np.ndarray, output_poly: bool = False
+    ) -> np.ndarray | PolyMatrix | sp.csr_matrix | sp.csc_matrix:
+        """Return the quadratic cost matrix Q from given measurements y."""
         ls_problem = LeastSquaresProblem()
         for j in range(len(y)):
             # (z_j - y[j])**2
@@ -128,7 +152,13 @@ class Stereo1DLifter(StateLifter):
         else:
             return ls_problem.get_Q().get_matrix(self.var_dict)
 
-    def get_A_known(self, var_dict=None, output_poly=False, add_redundant=False):
+    def get_A_known(
+        self,
+        var_dict: dict | None = None,
+        output_poly: bool = False,
+        add_redundant: bool = False,
+    ) -> tuple[list, list]:
+        """Return known constraint matrices for the system."""
         if var_dict is None:
             var_dict = self.var_dict
 
@@ -139,7 +169,7 @@ class Stereo1DLifter(StateLifter):
 
         # enforce that z_j = 1/(x - a_j) <=> 1 - z_j*x + a_j*z_j = 0
         if not ("x" in var_dict and self.HOM in var_dict):
-            return []
+            return [], []
 
         landmark_indices = [
             int(key.split("_")[-1]) for key in var_dict if key.startswith("z_")
@@ -155,10 +185,15 @@ class Stereo1DLifter(StateLifter):
                 A_known.append(A.get_matrix(variables=self.var_dict))
 
         if add_redundant:
-            A_known += self.get_A_known_redundant(var_dict, output_poly)
+            redundant_A, redundant_b = self.get_A_known_redundant(var_dict, output_poly)
+            A_known += redundant_A
+            return A_known, [0] * len(A_known)
         return A_known, [0] * len(A_known)
 
-    def get_A_known_redundant(self, var_dict=None, output_poly=False):
+    def get_A_known_redundant(
+        self, var_dict: dict | None = None, output_poly: bool = False
+    ) -> tuple[list, list]:
+        """Return redundant known constraint matrices for the system."""
         import itertools
 
         if var_dict is None:
@@ -183,17 +218,26 @@ class Stereo1DLifter(StateLifter):
                 A_known.append(A.get_matrix(variables=self.var_dict))
         return A_known, [0] * len(A_known)
 
-    def get_cost(self, theta, y):
+    def get_cost(self, theta: np.ndarray, y: np.ndarray) -> float:
+        """Compute the cost function value for given theta and y."""
         if np.ndim(theta) == 0 or (np.ndim(theta) == 1 and len(theta) == 1):
-            return np.sum((y - (1 / (theta - self.landmarks.flatten()))) ** 2)
+            return float(np.sum((y - (1 / (theta - self.landmarks.flatten()))) ** 2))
         else:
             u = theta[1:]
-            return np.sum((y - u) ** 2)
+            return float(np.sum((y - u) ** 2))
 
     def local_solver(
-        self, t0, y, num_iters=100, eps=1e-5, W=None, verbose=False, **kwargs
-    ):
-        info = {}
+        self,
+        t0: np.ndarray,
+        y: np.ndarray,
+        num_iters: int = 100,
+        eps: float = 1e-5,
+        W: float | None = None,
+        verbose: bool = False,
+        **kwargs,
+    ) -> tuple[np.ndarray | None, dict, float | None]:
+        """Run a local solver to minimize the cost function."""
+        info: dict = {}
         a = self.landmarks.flatten()
         x_op = t0
         for i in range(num_iters):
@@ -212,9 +256,9 @@ class Stereo1DLifter(StateLifter):
             else:
                 msg = f"converged in du after {i} it"
                 cost = self.get_cost(x_op, y)
-                info = {"msg": msg, "cost": self.get_cost(x_op, y), "success": True}
+                info = {"msg": msg, "cost": cost, "success": True}
                 return x_op, info, cost
         return None, {"msg": "didn't converge", "cost": None, "success": False}, None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"stereo1d_{self.param_level}"
