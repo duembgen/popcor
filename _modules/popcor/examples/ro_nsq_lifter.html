@@ -274,13 +274,15 @@
 <span class="sd">    We experiment with two different substitutions to turn the cost function into a quadratic form:</span>
 
 <span class="sd">    - level &quot;normals&quot; uses a reformulation that introduce normal vectors, as proposed by Halstedt et al (see below).</span>
-<span class="sd">    - level &quot;simple&quot; uses substitution :math:`z_i=||p_n - a_k||` (or equivalent 3D version).</span>
 
 <span class="sd">    .. math:: f(\\theta) = \\sum_{n=0}^{N-1} \\sum_{k=0}^{K-1} w_{nk} || z_{nk} d_{nk} - (p_n - a_k) ||^2</span>
 
-<span class="sd">    where all are as above, except:</span>
+<span class="sd">    Note that :math:`\\theta` is now the flattened vector of</span>
+<span class="sd">    positions :math:`p_n` and also normal vectors :math:`z_{nk}`, and we need to solve a</span>
+<span class="sd">    constrained problem.</span>
 
-<span class="sd">    - :math:`\\theta` is now the flattened vector of positions :math:`p_n` and also normal vectors :math:`z_{nk}`.</span>
+<span class="sd">    - level &quot;simple&quot; uses substitution :math:`z_{nk}=||p_n - a_k||` (or equivalent 3D version).</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">TIGHTNESS</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;rank&quot;</span>

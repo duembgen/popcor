@@ -292,13 +292,14 @@
 <p>We experiment with two different substitutions to turn the cost function into a quadratic form:</p>
 <ul class="simple">
 <li><p>level “normals” uses a reformulation that introduce normal vectors, as proposed by Halstedt et al (see below).</p></li>
-<li><p>level “simple” uses substitution <span class="math notranslate nohighlight">\(z_i=||p_n - a_k||\)</span> (or equivalent 3D version).</p></li>
 </ul>
 <div class="math notranslate nohighlight">
 \[f(\theta) = \sum_{n=0}^{N-1} \sum_{k=0}^{K-1} w_{nk} || z_{nk} d_{nk} - (p_n - a_k) ||^2\]</div>
-<p>where all are as above, except:</p>
+<p>Note that <span class="math notranslate nohighlight">\(\theta\)</span> is now the flattened vector of
+positions <span class="math notranslate nohighlight">\(p_n\)</span> and also normal vectors <span class="math notranslate nohighlight">\(z_{nk}\)</span>, and we need to solve a
+constrained problem.</p>
 <ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(\theta\)</span> is now the flattened vector of positions <span class="math notranslate nohighlight">\(p_n\)</span> and also normal vectors <span class="math notranslate nohighlight">\(z_{nk}\)</span>.</p></li>
+<li><p>level “simple” uses substitution <span class="math notranslate nohighlight">\(z_{nk}=||p_n - a_k||\)</span> (or equivalent 3D version).</p></li>
 </ul>
 </dd></dl>
 
