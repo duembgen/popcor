@@ -26,13 +26,15 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
     We experiment with two different substitutions to turn the cost function into a quadratic form:
 
     - level "normals" uses a reformulation that introduce normal vectors, as proposed by Halstedt et al (see below).
-    - level "simple" uses substitution :math:`z_i=||p_n - a_k||` (or equivalent 3D version).
 
     .. math:: f(\\theta) = \\sum_{n=0}^{N-1} \\sum_{k=0}^{K-1} w_{nk} || z_{nk} d_{nk} - (p_n - a_k) ||^2
 
-    where all are as above, except:
+    Note that :math:`\\theta` is now the flattened vector of
+    positions :math:`p_n` and also normal vectors :math:`z_{nk}`, and we need to solve a
+    constrained problem.
 
-    - :math:`\\theta` is now the flattened vector of positions :math:`p_n` and also normal vectors :math:`z_{nk}`.
+    - level "simple" uses substitution :math:`z_{nk}=||p_n - a_k||` (or equivalent 3D version).
+
     """
 
     TIGHTNESS: str = "rank"
