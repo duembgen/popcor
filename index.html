@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Welcome to POPCOR! &mdash; POPCOR 0.0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="_static/custom_css" />
 
@@ -264,8 +264,8 @@ and please get in touch via github or e-mail if you have any questions, suggesti
 <h3>Purpose<a class="headerlink" href="#purpose" title="Link to this heading"></a></h3>
 <p>This toolbox includes methods to formulate and solve polynomial optimization problems in robotics.
 The focus of this toolbox is on creating <strong>tight</strong> semidefinite relaxations, which means that we can
-replace difficult (often NP-hard) optimization problems by easier-to-solve convex problems. In doing so, we can identify globally optimal solution of the original problem.</p>
-<p>The toolbox allows to run the <em>AutoTight</em> and <em>AutoTemplate</em> algorithms on problems of your choice.
+replace difficult (often NP-hard) optimization problems with easier-to-solve convex problems. In doing so, we can identify a globally optimal solution of the original problem.</p>
+<p>The toolbox allows you to run the <em>AutoTight</em> and <em>AutoTemplate</em> algorithms on problems of your choice.
 These algorithms are described in detail in <a class="reference external" href="https://arxiv.org/abs/2308.05783/">this paper</a>. For a high-level overview of how this works, please refer to the <strong>Quick start guide</strong>.</p>
 <p>If you use this toolbox, please cite our corresponding paper:</p>
 <div class="highlight-bibtex notranslate"><div class="highlight"><pre><span></span><span class="nc">@article</span><span class="p">{</span><span class="nl">autotight2024</span><span class="p">,</span>
@@ -282,15 +282,16 @@ These algorithms are described in detail in <a class="reference external" href="
 </section>
 <section id="who-this-tool-is-for">
 <h3>Who this tool is for<a class="headerlink" href="#who-this-tool-is-for" title="Link to this heading"></a></h3>
-<p>This tool is created for engineers (in particular, roboticists) who want to test if an optimization problem they need to solve could be amenable to certifiable optimization. For many problems, it has been shown that random initialization can lead to convergence to poor minima, while the same problems admit a so-called <strong>convex relaxation</strong> which allows to solve it to global optimality (or certify local solutions). This tool is meant to help you try quickly if your current problem also belongs to this family of problems that can be solved to certifiable global optimality.</p>
+<p>This tool is created for engineers (in particular, roboticists) who want to test if an optimization problem they need to solve could be amenable to certifiable optimization. For many problems, it has been shown that random initialization can lead to convergence to poor minima, while the same problems admit a so-called <strong>convex relaxation</strong> which allows to solve them to global optimality (or certify local solutions). This tool is meant to help you quickly determine if your current problem also belongs to this family of problems that can be solved to certifiable global optimality.</p>
 </section>
 <section id="dependencies">
 <h3>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading"></a></h3>
-<p>Besides the automatically installed dependencies when using the above instructions, you need to also have a valid MOSEK license in order to use this repository. If you are an academic, you can get a license for free <a class="reference external" href="https://www.mosek.com/license/request/?i=acp">here</a>.</p>
+<p>Besides the automatically installed dependencies when using the above instructions, you also need to have a valid MOSEK license in order to use this repository. If you are an academic, you can get a license for free <a class="reference external" href="https://www.mosek.com/license/request/?i=acp">here</a>.</p>
 </section>
 <section id="credits">
 <h3>Credits<a class="headerlink" href="#credits" title="Link to this heading"></a></h3>
 <p>The design of this toolbox, in particular the documentation, is inspired by the nice work of the creators of <a class="reference external" href="https://github.com/PerformanceEstimation/PEPit?tab=readme-ov-file">PEPit</a>.</p>
+<p>The development of this toolbox received funding from the French government, managed by the National Research Agency (ANR-22-CE33-0008), and by the European Union, Horizon Europe (GA no.101207106).</p>
 </section>
 </section>
 <div class="toctree-wrapper compound">
