@@ -135,6 +135,71 @@ def test_solve_local():
     print("done")
 
 
+@pytest.mark.parametrize(
+    "example_type, expect_equal_minima",
+    [
+        ("A", True),
+        ("B", False),
+    ],
+)
+def test_so2_example_minima_structure(example_type, expect_equal_minima):
+    """Validate deterministic SO(2) tutorial examples have intended minima patterns."""
+    lifter = RotationLifter(d=2, n_rot=1, n_abs=0, n_rel=0, level="no")
+
+    angles = np.linspace(0.0, 2.0 * np.pi, 4001)
+    costs = np.array([lifter.get_so2_example_cost(t, example_type) for t in angles])
+
+    minima_idx = []
+    for i in range(1, len(angles) - 1):
+        if costs[i] <= costs[i - 1] and costs[i] <= costs[i + 1]:
+            if minima_idx and (i - minima_idx[-1]) < 20:
+                if costs[i] < costs[minima_idx[-1]]:
+                    minima_idx[-1] = i
+            else:
+                minima_idx.append(i)
+
+    assert len(minima_idx) == 2
+    c1, c2 = float(costs[minima_idx[0]]), float(costs[minima_idx[1]])
+
+    if expect_equal_minima:
+        assert abs(c1 - c2) < 1e-5
+    else:
+        assert abs(c1 - c2) > 1e-3
+
+
+@pytest.mark.parametrize("example_type", ["A", "B"])
+def test_so2_example_sdp_recovery(example_type):
+    """Check SDP behavior for deterministic SO(2) examples.
+
+    Type A is symmetric with two equal global minima, so the SDP optimum is generally
+    not rank-1 in the angle-moment block. Type B has a unique global minimum and should
+    be near rank-1.
+    """
+    lifter = RotationLifter(d=2, n_rot=1, n_abs=0, n_rel=0, level="no")
+
+    Q = lifter.get_so2_example_Q(example_type=example_type)
+    A_known, b_known = lifter.get_A_known(add_redundant=True)
+    A_0, b_0 = lifter.get_A0()
+    constraints = list(zip(A_0 + A_known, b_0 + b_known))
+
+    X, info_sdp = solve_sdp(Q, constraints, verbose=False)
+    _, info_rank = rank_project(X, p=1)
+
+    angles = np.linspace(-np.pi, np.pi, 5001)
+    costs = np.array([lifter.get_so2_example_cost(t, example_type) for t in angles])
+    c_min = float(np.min(costs))
+
+    # SDP lower bound should match the global minimum cost very tightly.
+    assert abs(float(info_sdp["cost"]) - c_min) < 1e-6
+
+    if example_type == "A":
+        # Symmetric two-minimum case should not force rank-1 recovery.
+        assert info_rank["EVR"] < 10.0
+    else:
+        # Unique minimum case should be near rank-1.
+        assert info_rank["EVR"] > 1e6
+
+
 @pytest.mark.parametrize("level", ["no", "bm"])
 def test_solve_sdp(level):
     """Solve the SDP relaxation and compare the recovered rotations to ground truth."""
