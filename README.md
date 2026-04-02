@@ -1,5 +1,5 @@
-[![Python Package using Conda](https://github.com/duembgen/popr/actions/workflows/python-package-conda.yml/badge.svg)](https://github.com/duembgen/popr/actions/workflows/python-package-conda.yml)
-[![Documentation build](https://github.com/duembgen/popr/actions/workflows/documentation.yml/badge.svg)](https://duembgen.github.io/popcor)
+[![Python Package using Conda](https://github.com/duembgen/popcor/actions/workflows/python-package-conda.yml/badge.svg)](https://github.com/duembgen/popcor/actions/workflows/python-package-conda.yml)
+[![Documentation build](https://github.com/duembgen/popcor/actions/workflows/documentation.yml/badge.svg)](https://duembgen.github.io/popcor)
 
 ![](./docs/source/_static/overview.png)
 
