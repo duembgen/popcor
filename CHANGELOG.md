@@ -5,10 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased] -- 2025-08-23
+## [Unreleased] -
 
-(0.0.0a)=
 ### Added
+
+(0.0.3)
+## [0.0.3] - 2026-04-03
+
+(0.0.3a)=
+### Added
+- Add example cases to RotationLifter and corresponding tests. 
 - RotationLifter: support to plot 2d frames, improved documentation for rotation conventions
 - RotationLifter: implemented rank-d ("bm") lifting
 - RangeOnlyLifter: new landmark sampling methods to fill available space
@@ -17,13 +23,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - StateLifter: started support for rank-d instead of rank-1 formulations
 - Added more documentation and type hints
 
-(0.0.0c)=
+(0.0.3c)=
 ### Changed
 - RangeOnlyLifter: default sampling for landmarks in RO is now the one filling space
 - RangeOnlyLifter: theta is sampled at least MIN_DIST away from landmarks
 - Always returning constraints matrices along with right-hand-side values
 
-(0.0.0a)=
+(0.0.3f)=
 ### Fixed
 - Link fixes in documentation
 
