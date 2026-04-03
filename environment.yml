@@ -12,11 +12,12 @@ dependencies:
     - pytest
     - black>=23.1
 
-    - seaborn>=0.12.2
-    - progressbar2>=4.2.0
+
     - jupyter>=1.0.0
     - mosek
+    - progressbar2>=4.2.0
     - pandas==1.5.3
+    - seaborn>=0.12.2
     - spatialmath-python=1.1.11
     - suitesparse # used by sparseqr
     - pip:
