@@ -75,6 +75,9 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#autotight-method">AutoTight Method</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#example-tightening-the-sdp-relaxation-using-autotight"><strong>Example: tightening the SDP relaxation using AutoTight</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#autotemplate-method">AutoTemplate Method</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#example-tightening-a-different-problem-using-autotemplate"><strong>Example: tightening a different problem using AutoTemplate</strong></a></li>
 </ul>
 </li>
@@ -405,10 +408,12 @@ If successful, the output is a set of constraints that leads to a tight SDP rela
 <span class="n">new_lifter</span> <span class="o">=</span> <span class="n">Stereo1DLifter</span><span class="p">(</span><span class="n">n_landmarks</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>AutoTemplate Methodn——————-</p>
+</section>
+</section>
+<section id="autotemplate-method">
+<h2>AutoTemplate Method<a class="headerlink" href="#autotemplate-method" title="Link to this heading"></a></h2>
 <p><em>AutoTemplate</em> follows the same principle as <em>AutoTight</em>, but its output are templates rather than constraint matrices. These templates can be seen as “parametrized” versions of the constraint matrices, and can be applied to new problem instances of any size without having to learn the constraints again from scratch.</p>
 <p>More information on how to use AutoTemplate can be found <a class="reference internal" href="api/algorithms.html#autotemplate"><span class="std std-ref">here</span></a> and a simple example is given next.</p>
-</section>
 <section id="example-tightening-a-different-problem-using-autotemplate">
 <h3><strong>Example: tightening a different problem using AutoTemplate</strong><a class="headerlink" href="#example-tightening-a-different-problem-using-autotemplate" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
