@@ -43,6 +43,8 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
         "normals": "$\\boldsymbol{y}_n$",
         "simple": "$z_n$",
     }
+    EXAMPLE_TYPES: tuple[str, str, str] = ("A", "B", "C")
+    example_type: str | None = None
     MONOMIAL_DEGREE: int = 1
     SCALE: float = 1.0
 
@@ -51,33 +53,21 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
         n_positions: int, n_landmarks: int, d: int = 2
     ) -> "RangeOnlyNsqLifter":
         """Create a lifter with good initial positions."""
-        landmarks, theta = RangeOnlyLifter.create_good(n_positions, n_landmarks, d)
-        lifter = RangeOnlyNsqLifter(n_positions, n_landmarks, d)
-        lifter.overwrite_theta(theta)
-        lifter.landmarks = landmarks
-        return lifter
+        return RangeOnlyNsqLifter.create_example("A", n_positions, n_landmarks, d)
 
     @staticmethod
     def create_bad(
         n_positions: int, n_landmarks: int, d: int = 2
     ) -> "RangeOnlyNsqLifter":
         """Create a lifter with bad initial positions."""
-        landmarks, theta = RangeOnlyLifter.create_bad(n_positions, n_landmarks, d)
-        lifter = RangeOnlyNsqLifter(n_positions, n_landmarks, d)
-        lifter.overwrite_theta(theta)
-        lifter.landmarks = landmarks
-        return lifter
+        return RangeOnlyNsqLifter.create_example("B", n_positions, n_landmarks, d)
 
     @staticmethod
     def create_bad_fixed(
         n_positions: int, n_landmarks: int, d: int = 2
     ) -> "RangeOnlyNsqLifter":
         """Create a lifter with fixed bad initial positions."""
-        landmarks, theta = RangeOnlyLifter.create_bad_fixed(n_positions, n_landmarks, d)
-        lifter = RangeOnlyNsqLifter(n_positions, n_landmarks, d)
-        lifter.overwrite_theta(theta)
-        lifter.landmarks = landmarks
-        return lifter
+        return RangeOnlyNsqLifter.create_example("C", n_positions, n_landmarks, d)
 
     def __init__(
         self,
@@ -124,7 +114,7 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
         var_dict: dict | None = None,
         output_poly: bool = False,
         add_redundant: bool = False,
-    ) -> list[np.ndarray | PolyMatrix]:
+    ) -> tuple[list[np.ndarray | PolyMatrix], list[float]]:
         """Return known quadratic constraints for the lifted variables."""
         if var_dict is None:
             var_dict = self.var_dict
@@ -147,7 +137,7 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
             raise NotImplementedError(
                 "get_A_known not implemented yet for simple level"
             )
-        return A_list
+        return A_list, [0.0] * len(A_list)
 
     def get_residuals(
         self, t: np.ndarray, y: np.ndarray, ad: bool = False
@@ -296,4 +286,54 @@ class RangeOnlyNsqLifter(RangeOnlyLifter):
 
 
 if __name__ == "__main__":
-    lifter = RangeOnlyNsqLifter(n_positions=3, n_landmarks=4, d=2)
+    import os
+
+    import matplotlib.pyplot as plt
+    from cert_tools.linalg_tools import rank_project
+    from cert_tools.sdp_solvers import solve_sdp
+
+    np.random.seed(0)
+    base_dir: str = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+    for example_type in RangeOnlyNsqLifter.EXAMPLE_TYPES:
+        lifter = RangeOnlyNsqLifter.create_example(
+            example_type=example_type,
+            n_positions=1,
+            n_landmarks=4,
+            d=2,
+        )
+        y = lifter.simulate_y(noise=0.0)
+
+        Q = lifter.get_Q_from_y(y=y, output_poly=False)
+        A_known, b_known = lifter.get_A_known(output_poly=False, add_redundant=True)
+        A_0, b_0 = lifter.get_A0()
+        constraints = list(zip(A_known + A_0, b_known + b_0))
+
+        X, _ = solve_sdp(Q, constraints, verbose=False)
+        x_round, _ = rank_project(X, p=1)
+        x_round = x_round.flatten()
+        x_round = x_round / x_round[0]
+        theta_est = x_round[1 : 1 + lifter.N]
+
+        fig, ax, _ = lifter.plot_cost(y=y)
+        ax.set_title(f"RangeOnlyNsqLifter cost ({example_type})")
+        fig.savefig(
+            os.path.join(
+                base_dir, "docs", "source", "_static", f"ro_nsq_cost_{example_type}.png"
+            )
+        )
+
+        fig, ax = lifter.plot_setup(estimates={"estimate": theta_est})
+        ax.set_title(f"RangeOnlyNsqLifter setup ({example_type})")
+        fig.savefig(
+            os.path.join(
+                base_dir,
+                "docs",
+                "source",
+                "_static",
+                f"ro_nsq_setup_{example_type}.png",
+            )
+        )
+
+    plt.show(block=False)
+    print("done")

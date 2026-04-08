@@ -1,6 +1,7 @@
 """Poly4Lifter class for fourth-degree polynomial lifter examples."""
 
 import numpy as np
+from poly_matrix import PolyMatrix
 
 from popcor.base_lifters import PolyLifter
 
@@ -8,38 +9,52 @@ from popcor.base_lifters import PolyLifter
 class Poly4Lifter(PolyLifter):
     """Fourth-degree polynomial lifter.
 
-    Two types are provided:
+    Two example types are provided and selected with create_example(example_type=...).
 
-    - poly_type="A": one global minimum at -1, one local minimum at 2.
-    - poly_type="B": two global minima at 1 and 3.
+    - example_type="A": one global minimum at -1, one local minimum at 2.
+    - example_type="B": two global minima at 1 and 3.
     """
+
+    EXAMPLE_TYPES: tuple[str, str] = ("A", "B")
+    example_type: str = "A"
 
     @property
     def VARIABLE_LIST(self) -> list[list[str]]:
         return [[self.HOM, "t", "z0"]]
 
-    def __init__(self, poly_type: str = "A") -> None:
-        # actual minimum
-        assert poly_type in ["A", "B"]
-        self.poly_type: str = poly_type
+    def __init__(self) -> None:
+        self.example_type = "A"
         super().__init__(degree=4)
+
+    @staticmethod
+    def create_example(example_type: str = "A") -> "Poly4Lifter":
+        """Create a fourth-degree polynomial example of the requested type."""
+        if example_type not in Poly4Lifter.EXAMPLE_TYPES:
+            raise ValueError(
+                f"Unknown example_type: {example_type}. Expected one of {Poly4Lifter.EXAMPLE_TYPES}."
+            )
+
+        lifter = Poly4Lifter()
+        lifter.example_type = example_type
+        lifter.generate_random_setup()
+        return lifter
 
     def get_Q(
         self, output_poly: bool = False, noise: float | None = None
     ) -> np.ndarray:
-        """Returns the Q matrix for the selected polynomial type."""
+        """Return the Q matrix for the selected example type."""
         if output_poly:
             raise ValueError("output_poly not implemented for Poly4Lifter.")
-        if self.poly_type == "A":
+        if self.example_type == "A":
             # Q matrix for type A
             return np.r_[
                 np.c_[2, 1, 0], np.c_[1, -1 / 2, -1 / 3], np.c_[0, -1 / 3, 1 / 4]
             ]
-        elif self.poly_type == "B":
+        elif self.example_type == "B":
             # Q matrix for type B, constructed such that f'(t) = (t-1)*(t-2)*(t-3)
             return np.r_[np.c_[3, -3, 0], np.c_[-3, 11 / 2, -1], np.c_[0, -1, 1 / 4]]
         else:
-            raise ValueError(f"Unknown poly_type: {self.poly_type}")
+            raise ValueError(f"Unknown example_type: {self.example_type}")
 
     def get_A_known(
         self,
@@ -47,8 +62,6 @@ class Poly4Lifter(PolyLifter):
         add_redundant: bool = False,
         var_dict: dict | None = None,
     ) -> tuple[list[np.ndarray] | list, list[int]]:
-        from poly_matrix import PolyMatrix
-
         if add_redundant:
             print("No redundant constraints for 4-degree polynomial.")
 
@@ -62,10 +75,12 @@ class Poly4Lifter(PolyLifter):
             return [A_1.get_matrix(self.var_dict)], [0]
 
     def generate_random_setup(self) -> None:
-        if self.poly_type == "A":
+        if self.example_type == "A":
             self.theta_: np.ndarray = np.array([-1])
-        else:
+        elif self.example_type == "B":
             self.theta_: np.ndarray = np.array([1])
+        else:
+            raise ValueError(f"Unknown example_type: {self.example_type}")
 
     def get_D(self, that: float) -> np.ndarray:
         D = np.array(
@@ -87,14 +102,18 @@ if __name__ == "__main__":
     base_dir: str = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
     thetas: np.ndarray = np.linspace(-2, 3, 100)
-    poly_lifter: Poly4Lifter = Poly4Lifter(poly_type="A")
+    poly_lifter: Poly4Lifter = Poly4Lifter.create_example(example_type="A")
     fig, ax = poly_lifter.plot(thetas)
-    fig.savefig(os.path.join(base_dir, "docs", "figures", "poly4_lifter_A.png"))
+    fig.savefig(
+        os.path.join(base_dir, "docs", "source", "_static", "poly4_lifter_A.png")
+    )
 
     thetas = np.linspace(0, 4, 100)
-    poly_lifter = Poly4Lifter(poly_type="B")
+    poly_lifter = Poly4Lifter.create_example(example_type="B")
     fig, ax = poly_lifter.plot(thetas)
-    fig.savefig(os.path.join(base_dir, "docs", "figures", "poly4_lifter_B.png"))
+    fig.savefig(
+        os.path.join(base_dir, "docs", "source", "_static", "poly4_lifter_B.png")
+    )
 
     plt.show(block=False)
     print("done")

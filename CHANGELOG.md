@@ -5,12 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+
 ## [Unreleased] - 2026-04-06
 
 ### Added
 
 ### Changed
 - Fix the ground truth value for Poly4 type B 
+- Creating fixed examples is now handled by staticmethod create_example()
+  - Added this for: Poly4Lifter, Poly6Lifter, RotationLifter
+  - Pending: RangeOnlySqLifter, RangeOnlyNsqLifter (convert existing ones)
+             other lifters: create this functionality 
+- Created two plotting types: plot_cost and plot_setup 
+  - Added this for: Poly4Lifter, Poly6Lifter, RotationLifter
+  - Pending: make sure all others also conform to this new structure 
 
 ### Fixed
 

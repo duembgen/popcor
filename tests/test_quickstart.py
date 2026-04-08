@@ -8,7 +8,7 @@ def test_setup_problem():
     """Test the problem setup example from the documentation."""
     from popcor.examples import Poly4Lifter
 
-    lifter = Poly4Lifter()
+    lifter = Poly4Lifter.create_example(example_type="A")
 
     Q = lifter.get_Q()
 
@@ -30,7 +30,7 @@ def test_solve_sdp():
 
     from popcor.examples import Poly4Lifter
 
-    lifter = Poly4Lifter()
+    lifter = Poly4Lifter.create_example(example_type="A")
 
     # the cost matrix
     Q = lifter.get_Q()

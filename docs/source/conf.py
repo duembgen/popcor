@@ -14,10 +14,13 @@
 import os
 import sys
 
-import popcor
-
 # The module you're documenting (assumes you've added the project root dir to sys.path)
 sys.path.insert(0, os.path.abspath("../.."))
+
+try:
+    import popcor
+except (ImportError, ModuleNotFoundError):
+    popcor = None
 
 # -- Project information -----------------------------------------------------
 
@@ -114,7 +117,7 @@ html_theme_options = {
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
+html_static_path = ["_static", "../figures"]
 
 
 # Do not show "View Page Source"

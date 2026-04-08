@@ -12,6 +12,96 @@ Range-Only Localization
    :undoc-members:
    :show-inheritance:
 
+RangeOnlySqLifter Example Plots
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. figure:: /_static/ro_sq_cost_A.png
+   :alt: RangeOnlySqLifter cost heatmap type A
+   :align: center
+   :figclass: align-center
+
+   RangeOnlySqLifter cost heatmap (Type A)
+
+.. figure:: /_static/ro_sq_setup_A.png
+   :alt: RangeOnlySqLifter setup plot type A
+   :align: center
+   :figclass: align-center
+
+   RangeOnlySqLifter setup (Type A)
+
+.. figure:: /_static/ro_sq_cost_B.png
+   :alt: RangeOnlySqLifter cost heatmap type B
+   :align: center
+   :figclass: align-center
+
+   RangeOnlySqLifter cost heatmap (Type B)
+
+.. figure:: /_static/ro_sq_setup_B.png
+   :alt: RangeOnlySqLifter setup plot type B
+   :align: center
+   :figclass: align-center
+
+   RangeOnlySqLifter setup (Type B)
+
+.. figure:: /_static/ro_sq_cost_C.png
+   :alt: RangeOnlySqLifter cost heatmap type C
+   :align: center
+   :figclass: align-center
+
+   RangeOnlySqLifter cost heatmap (Type C)
+
+.. figure:: /_static/ro_sq_setup_C.png
+   :alt: RangeOnlySqLifter setup plot type C
+   :align: center
+   :figclass: align-center
+
+   RangeOnlySqLifter setup (Type C)
+
+RangeOnlyNsqLifter Example Plots
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. figure:: /_static/ro_nsq_cost_A.png
+   :alt: RangeOnlyNsqLifter cost heatmap type A
+   :align: center
+   :figclass: align-center
+
+   RangeOnlyNsqLifter cost heatmap (Type A)
+
+.. figure:: /_static/ro_nsq_setup_A.png
+   :alt: RangeOnlyNsqLifter setup plot type A
+   :align: center
+   :figclass: align-center
+
+   RangeOnlyNsqLifter setup (Type A)
+
+.. figure:: /_static/ro_nsq_cost_B.png
+   :alt: RangeOnlyNsqLifter cost heatmap type B
+   :align: center
+   :figclass: align-center
+
+   RangeOnlyNsqLifter cost heatmap (Type B)
+
+.. figure:: /_static/ro_nsq_setup_B.png
+   :alt: RangeOnlyNsqLifter setup plot type B
+   :align: center
+   :figclass: align-center
+
+   RangeOnlyNsqLifter setup (Type B)
+
+.. figure:: /_static/ro_nsq_cost_C.png
+   :alt: RangeOnlyNsqLifter cost heatmap type C
+   :align: center
+   :figclass: align-center
+
+   RangeOnlyNsqLifter cost heatmap (Type C)
+
+.. figure:: /_static/ro_nsq_setup_C.png
+   :alt: RangeOnlyNsqLifter setup plot type C
+   :align: center
+   :figclass: align-center
+
+   RangeOnlyNsqLifter setup (Type C)
+
 
 Stereo-Camera Localization
 --------------------------
