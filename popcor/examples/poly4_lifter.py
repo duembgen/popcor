@@ -62,7 +62,7 @@ class Poly4Lifter(PolyLifter):
             return [A_1.get_matrix(self.var_dict)], [0]
 
     def generate_random_setup(self) -> None:
-        if self.poly_type == "!":
+        if self.poly_type == "A":
             self.theta_: np.ndarray = np.array([-1])
         else:
             self.theta_: np.ndarray = np.array([1])

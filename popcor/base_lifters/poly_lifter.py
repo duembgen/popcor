@@ -49,14 +49,34 @@ class PolyLifter(StateLifter):
         info = {"success": sol.success, "cost": sol.fun}
         return sol.x, info, sol.fun
 
-    def plot(self, thetas, label=None):
+    def plot(self, thetas=None, label=None, estimates=None):
         from popcor.utils.plotting_tools_poly import coordinate_system
 
         fig, ax = coordinate_system()
-        ys = [self.get_cost(t) for t in thetas]
-        ax.plot(thetas, ys, label=label)
-        ymin = min(-max(ys) / 3, min(ys))
-        ax.set_ylim(ymin, max(ys))
+
+        # Handle the case where estimates is provided but thetas is not
+        if thetas is None and estimates is None:
+            raise ValueError("Either thetas or estimates must be provided")
+
+        if thetas is not None:
+            ys = [self.get_cost(t) for t in thetas]
+            ax.plot(thetas, ys, label=label)
+            ymin = min(-max(ys) / 3, min(ys))
+            ax.set_ylim(ymin, max(ys))
+
+        # Plot estimates if provided
+        if estimates is not None:
+            for est_label, theta_est in estimates.items():
+                cost_est = self.get_cost(theta_est)
+                ax.scatter(
+                    [theta_est],
+                    [cost_est],
+                    label=est_label,
+                    s=100,
+                    marker="x",
+                    linewidth=2,
+                )
+
         return fig, ax
 
     def __repr__(self):
