@@ -9,10 +9,8 @@ You can find the full code in the ``__main__`` section of the corresponding modu
 
 .. code-block:: python
 
-   import numpy as np
-   lifter = Poly4Lifter.create_example(example_type="A")  # choose "A" or "B"
-   thetas = np.linspace(-2, 3, 100)
-   fig, ax = lifter.plot(thetas)
+   lifter = Poly4Lifter.create_example(example_type="A")  # choose A or B
+   lifter.plot_cost()
 
 .. autoclass:: popcor.examples.Poly4Lifter
    :undoc-members:

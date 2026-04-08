@@ -82,6 +82,26 @@ class Poly4Lifter(PolyLifter):
         else:
             raise ValueError(f"Unknown example_type: {self.example_type}")
 
+    def plot_cost(
+        self,
+        y: np.ndarray | None = None,
+        xlims: tuple[float, float] | None = None,
+        ylims: tuple[float, float] | None = None,
+        grid_size: int = 120,
+    ) -> tuple[object, object, object]:
+        """Plot cost using the same signature as range-only lifters."""
+        theta_ref = float(np.asarray(self.theta).reshape(-1)[0])
+        if xlims is None:
+            xlims = (theta_ref - 2.0, theta_ref + 3.0)
+
+        thetas = np.linspace(xlims[0], xlims[1], grid_size)
+        fig, ax = self.plot(thetas, label="cost", estimates={"theta_ref": theta_ref})
+        line = ax.lines[-1] if len(ax.lines) else None
+        if ylims is not None:
+            ax.set_ylim(*ylims)
+        ax.legend()
+        return fig, ax, line
+
     def get_D(self, that: float) -> np.ndarray:
         D = np.array(
             [
