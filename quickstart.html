@@ -75,9 +75,6 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#autotight-method">AutoTight Method</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#example-tightening-the-sdp-relaxation-using-autotight"><strong>Example: tightening the SDP relaxation using AutoTight</strong></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#autotemplate-method">AutoTemplate Method</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#example-tightening-a-different-problem-using-autotemplate"><strong>Example: tightening a different problem using AutoTemplate</strong></a></li>
 </ul>
 </li>
@@ -166,6 +163,8 @@
 <li class="toctree-l3"><a class="reference internal" href="examples/standard.html#range-only-localization">3.1. Range-Only Localization</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="examples/standard.html#popcor.examples.RangeOnlySqLifter"><code class="docutils literal notranslate"><span class="pre">RangeOnlySqLifter</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="examples/standard.html#popcor.examples.RangeOnlyNsqLifter"><code class="docutils literal notranslate"><span class="pre">RangeOnlyNsqLifter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/standard.html#rangeonlysqlifter-example-plots">3.1.1. RangeOnlySqLifter Example Plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/standard.html#rangeonlynsqlifter-example-plots">3.1.2. RangeOnlyNsqLifter Example Plots</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="examples/standard.html#stereo-camera-localization">3.2. Stereo-Camera Localization</a><ul>
@@ -189,29 +188,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="whatsnew.html">What’s new</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="whatsnew.html#change-log">Change Log</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="whatsnew.html#unreleased">[Unreleased] -</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="whatsnew.html#added">Added</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="whatsnew.html#id1">[0.0.3] - 2026-04-03</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="whatsnew.html#a">Added</a></li>
-<li class="toctree-l4"><a class="reference internal" href="whatsnew.html#changed">Changed</a></li>
-<li class="toctree-l4"><a class="reference internal" href="whatsnew.html#fixed">Fixed</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="whatsnew.html#id3">[0.0.2] - 2025-06-04</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="whatsnew.html#id4">Added</a></li>
-<li class="toctree-l4"><a class="reference internal" href="whatsnew.html#removed">Removed</a></li>
-<li class="toctree-l4"><a class="reference internal" href="whatsnew.html#id6">Fixed</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="whatsnew.html#id8">[0.0.1] - 2025-05-25</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="whatsnew.html">What’s New</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="contributing.html#how-to-contribute-to-popcor">How to contribute to POPCOR</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="contributing.html#general-guidelines">General guidelines</a></li>
@@ -309,7 +286,7 @@ lifter class <a class="reference internal" href="examples/toy.html#popcor.exampl
 in the file <code class="file docutils literal notranslate"><span class="pre">../../tests/test_quickstart.py</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">popcor.examples</span><span class="w"> </span><span class="kn">import</span> <span class="n">Poly4Lifter</span>
 
-<span class="n">lifter</span> <span class="o">=</span> <span class="n">Poly4Lifter</span><span class="p">()</span>
+<span class="n">lifter</span> <span class="o">=</span> <span class="n">Poly4Lifter</span><span class="o">.</span><span class="n">create_example</span><span class="p">(</span><span class="n">example_type</span><span class="o">=</span><span class="s2">&quot;A&quot;</span><span class="p">)</span>
 
 <span class="n">Q</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_Q</span><span class="p">()</span>
 
@@ -343,7 +320,7 @@ optimum of the nonconvex polynomial problem, by solving an SDP.</p>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">popcor.examples</span><span class="w"> </span><span class="kn">import</span> <span class="n">Poly4Lifter</span>
 
-<span class="n">lifter</span> <span class="o">=</span> <span class="n">Poly4Lifter</span><span class="p">()</span>
+<span class="n">lifter</span> <span class="o">=</span> <span class="n">Poly4Lifter</span><span class="o">.</span><span class="n">create_example</span><span class="p">(</span><span class="n">example_type</span><span class="o">=</span><span class="s2">&quot;A&quot;</span><span class="p">)</span>
 
 <span class="c1"># the cost matrix</span>
 <span class="n">Q</span> <span class="o">=</span> <span class="n">lifter</span><span class="o">.</span><span class="n">get_Q</span><span class="p">()</span>
@@ -428,44 +405,42 @@ If successful, the output is a set of constraints that leads to a tight SDP rela
 <span class="n">new_lifter</span> <span class="o">=</span> <span class="n">Stereo1DLifter</span><span class="p">(</span><span class="n">n_landmarks</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 </pre></div>
 </div>
-</section>
-</section>
-<section id="autotemplate-method">
-<h2>AutoTemplate Method<a class="headerlink" href="#autotemplate-method" title="Link to this heading"></a></h2>
+<p>AutoTemplate Methodn——————-</p>
 <p><em>AutoTemplate</em> follows the same principle as <em>AutoTight</em>, but its output are templates rather than constraint matrices. These templates can be seen as “parametrized” versions of the constraint matrices, and can be applied to new problem instances of any size without having to learn the constraints again from scratch.</p>
 <p>More information on how to use AutoTemplate can be found <a class="reference internal" href="api/algorithms.html#autotemplate"><span class="std std-ref">here</span></a> and a simple example is given next.</p>
+</section>
 <section id="example-tightening-a-different-problem-using-autotemplate">
 <h3><strong>Example: tightening a different problem using AutoTemplate</strong><a class="headerlink" href="#example-tightening-a-different-problem-using-autotemplate" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="n">new_lifter</span><span class="o">.</span><span class="n">test_constraints</span><span class="p">(</span><span class="n">A_learned</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;raise&quot;</span><span class="p">,</span> <span class="n">n_seeds</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+        <span class="n">new_lifter</span><span class="o">.</span><span class="n">test_constraints</span><span class="p">(</span><span class="n">A_learned</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;raise&quot;</span><span class="p">,</span> <span class="n">n_seeds</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
 
-<span class="n">test_autotemplate</span><span class="p">():</span>
-<span class="sd">&quot;&quot;&quot;Test the AutoTemplate example from the documentation.&quot;&quot;&quot;</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">cert_tools.sdp_solvers</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve_sdp</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_autotemplate</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test the AutoTemplate example from the documentation.&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">cert_tools.sdp_solvers</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve_sdp</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">popcor.auto_template</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoTemplate</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">popcor.auto_tight</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoTight</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">popcor.examples.stereo1d_lifter</span><span class="w"> </span><span class="kn">import</span> <span class="n">Stereo1DLifter</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">popcor.auto_template</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoTemplate</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">popcor.auto_tight</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoTight</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">popcor.examples.stereo1d_lifter</span><span class="w"> </span><span class="kn">import</span> <span class="n">Stereo1DLifter</span>
 
-<span class="c1"># important: we need to use param_level=&quot;p&quot;, otherwise the parameters</span>
-<span class="c1"># are not factored out and the constraints are not generalizable.</span>
-<span class="n">lifter</span> <span class="o">=</span> <span class="n">Stereo1DLifter</span><span class="p">(</span><span class="n">n_landmarks</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">param_level</span><span class="o">=</span><span class="s2">&quot;p&quot;</span><span class="p">)</span>
+    <span class="c1"># important: we need to use param_level=&quot;p&quot;, otherwise the parameters</span>
+    <span class="c1"># are not factored out and the constraints are not generalizable.</span>
+    <span class="n">lifter</span> <span class="o">=</span> <span class="n">Stereo1DLifter</span><span class="p">(</span><span class="n">n_landmarks</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">param_level</span><span class="o">=</span><span class="s2">&quot;p&quot;</span><span class="p">)</span>
 
-<span class="c1"># learn the template matrices</span>
-<span class="n">auto_template</span> <span class="o">=</span> <span class="n">AutoTemplate</span><span class="p">(</span><span class="n">lifter</span><span class="p">)</span>
-<span class="n">data</span><span class="p">,</span> <span class="n">success</span> <span class="o">=</span> <span class="n">auto_template</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">use_known</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">success</span>
+    <span class="c1"># learn the template matrices</span>
+    <span class="n">auto_template</span> <span class="o">=</span> <span class="n">AutoTemplate</span><span class="p">(</span><span class="n">lifter</span><span class="p">)</span>
+    <span class="n">data</span><span class="p">,</span> <span class="n">success</span> <span class="o">=</span> <span class="n">auto_template</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">use_known</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">success</span>
 
-<span class="c1"># apply the templates to a different lifter</span>
-<span class="n">new_lifter</span> <span class="o">=</span> <span class="n">Stereo1DLifter</span><span class="p">(</span><span class="n">n_landmarks</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">param_level</span><span class="o">=</span><span class="s2">&quot;p&quot;</span><span class="p">)</span>
-<span class="n">constraints</span> <span class="o">=</span> <span class="n">auto_template</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">new_lifter</span><span class="p">,</span> <span class="n">use_known</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">Q</span> <span class="o">=</span> <span class="n">new_lifter</span><span class="o">.</span><span class="n">get_Q</span><span class="p">(</span><span class="n">noise</span><span class="o">=</span><span class="mf">1e-1</span><span class="p">)</span>
+    <span class="c1"># apply the templates to a different lifter</span>
+    <span class="n">new_lifter</span> <span class="o">=</span> <span class="n">Stereo1DLifter</span><span class="p">(</span><span class="n">n_landmarks</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">param_level</span><span class="o">=</span><span class="s2">&quot;p&quot;</span><span class="p">)</span>
+    <span class="n">constraints</span> <span class="o">=</span> <span class="n">auto_template</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">new_lifter</span><span class="p">,</span> <span class="n">use_known</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">Q</span> <span class="o">=</span> <span class="n">new_lifter</span><span class="o">.</span><span class="n">get_Q</span><span class="p">(</span><span class="n">noise</span><span class="o">=</span><span class="mf">1e-1</span><span class="p">)</span>
 
-<span class="c1"># adds homogenization constraint and all b_i terms</span>
-<span class="n">X</span><span class="p">,</span> <span class="n">info_sdp</span> <span class="o">=</span> <span class="n">solve_sdp</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+    <span class="c1"># adds homogenization constraint and all b_i terms</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">info_sdp</span> <span class="o">=</span> <span class="n">solve_sdp</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
 
-<span class="c1"># evaluate duality gap</span>
+    <span class="c1"># evaluate duality gap</span>
 </pre></div>
 </div>
 </section>

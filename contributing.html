@@ -23,7 +23,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="What’s new" href="whatsnew.html" />
+    <link rel="prev" title="What’s New" href="whatsnew.html" />
    
   <style>
     .github-link {
@@ -73,9 +73,6 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#autotight-method">AutoTight Method</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="quickstart.html#example-tightening-the-sdp-relaxation-using-autotight"><strong>Example: tightening the SDP relaxation using AutoTight</strong></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="quickstart.html#autotemplate-method">AutoTemplate Method</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="quickstart.html#example-tightening-a-different-problem-using-autotemplate"><strong>Example: tightening a different problem using AutoTemplate</strong></a></li>
 </ul>
 </li>
@@ -164,6 +161,8 @@
 <li class="toctree-l3"><a class="reference internal" href="examples/standard.html#range-only-localization">3.1. Range-Only Localization</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="examples/standard.html#popcor.examples.RangeOnlySqLifter"><code class="docutils literal notranslate"><span class="pre">RangeOnlySqLifter</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="examples/standard.html#popcor.examples.RangeOnlyNsqLifter"><code class="docutils literal notranslate"><span class="pre">RangeOnlyNsqLifter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/standard.html#rangeonlysqlifter-example-plots">3.1.1. RangeOnlySqLifter Example Plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/standard.html#rangeonlynsqlifter-example-plots">3.1.2. RangeOnlyNsqLifter Example Plots</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="examples/standard.html#stereo-camera-localization">3.2. Stereo-Camera Localization</a><ul>
@@ -187,29 +186,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="whatsnew.html">What’s new</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="whatsnew.html#change-log">Change Log</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="whatsnew.html#unreleased">[Unreleased] -</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="whatsnew.html#added">Added</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="whatsnew.html#id1">[0.0.3] - 2026-04-03</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="whatsnew.html#a">Added</a></li>
-<li class="toctree-l4"><a class="reference internal" href="whatsnew.html#changed">Changed</a></li>
-<li class="toctree-l4"><a class="reference internal" href="whatsnew.html#fixed">Fixed</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="whatsnew.html#id3">[0.0.2] - 2025-06-04</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="whatsnew.html#id4">Added</a></li>
-<li class="toctree-l4"><a class="reference internal" href="whatsnew.html#removed">Removed</a></li>
-<li class="toctree-l4"><a class="reference internal" href="whatsnew.html#id6">Fixed</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="whatsnew.html#id8">[0.0.1] - 2025-05-25</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="whatsnew.html">What’s New</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#how-to-contribute-to-popcor">How to contribute to POPCOR</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#general-guidelines">General guidelines</a></li>
@@ -267,7 +244,7 @@
 </section>
 <section id="adding-a-new-lifter-class">
 <h3>Adding a new lifter class<a class="headerlink" href="#adding-a-new-lifter-class" title="Link to this heading"></a></h3>
-<p>You can start with the <a class="reference internal" href="#../popcor/examples/ExampleLifter.py"><span class="xref myst">ExampleLifter</span></a> skeleton, and feel free to add more functionalities depending on the nature of the problem. You can also consider adding a new base class similar to <a class="reference internal" href="#../popcor/base_lifters/RobustPoseLifter.py"><span class="xref myst">RobustPoseLifter</span></a> or <a class="reference internal" href="#../popcor/base_lifters/StereoLifter.py"><span class="xref myst">StereoLifter</span></a> if you want to create multiple new lifters that all share similar functionalities.</p>
+<p>You can start with the <code class="docutils literal notranslate"><span class="pre">example_lifter.py</span></code> skeleton in <code class="docutils literal notranslate"><span class="pre">popcor/examples/</span></code>, and feel free to add more functionalities depending on the nature of the problem. You can also consider adding a new base class similar to <code class="docutils literal notranslate"><span class="pre">robust_pose_lifter.py</span></code> or <code class="docutils literal notranslate"><span class="pre">stereo_lifter.py</span></code> (both in <code class="docutils literal notranslate"><span class="pre">popcor/base_lifters/</span></code>) if you want to create multiple new lifters that all share similar functionalities.</p>
 </section>
 <section id="adding-new-functionalities">
 <h3>Adding new functionalities<a class="headerlink" href="#adding-new-functionalities" title="Link to this heading"></a></h3>
@@ -283,7 +260,7 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">doctest</span>
 </pre></div>
 </div>
-<p>to make sure there are no errors. There is also the possibility to just use literal includes from test files inside the documentation. See <a class="reference internal" href="#./docs/source/quickstart.rst"><span class="xref myst">docs/source/quickstart.rst</span></a> for an example.</p>
+<p>to make sure there are no errors. There is also the possibility to just use literal includes from test files inside the documentation. See <a class="reference internal" href="quickstart.html"><span class="std std-doc">quickstart.rst</span></a> for an example.</p>
 </section>
 <section id="setting-up-mosek-license-on-server">
 <h4>Setting up mosek license on server<a class="headerlink" href="#setting-up-mosek-license-on-server" title="Link to this heading"></a></h4>
@@ -346,7 +323,7 @@ of the repository:</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="whatsnew.html" class="btn btn-neutral float-left" title="What’s new" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="whatsnew.html" class="btn btn-neutral float-left" title="What’s New" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

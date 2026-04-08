@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>What’s new &mdash; POPCOR 0.0.1 documentation</title>
+  <title>What’s New &mdash; POPCOR 0.0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -74,9 +74,6 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#autotight-method">AutoTight Method</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="quickstart.html#example-tightening-the-sdp-relaxation-using-autotight"><strong>Example: tightening the SDP relaxation using AutoTight</strong></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="quickstart.html#autotemplate-method">AutoTemplate Method</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="quickstart.html#example-tightening-a-different-problem-using-autotemplate"><strong>Example: tightening a different problem using AutoTemplate</strong></a></li>
 </ul>
 </li>
@@ -165,6 +162,8 @@
 <li class="toctree-l3"><a class="reference internal" href="examples/standard.html#range-only-localization">3.1. Range-Only Localization</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="examples/standard.html#popcor.examples.RangeOnlySqLifter"><code class="docutils literal notranslate"><span class="pre">RangeOnlySqLifter</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="examples/standard.html#popcor.examples.RangeOnlyNsqLifter"><code class="docutils literal notranslate"><span class="pre">RangeOnlyNsqLifter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/standard.html#rangeonlysqlifter-example-plots">3.1.1. RangeOnlySqLifter Example Plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/standard.html#rangeonlynsqlifter-example-plots">3.1.2. RangeOnlyNsqLifter Example Plots</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="examples/standard.html#stereo-camera-localization">3.2. Stereo-Camera Localization</a><ul>
@@ -188,29 +187,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">What’s new</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#change-log">Change Log</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#unreleased">[Unreleased] -</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#added">Added</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#id1">[0.0.3] - 2026-04-03</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#a">Added</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#changed">Changed</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#fixed">Fixed</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#id3">[0.0.2] - 2025-06-04</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id4">Added</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#removed">Removed</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id6">Fixed</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#id8">[0.0.1] - 2025-05-25</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">What’s New</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="contributing.html#how-to-contribute-to-popcor">How to contribute to POPCOR</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="contributing.html#general-guidelines">General guidelines</a></li>
@@ -251,80 +228,76 @@
            <div itemprop="articleBody">
              
   <section id="what-s-new">
-<h1>What’s new<a class="headerlink" href="#what-s-new" title="Link to this heading"></a></h1>
-<p>Below is a rendering of the CHANGELOG.md file.</p>
-<section id="change-log">
-<h2>Change Log<a class="headerlink" href="#change-log" title="Link to this heading"></a></h2>
-<p>All notable changes to this project will be documented in this file.</p>
-<p>The format is based on <a class="reference external" href="http://keepachangelog.com/">Keep a Changelog</a>
-and this project adheres to <a class="reference external" href="http://semver.org/">Semantic Versioning</a>.</p>
-<section id="unreleased">
-<h3>[Unreleased] -<a class="headerlink" href="#unreleased" title="Link to this heading"></a></h3>
-<section id="added">
-<h4>Added<a class="headerlink" href="#added" title="Link to this heading"></a></h4>
-<p>(0.0.3)</p>
-</section>
-</section>
-<section id="id1">
-<h3>[0.0.3] - 2026-04-03<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
-<section id="a">
-<span id="id2"></span><h4>Added<a class="headerlink" href="#a" title="Link to this heading"></a></h4>
-<ul class="simple">
-<li><p>Add example cases to RotationLifter and corresponding tests.</p></li>
-<li><p>RotationLifter: support to plot 2d frames, improved documentation for rotation conventions</p></li>
-<li><p>RotationLifter: implemented rank-d (“bm”) lifting</p></li>
-<li><p>RangeOnlyLifter: new landmark sampling methods to fill available space</p></li>
-<li><p>Documentation instructions in CONTRIBUTING.md</p></li>
-<li><p>Unit tests and notebook for RotationLifter</p></li>
-<li><p>StateLifter: started support for rank-d instead of rank-1 formulations</p></li>
-<li><p>Added more documentation and type hints</p></li>
-</ul>
-</section>
-<section id="changed">
-<span id="c"></span><h4>Changed<a class="headerlink" href="#changed" title="Link to this heading"></a></h4>
-<ul class="simple">
-<li><p>RangeOnlyLifter: default sampling for landmarks in RO is now the one filling space</p></li>
-<li><p>RangeOnlyLifter: theta is sampled at least MIN_DIST away from landmarks</p></li>
-<li><p>Always returning constraints matrices along with right-hand-side values</p></li>
-</ul>
-</section>
-<section id="fixed">
-<span id="f"></span><h4>Fixed<a class="headerlink" href="#fixed" title="Link to this heading"></a></h4>
-<ul class="simple">
-<li><p>Link fixes in documentation</p></li>
-</ul>
-</section>
-</section>
-<section id="id3">
-<h3>[0.0.2] - 2025-06-04<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
-<section id="id4">
-<span id="id5"></span><h4>Added<a class="headerlink" href="#id4" title="Link to this heading"></a></h4>
-<ul class="simple">
-<li><p>RangeOnlyLifter base class for 2D/3D range-only localization (base_lifters/range_only_lifter.py)</p></li>
-<li><p>RangeOnlyNsqLifter: specialized lifter for range-only localization without squared distances (examples/ro_nsq_lifter.py)</p></li>
-<li><p>RangeOnlySqLifter: specialized lifter for squared-distance-based range-only localization</p></li>
-<li><p>GitHub Pages deployment step to documentation.yml using peaceiris/actions-gh-pages for automatic documentation publishing</p></li>
-</ul>
-</section>
-<section id="removed">
-<span id="r"></span><h4>Removed<a class="headerlink" href="#removed" title="Link to this heading"></a></h4>
-<ul class="simple">
-<li><p>docs/build/ files</p></li>
-</ul>
-</section>
-<section id="id6">
-<span id="id7"></span><h4>Fixed<a class="headerlink" href="#id6" title="Link to this heading"></a></h4>
-<ul class="simple">
-<li><p>Corrected return type annotations in get_grad and get_hess methods in state_lifter.py from float to np.ndarray</p></li>
-<li><p>Documentation of MonoLifter and WahbaLifter</p></li>
-</ul>
-</section>
-</section>
-<section id="id8">
-<h3>[0.0.1] - 2025-05-25<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
-<p>This is the initial release of the toolbox. It is based on <a class="reference external" href="https://github.com/utiasASRL/constraint_learning">https://github.com/utiasASRL/constraint_learning</a> and now included there as a submodule.</p>
-</section>
-</section>
+<h1>What’s New<a class="headerlink" href="#what-s-new" title="Link to this heading"></a></h1>
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span><span class="gh"># Change Log</span>
+
+All notable changes to this project will be documented in this file.
+ 
+The format is based on [<span class="nt">Keep a Changelog</span>](<span class="na">http://keepachangelog.com/</span>)
+and this project adheres to [<span class="nt">Semantic Versioning</span>](<span class="na">http://semver.org/</span>).
+
+<span class="gu">## [Unreleased] </span>
+
+<span class="gu">### Added</span>
+
+<span class="gu">### Changed</span>
+
+<span class="gu">### Fixed</span>
+
+<span class="gu">## [0.0.4] - 2026-04-08</span>
+
+<span class="gu">### Changed</span>
+<span class="k">-</span><span class="w"> </span>Fix the ground truth value for Poly4 type B 
+<span class="k">-</span><span class="w"> </span>Creating fixed examples is now handled by staticmethod create_example()
+<span class="w">  </span><span class="k">-</span><span class="w"> </span>Added this for: Poly4Lifter, Poly6Lifter, RotationLifter, RangeOnlySqLifter, RangeOnlyNsqLifter
+<span class="w">  </span><span class="k">-</span><span class="w"> </span>Pending: other lifters: create this functionality 
+<span class="k">-</span><span class="w"> </span>Created two plotting types: plot_cost and plot_setup 
+<span class="w">  </span><span class="k">-</span><span class="w"> </span>Added this for: Poly4Lifter, Poly6Lifter, RotationLifter, RangeOnlySqLifter, RangeOnlyNsqLifter
+<span class="w">  </span><span class="k">-</span><span class="w"> </span>Pending: make sure all others also conform to this new structure 
+
+<span class="gu">## [0.0.3] - 2026-04-03</span>
+
+<span class="gu">### Added</span>
+<span class="k">-</span><span class="w"> </span>Add example cases to RotationLifter and corresponding tests. 
+<span class="k">-</span><span class="w"> </span>RotationLifter: support to plot 2d frames, improved documentation for rotation conventions
+<span class="k">-</span><span class="w"> </span>RotationLifter: implemented rank-d (&quot;bm&quot;) lifting
+<span class="k">-</span><span class="w"> </span>RangeOnlyLifter: new landmark sampling methods to fill available space
+<span class="k">-</span><span class="w"> </span>Documentation instructions in CONTRIBUTING.md
+<span class="k">-</span><span class="w"> </span>Unit tests and notebook for RotationLifter
+<span class="k">-</span><span class="w"> </span>StateLifter: started support for rank-d instead of rank-1 formulations
+<span class="k">-</span><span class="w"> </span>Added more documentation and type hints
+
+<span class="gu">### Changed</span>
+<span class="k">-</span><span class="w"> </span>RangeOnlyLifter: default sampling for landmarks in RO is now the one filling space
+<span class="k">-</span><span class="w"> </span>RangeOnlyLifter: theta is sampled at least MIN_DIST away from landmarks
+<span class="k">-</span><span class="w"> </span>Always returning constraints matrices along with right-hand-side values
+
+<span class="gu">### Fixed</span>
+<span class="k">-</span><span class="w"> </span>Link fixes in documentation
+
+<span class="gu">## [0.0.2] - 2025-06-04</span>
+
+<span class="gu">### Added</span>
+
+<span class="k">-</span><span class="w"> </span>RangeOnlyLifter base class for 2D/3D range-only localization (base_lifters/range_only_lifter.py)
+<span class="k">-</span><span class="w"> </span>RangeOnlyNsqLifter: specialized lifter for range-only localization without squared distances (examples/ro_nsq_lifter.py)
+<span class="k">-</span><span class="w"> </span>RangeOnlySqLifter: specialized lifter for squared-distance-based range-only localization
+<span class="k">-</span><span class="w"> </span>GitHub Pages deployment step to documentation.yml using peaceiris/actions-gh-pages for automatic documentation publishing
+
+<span class="gu">### Removed</span>
+
+<span class="k">-</span><span class="w"> </span>docs/build/ files
+
+<span class="gu">### Fixed</span>
+
+<span class="k">-</span><span class="w"> </span>Corrected return type annotations in get_grad and get_hess methods in state_lifter.py from float to np.ndarray
+<span class="k">-</span><span class="w"> </span>Documentation of MonoLifter and WahbaLifter
+
+<span class="gu">## [0.0.1] - 2025-05-25</span>
+
+This is the initial release of the toolbox. It is based on &lt;https://github.com/utiasASRL/constraint_learning&gt; and now included there as a submodule. 
+</pre></div>
+</div>
 </section>
 
 
