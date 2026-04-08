@@ -1,4 +1,4 @@
 from .auto_template import AutoTemplate
 from .auto_tight import AutoTight
 
-__version__ = "0.0.3a"
+__version__ = "0.0.4"

@@ -31,7 +31,7 @@ It is also encouraged that added functionality is added as testable code to the 
 ```
 make doctest
 ```
-to make sure there are no errors. There is also the possibility to just use literal includes from test files inside the documentation. See [quickstart.rst](quickstart.rst) for an example. 
+to make sure there are no errors. There is also the possibility to just use literal includes from test files inside the documentation. See [docs/source/quickstart.rst](./docs/source/quickstart.rst) for an example. 
 
 ### Setting up mosek license on server
 

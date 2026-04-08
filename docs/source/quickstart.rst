@@ -126,7 +126,8 @@ More information on how to use AutoTight can be found :ref:`here <AutoTight>` an
    :dedent: 4
 
 
-AutoTemplate Method\n-------------------
+AutoTemplate Method
+-------------------
 
 *AutoTemplate* follows the same principle as *AutoTight*, but its output are templates rather than constraint matrices. These templates can be seen as "parametrized" versions of the constraint matrices, and can be applied to new problem instances of any size without having to learn the constraints again from scratch. 
 
