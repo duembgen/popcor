@@ -10,8 +10,8 @@ class Poly4Lifter(PolyLifter):
 
     Two types are provided:
 
-    - poly_type="A": one global minimum, one local minimum
-    - poly_type="B": two global minima
+    - poly_type="A": one global minimum at -1, one local minimum at 2.
+    - poly_type="B": two global minima at 1 and 3.
     """
 
     @property
@@ -62,7 +62,10 @@ class Poly4Lifter(PolyLifter):
             return [A_1.get_matrix(self.var_dict)], [0]
 
     def generate_random_setup(self) -> None:
-        self.theta_: np.ndarray = np.array([-1])
+        if self.poly_type == "!":
+            self.theta_: np.ndarray = np.array([-1])
+        else:
+            self.theta_: np.ndarray = np.array([1])
 
     def get_D(self, that: float) -> np.ndarray:
         D = np.array(

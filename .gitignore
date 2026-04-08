@@ -21,3 +21,4 @@ mosek_output.tmp
 bin/act
 docs/build/doctest
 docs/build/
+.mypy_cache
