@@ -381,7 +381,7 @@ class RangeOnlyLifter(StateLifter, ABC):
             cost = sol.fun
             info["max res"] = np.max(np.abs(residuals))
             hess = self.get_hess(that, y)
-            assert isinstance(hess, sp.csc_matrix)
+            assert isinstance(hess, sp.csc_array)
             eigs = np.linalg.eigvalsh(hess.toarray())
             info["cond Hess"] = eigs[-1] / eigs[0]
         else:

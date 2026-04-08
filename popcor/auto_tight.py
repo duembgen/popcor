@@ -303,7 +303,7 @@ class AutoTight(object):
             elif normalize and sparse:
                 Ai /= splinalg.norm(Ai, ord="fro")
             if sparse:
-                assert isinstance(Ai, (sp.csr_matrix, sp.csc_matrix))
+                assert isinstance(Ai, (sp.csr_array, sp.csc_array))
                 Ai.eliminate_zeros()
             else:
                 assert isinstance(Ai, np.ndarray)
@@ -338,7 +338,7 @@ class AutoTight(object):
             ai = lifter.get_reduced_a(bi=basis[i], var_subset=var_dict, sparse=True)
             basis_reduced.append(ai)
         basis_reduced = sp.vstack(basis_reduced)
-        assert isinstance(basis_reduced, sp.csr_matrix)
+        assert isinstance(basis_reduced, sp.csr_array)
         if AutoTight.REDUCE_DEPENDENT:
             bad_idx = find_dependent_columns(basis_reduced.T, tolerance=1e-6)
         else:
@@ -355,7 +355,7 @@ class AutoTight(object):
             elif normalize and sparse:
                 Ai /= splinalg.norm(Ai, ord="fro")
             if sparse:
-                assert isinstance(Ai, (sp.csr_matrix, sp.csc_matrix))
+                assert isinstance(Ai, (sp.csr_array, sp.csc_array))
                 Ai.eliminate_zeros()
             else:
                 assert isinstance(Ai, np.ndarray)
