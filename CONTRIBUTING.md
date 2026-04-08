@@ -13,7 +13,7 @@ Please try to the best of your abilities to:
 
 ## Adding a new lifter class
 
-You can start with the [ExampleLifter](../popcor/examples/ExampleLifter.py) skeleton, and feel free to add more functionalities depending on the nature of the problem. You can also consider adding a new base class similar to [RobustPoseLifter](../popcor/base_lifters/RobustPoseLifter.py) or [StereoLifter](../popcor/base_lifters/StereoLifter.py) if you want to create multiple new lifters that all share similar functionalities.
+You can start with the `example_lifter.py` skeleton in `popcor/examples/`, and feel free to add more functionalities depending on the nature of the problem. You can also consider adding a new base class similar to `robust_pose_lifter.py` or `stereo_lifter.py` (both in `popcor/base_lifters/`) if you want to create multiple new lifters that all share similar functionalities.
 
 ## Adding new functionalities
 
@@ -31,7 +31,7 @@ It is also encouraged that added functionality is added as testable code to the 
 ```
 make doctest
 ```
-to make sure there are no errors. There is also the possibility to just use literal includes from test files inside the documentation. See [docs/source/quickstart.rst](./docs/source/quickstart.rst) for an example. 
+to make sure there are no errors. There is also the possibility to just use literal includes from test files inside the documentation. See [quickstart.rst](quickstart.rst) for an example. 
 
 ### Setting up mosek license on server
 
