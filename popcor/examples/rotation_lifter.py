@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Tuple
 import numpy as np
 import scipy.sparse as sp
 from poly_matrix import PolyMatrix
+from scipy.optimize import minimize_scalar
 from scipy.spatial.transform import Rotation
 
 from popcor.base_lifters import StateLifter
@@ -147,6 +148,11 @@ class RotationLifter(StateLifter):
 
         lifter = RotationLifter(d=2, n_rot=1, n_abs=0, n_rel=0, level="no")
         lifter.example_type = example_type
+
+        # For tutorial examples, pin theta to the true minimizer of the SO(2)
+        # objective itself.
+        theta_star, _ = lifter.get_so2_global_minimum()
+        lifter.theta_ = lifter.so2_theta(theta_star)
         return lifter
 
     @property
@@ -179,6 +185,71 @@ class RotationLifter(StateLifter):
         c = np.cos(angle)
         s = np.sin(angle)
         return np.array([[c, -s], [s, c]])
+
+    @staticmethod
+    def theta_so2(
+        c: float,
+        s: float,
+        cs_block: np.ndarray | None = None,
+        eps: float = 1e-8,
+    ) -> float:
+        """Return SO(2) angle from cosine/sine moments.
+
+        If (c, s) is near zero and `cs_block` is provided, uses the dominant
+        eigenvector of the 2x2 block as a stable fallback.
+        """
+        c_val = float(np.squeeze(c))
+        s_val = float(np.squeeze(s))
+
+        if np.hypot(c_val, s_val) < eps and cs_block is not None:
+            block = np.asarray(cs_block, dtype=float)
+            if block.shape != (2, 2):
+                raise ValueError(f"cs_block must have shape (2, 2), got {block.shape}.")
+            evals, evecs = np.linalg.eigh(block)
+            c_val, s_val = evecs[:, int(np.argmax(evals))]
+
+        if np.hypot(c_val, s_val) < eps:
+            warnings.warn(
+                "(c, s) is near zero in theta_so2; returning 0.0 rad.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            return 0.0
+
+        return float(np.arctan2(s_val, c_val))
+
+    def get_so2_global_minimum(self, n_init: int = 2048) -> tuple[float, float]:
+        """Return (theta_star, cost_star) by minimizing the SO(2) objective over angle."""
+        if not (self.d == 2 and self.n_rot == 1 and self.level == "no"):
+            raise ValueError(
+                "SO(2) global minimum search is implemented only for d=2, n_rot=1, level='no'."
+            )
+
+        def so2_cost(angle: float) -> float:
+            return float(self.get_cost(self.so2_theta(angle)))
+
+        n = max(64, int(n_init))
+        thetas = np.linspace(-np.pi, np.pi, n, endpoint=False)
+        costs = np.array([so2_cost(angle) for angle in thetas])
+
+        best_theta = float(thetas[int(np.argmin(costs))])
+        best_cost = float(np.min(costs))
+        delta = 2.0 * np.pi / n
+
+        # Refine from several strong candidates to avoid local-trap issues.
+        candidate_ids = np.argsort(costs)[: min(16, n)]
+        for idx in candidate_ids:
+            theta0 = float(thetas[int(idx)])
+            left = theta0 - delta
+            right = theta0 + delta
+            res = minimize_scalar(so2_cost, bounds=(left, right), method="bounded")
+            if res.success and float(res.fun) < best_cost:
+                best_cost = float(res.fun)
+                best_theta = float(res.x)
+
+        # Wrap angle to [-pi, pi) for stable reporting.
+        best_theta = float((best_theta + np.pi) % (2.0 * np.pi) - np.pi)
+        return best_theta, best_cost
 
     def get_x(
         self,
@@ -524,21 +595,67 @@ class RotationLifter(StateLifter):
         return A_list, b_list
 
     def plot_cost(
-        self, thetas: np.ndarray, label: str | None = None
-    ) -> Tuple[Any, Any]:
-        """Plot the cost profile as a polar plot for d=2 single-rotation examples."""
+        self,
+        thetas: np.ndarray | None = None,
+        label: str | None = None,
+        y: np.ndarray | None = None,
+        xlims: tuple[float, float] | None = None,
+        ylims: tuple[float, float] | None = None,
+        grid_size: int | None = None,
+        polar: bool = False,
+    ) -> Tuple[Any, Any, Any]:
+        """Plot the cost profile for d=2 single-rotation examples."""
+        import warnings
+
         import matplotlib.pyplot as plt
 
         if not (self.d == 2 and self.n_rot == 1 and self.level == "no"):
             raise ValueError(
-                "Polar cost plotting is implemented only for d=2, n_rot=1, level='no'."
+                "Cost plotting is implemented only for d=2, n_rot=1, level='no'."
             )
+        if y is not None:
+            warnings.warn(
+                "y is ignored in plot_cost for RotationLifter.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+
+        n_points = grid_size if grid_size is not None else 500
+        if thetas is None:
+            thetas = np.linspace(-np.pi, np.pi, n_points)
+        elif grid_size is not None:
+            warnings.warn(
+                "grid_size is ignored when thetas is provided in plot_cost.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+
         costs = np.array([self.get_cost(self.so2_theta(angle)) for angle in thetas])
-        fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
+
+        if polar:
+            if xlims is not None:
+                warnings.warn(
+                    "xlims is ignored when polar=True in plot_cost.",
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
+            fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
+            if ylims is not None:
+                ax.set_ylim(*ylims)
+        else:
+            fig, ax = plt.subplots()
+            if xlims is not None:
+                ax.set_xlim(*xlims)
+            if ylims is not None:
+                ax.set_ylim(*ylims)
+            ax.set_xlabel("theta (rad)")
+            ax.set_ylabel("cost")
+
         ax.plot(thetas, costs, label=label)
         if label is not None:
             ax.legend()
-        return fig, ax
+        line = ax.lines[-1] if len(ax.lines) else None
+        return fig, ax, line
 
     def plot_setup(
         self, estimates: Dict[str, np.ndarray] | None = None
@@ -615,7 +732,7 @@ if __name__ == "__main__":
     angles: np.ndarray = np.linspace(-np.pi, np.pi, 500)
     for example_type in RotationLifter.EXAMPLE_TYPES:
         lifter = RotationLifter.create_example(example_type=example_type)
-        fig, ax = lifter.plot_cost(angles, label=f"example {example_type}")
+        fig, ax, line = lifter.plot_cost(angles, label=f"example {example_type}")
         ax.set_title(f"SO(2) example {example_type}")
         fig.savefig(
             os.path.join(

@@ -435,10 +435,25 @@ class RangeOnlyLifter(StateLifter, ABC):
         xlims: tuple[float, float] | None = None,
         ylims: tuple[float, float] | None = None,
         grid_size: int = 120,
+        thetas: np.ndarray | None = None,
+        label: str | None = None,
     ) -> tuple[Any, Any, Any]:
         """Plot a 2D heatmap of the cost by varying the first position only."""
         if self.d != 2:
             raise ValueError("plot_cost is implemented only for d=2.")
+
+        if thetas is not None:
+            warnings.warn(
+                "thetas is ignored in plot_cost for RangeOnlyLifter.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+        if label is not None:
+            warnings.warn(
+                "label is ignored in plot_cost for RangeOnlyLifter.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
 
         from matplotlib.colors import LogNorm
 
@@ -488,7 +503,8 @@ class RangeOnlyLifter(StateLifter, ABC):
         ax.set_ylabel("y")
         ax.legend()
         fig.colorbar(im, ax=ax, label="cost")
-        return fig, ax, im
+        line = im
+        return fig, ax, line
 
     def plot_setup(self, estimates: dict[str, np.ndarray] | None = None) -> tuple:
         """Plot anchors and ground-truth positions, with optional estimates, in 2D or 3D."""

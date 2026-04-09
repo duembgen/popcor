@@ -1,5 +1,7 @@
 """Poly6Lifter class for sixth-degree polynomial examples."""
 
+import warnings
+
 import numpy as np
 from poly_matrix import PolyMatrix
 
@@ -119,8 +121,29 @@ class Poly6Lifter(PolyLifter):
         xlims: tuple[float, float] | None = None,
         ylims: tuple[float, float] | None = None,
         grid_size: int = 120,
+        thetas: np.ndarray | None = None,
+        label: str | None = None,
     ) -> tuple[object, object, object]:
         """Plot cost using the same signature as range-only lifters."""
+        if y is not None:
+            warnings.warn(
+                "y is ignored in plot_cost for Poly6Lifter.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+        if thetas is not None:
+            warnings.warn(
+                "thetas is ignored in plot_cost for Poly6Lifter.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+        if label is not None:
+            warnings.warn(
+                "label is ignored in plot_cost for Poly6Lifter.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+
         theta_ref = float(np.asarray(self.theta).reshape(-1)[0])
         if xlims is None:
             xlims = (theta_ref - 3.0, theta_ref + 4.0)
