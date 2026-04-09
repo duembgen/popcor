@@ -21,5 +21,6 @@ dependencies:
     - spatialmath-python=1.1.11
     - suitesparse # used by sparseqr
     - pip:
-      - -r doc/requirements.txt
+      - sparseqr>=1.6.0
+      - -r docs/requirements.txt
       - -e .

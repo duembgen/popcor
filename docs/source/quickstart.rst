@@ -139,7 +139,7 @@ More information on how to use AutoTemplate can be found :ref:`here <AutoTemplat
 .. literalinclude:: ../../tests/test_quickstart.py
    :language: python
    :lines: 106-135
-   :dedent: 4
+   :dedent: 0
 
 
 References

@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Tuple
 
 import numpy as np
 import scipy.sparse as sp
-from poly_matrix.poly_matrix import PolyMatrix
+from poly_matrix import PolyMatrix
 from scipy.spatial.transform import Rotation
 
 from popcor.base_lifters import StateLifter
@@ -106,7 +106,8 @@ class RotationLifter(StateLifter):
     LEVELS: List[str] = ["no", "bm"]
     HOM: str = "h"
     VARIABLE_LIST: List[List[str]] = [["h", "c_0"], ["h", "c_0", "c_1"]]
-    SO2_EXAMPLE_TYPES: Tuple[str, str] = ("A", "B")
+    EXAMPLE_TYPES: Tuple[str, str] = ("A", "B")
+    example_type: str | None = None
 
     ADD_DETERMINANT: bool = False
     NOISE: float = 1e-3
@@ -135,6 +136,18 @@ class RotationLifter(StateLifter):
             param_level=param_level,
             d=d,
         )
+
+    @staticmethod
+    def create_example(example_type: str = "A") -> "RotationLifter":
+        """Create a deterministic SO(2) tutorial example of the requested type."""
+        if example_type not in RotationLifter.EXAMPLE_TYPES:
+            raise ValueError(
+                f"Unknown example_type {example_type}. Expected one of {RotationLifter.EXAMPLE_TYPES}."
+            )
+
+        lifter = RotationLifter(d=2, n_rot=1, n_abs=0, n_rel=0, level="no")
+        lifter.example_type = example_type
+        return lifter
 
     @property
     def var_dict(self) -> Dict[str, int]:
@@ -166,73 +179,6 @@ class RotationLifter(StateLifter):
         c = np.cos(angle)
         s = np.sin(angle)
         return np.array([[c, -s], [s, c]])
-
-    @classmethod
-    def get_so2_example_coefficients(
-        cls, example_type: str = "A"
-    ) -> Tuple[np.ndarray, np.ndarray]:
-        """Return (quadratic, linear) coefficients for deterministic SO(2) examples.
-
-        The objective is defined on the first column of R(theta), i.e. v=[cos(theta), sin(theta)],
-        as f(theta) = v.T @ Q2 @ v + q1.T @ v.
-
-        Example types:
-        - "A": two global minima on the circle (symmetric antipodal minima)
-        - "B": one global minimum and one local minimum
-        """
-        if example_type == "A":
-            q2 = np.array([[0.8, 0.05], [0.05, 0.2]])
-            q1 = np.array([0.0, 0.0])
-        elif example_type == "B":
-            q2 = np.array([[0.8, 0.05], [0.05, 0.2]])
-            q1 = np.array([0.6, 0.0])
-        else:
-            raise ValueError(
-                f"Unknown example_type {example_type}. Expected one of {cls.SO2_EXAMPLE_TYPES}."
-            )
-        return q2, q1
-
-    def get_so2_example_Q(
-        self, example_type: str = "A", output_poly: bool = False
-    ) -> PolyMatrix | np.ndarray | sp.csr_matrix | sp.csc_matrix:
-        """Return a deterministic Q for 2D single-rotation examples.
-
-        This helper builds anisotropic quadratic costs on the unit circle and is intended for
-        tutorial / visualization notebooks.
-        """
-        if not (self.d == 2 and self.n_rot == 1 and self.level == "no"):
-            raise ValueError(
-                "SO(2) example Q is currently implemented only for d=2, n_rot=1, level='no'."
-            )
-
-        q2, q1 = self.get_so2_example_coefficients(example_type=example_type)
-
-        Q = PolyMatrix(symmetric=True)
-
-        # Vectorization is column-major: [R11, R21, R12, R22].
-        q2_full = np.zeros((self.d**2, self.d**2))
-        q2_full[:2, :2] = q2
-        Q["c_0", "c_0"] = q2_full
-
-        # Linear terms are represented through the homogeneous block.
-        q1_full = np.zeros((1, self.d**2))
-        q1_full[0, :2] = 0.5 * q1
-        Q[self.HOM, "c_0"] = q1_full
-
-        if output_poly:
-            return Q
-        return Q.get_matrix(self.var_dict)
-
-    def get_so2_example_cost(self, angle: float, example_type: str = "A") -> float:
-        """Evaluate deterministic SO(2) example cost at a given angle."""
-        if not (self.d == 2 and self.n_rot == 1 and self.level == "no"):
-            raise ValueError(
-                "SO(2) example cost is currently implemented only for d=2, n_rot=1, level='no'."
-            )
-        theta = self.so2_theta(angle)
-        x = self.get_x(theta=theta)
-        Q = self.get_so2_example_Q(example_type=example_type, output_poly=False)
-        return float(x.T @ Q @ x)
 
     def get_x(
         self,
@@ -360,6 +306,39 @@ class RotationLifter(StateLifter):
         self, noise: float | None = None, output_poly: bool = False
     ) -> PolyMatrix | np.ndarray | sp.csr_matrix | sp.csc_matrix:
         """Return the cost matrix Q (poly or ndarray) constructed from simulated measurements."""
+        if getattr(self, "example_type", None) is not None:
+            if not (self.d == 2 and self.n_rot == 1 and self.level == "no"):
+                raise ValueError(
+                    "SO(2) example Q is currently implemented only for d=2, n_rot=1, level='no'."
+                )
+
+            if self.example_type == "A":
+                q2 = np.array([[0.8, 0.05], [0.05, 0.2]])
+                q1 = np.array([0.0, 0.0])
+            elif self.example_type == "B":
+                q2 = np.array([[0.8, 0.05], [0.05, 0.2]])
+                q1 = np.array([0.6, 0.0])
+            else:
+                raise ValueError(
+                    f"Unknown example_type {self.example_type}. Expected one of {self.EXAMPLE_TYPES}."
+                )
+
+            Q = PolyMatrix(symmetric=True)
+
+            # Vectorization is column-major: [R11, R21, R12, R22].
+            q2_full = np.zeros((self.d**2, self.d**2))
+            q2_full[:2, :2] = q2
+            Q["c_0", "c_0"] = q2_full
+
+            # Linear terms are represented through the homogeneous block.
+            q1_full = np.zeros((1, self.d**2))
+            q1_full[0, :2] = 0.5 * q1
+            Q[self.HOM, "c_0"] = q1_full
+
+            if output_poly:
+                return Q
+            return Q.get_matrix(self.var_dict)
+
         if noise is None:
             noise = self.NOISE
         if self.y_ is None:
@@ -544,27 +523,49 @@ class RotationLifter(StateLifter):
                         self.test_and_add(A_list, Ai, output_poly, b_list, 0.0)
         return A_list, b_list
 
-    def plot(self, estimates: Dict[str, np.ndarray] = {}) -> Tuple[Any, Any]:
-        """Plot ground-truth frames and optional estimated frames; returns (fig, ax)."""
+    def plot_cost(
+        self, thetas: np.ndarray, label: str | None = None
+    ) -> Tuple[Any, Any]:
+        """Plot the cost profile as a polar plot for d=2 single-rotation examples."""
+        import matplotlib.pyplot as plt
+
+        if not (self.d == 2 and self.n_rot == 1 and self.level == "no"):
+            raise ValueError(
+                "Polar cost plotting is implemented only for d=2, n_rot=1, level='no'."
+            )
+        costs = np.array([self.get_cost(self.so2_theta(angle)) for angle in thetas])
+        fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
+        ax.plot(thetas, costs, label=label)
+        if label is not None:
+            ax.legend()
+        return fig, ax
+
+    def plot_setup(
+        self, estimates: Dict[str, np.ndarray] | None = None
+    ) -> Tuple[Any, Any]:
+        """Plot ground-truth frames and optional estimated frames."""
         import itertools
 
         import matplotlib.pyplot as plt
 
         from popcor.utils.plotting_tools import plot_frame
 
+        if estimates is None:
+            estimates = {}
+
         fig, ax = plt.subplots()
-        label = "gt"
+        gt_label = "gt"
         for i in range(self.n_rot):
             plot_frame(
                 ax=ax,
                 theta=self.theta[:, i * self.d : (i + 1) * self.d],
-                label=label,
+                label=gt_label,
                 ls="-",
                 scale=0.5,
                 marker="",
                 r_wc_w=np.hstack([i * 2.0] + [0.0] * (self.d - 1)),  # type: ignore
             )
-            label = None
+            gt_label = None
 
         linestyles = itertools.cycle(LINESTYLES)
         for label, theta in estimates.items():
@@ -585,18 +586,48 @@ class RotationLifter(StateLifter):
         ax.legend()
         return fig, ax
 
+    def plot(
+        self,
+        thetas: np.ndarray | None = None,
+        label: str | None = None,
+        estimates: Dict[str, np.ndarray] | None = None,
+    ) -> Tuple[Any, Any]:
+        """Compatibility wrapper for plot_cost/plot_setup."""
+        if thetas is not None:
+            return self.plot_cost(thetas=thetas, label=label)
+        return self.plot_setup(estimates=estimates)
+
     def __repr__(self) -> str:
         return f"rotation_lifter{self.d}d_{self.level}"
 
 
 if __name__ == "__main__":
+    import os
+
     import matplotlib.pyplot as plt
-    import numpy as np
     from cert_tools.linalg_tools import rank_project
     from cert_tools.sdp_solvers import solve_sdp
 
     from popcor.utils.plotting_tools import plot_matrix
 
+    base_dir: str = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+    angles: np.ndarray = np.linspace(-np.pi, np.pi, 500)
+    for example_type in RotationLifter.EXAMPLE_TYPES:
+        lifter = RotationLifter.create_example(example_type=example_type)
+        fig, ax = lifter.plot_cost(angles, label=f"example {example_type}")
+        ax.set_title(f"SO(2) example {example_type}")
+        fig.savefig(
+            os.path.join(
+                base_dir,
+                "docs",
+                "source",
+                "_static",
+                f"rotation_lifter_{example_type}.png",
+            )
+        )
+
+    # Create estimation pipeline
     level: str = "no"
     np.random.seed(0)
     lifter = RotationLifter(
@@ -615,7 +646,7 @@ if __name__ == "__main__":
         theta_i, *_ = lifter.local_solver(theta_init, y, verbose=False)
         estimates[f"init random {i}"] = theta_i
 
-    fig, ax = lifter.plot(estimates=estimates)
+    fig, ax = lifter.plot_setup(estimates=estimates)
     ax.legend()
     plt.show(block=False)
 
@@ -644,6 +675,6 @@ if __name__ == "__main__":
         theta_opt = lifter.get_theta(x[:, :rank])
 
     estimates = {"init gt": theta_gt, "SDP": theta_opt}
-    fig, ax = lifter.plot(estimates=estimates)
+    fig, ax = lifter.plot_setup(estimates=estimates)
 
     print("done")

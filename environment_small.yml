@@ -11,4 +11,5 @@ dependencies:
 
     - suitesparse # used by sparseqr
     - pip:
+      - sparseqr>=1.6.0
       - -e .

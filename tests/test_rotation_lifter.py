@@ -144,10 +144,10 @@ def test_solve_local():
 )
 def test_so2_example_minima_structure(example_type, expect_equal_minima):
     """Validate deterministic SO(2) tutorial examples have intended minima patterns."""
-    lifter = RotationLifter(d=2, n_rot=1, n_abs=0, n_rel=0, level="no")
+    lifter = RotationLifter.create_example(example_type=example_type)
 
     angles = np.linspace(0.0, 2.0 * np.pi, 4001)
-    costs = np.array([lifter.get_so2_example_cost(t, example_type) for t in angles])
+    costs = np.array([lifter.get_cost(lifter.so2_theta(t)) for t in angles])
 
     minima_idx = []
     for i in range(1, len(angles) - 1):
@@ -175,9 +175,9 @@ def test_so2_example_sdp_recovery(example_type):
     not rank-1 in the angle-moment block. Type B has a unique global minimum and should
     be near rank-1.
     """
-    lifter = RotationLifter(d=2, n_rot=1, n_abs=0, n_rel=0, level="no")
+    lifter = RotationLifter.create_example(example_type=example_type)
 
-    Q = lifter.get_so2_example_Q(example_type=example_type)
+    Q = lifter.get_Q()
     A_known, b_known = lifter.get_A_known(add_redundant=True)
     A_0, b_0 = lifter.get_A0()
     constraints = list(zip(A_0 + A_known, b_0 + b_known))
@@ -186,7 +186,7 @@ def test_so2_example_sdp_recovery(example_type):
     _, info_rank = rank_project(X, p=1)
 
     angles = np.linspace(-np.pi, np.pi, 5001)
-    costs = np.array([lifter.get_so2_example_cost(t, example_type) for t in angles])
+    costs = np.array([lifter.get_cost(lifter.so2_theta(t)) for t in angles])
     c_min = float(np.min(costs))
 
     # SDP lower bound should match the global minimum cost very tightly.

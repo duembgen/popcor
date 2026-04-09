@@ -1,5 +1,6 @@
 import warnings
 from abc import ABC, abstractmethod
+from typing import Any
 
 import autograd.numpy as anp
 import matplotlib.pylab as plt
@@ -37,6 +38,8 @@ class RangeOnlyLifter(StateLifter, ABC):
     NOISE = 1e-2  # std deviation of distance noise
     SCALE = 2.0  # size of the region of intereist: [0, SCALE]^d
     MIN_DIST = 1e-2  # minimum distance between landmarks and positions
+    EXAMPLE_TYPES: tuple[str, str, str] = ("A", "B", "C")
+    example_type: str | None = None
 
     def __init__(
         self,
@@ -100,6 +103,40 @@ class RangeOnlyLifter(StateLifter, ABC):
             size=(n_positions, d),
         )
         return landmarks, theta
+
+    @classmethod
+    def create_example(
+        cls,
+        example_type: str = "A",
+        n_positions: int = 3,
+        n_landmarks: int = 4,
+        d: int = 2,
+    ) -> "RangeOnlyLifter":
+        """Create a deterministic tutorial setup selected by example type.
+
+        - "A": good initialization.
+        - "B": bad initialization.
+        - "C": fixed bad initialization.
+        """
+        if example_type not in cls.EXAMPLE_TYPES:
+            raise ValueError(
+                f"Unknown example_type {example_type}. Expected one of {cls.EXAMPLE_TYPES}."
+            )
+
+        if example_type == "A":
+            landmarks, theta = RangeOnlyLifter.create_good(n_positions, n_landmarks, d)
+        elif example_type == "B":
+            landmarks, theta = RangeOnlyLifter.create_bad(n_positions, n_landmarks, d)
+        else:
+            landmarks, theta = RangeOnlyLifter.create_bad_fixed(
+                n_positions, n_landmarks, d
+            )
+
+        lifter = cls(n_positions, n_landmarks, d)
+        lifter.overwrite_theta(theta)
+        lifter.landmarks = landmarks
+        lifter.example_type = example_type
+        return lifter
 
     @staticmethod
     def sample_landmarks_filling_space(n_landmarks, d=2):
@@ -344,7 +381,7 @@ class RangeOnlyLifter(StateLifter, ABC):
             cost = sol.fun
             info["max res"] = np.max(np.abs(residuals))
             hess = self.get_hess(that, y)
-            assert isinstance(hess, sp.csc_matrix)
+            assert isinstance(hess, sp.csc_array)
             eigs = np.linalg.eigvalsh(hess.toarray())
             info["cond Hess"] = eigs[-1] / eigs[0]
         else:
@@ -391,6 +428,106 @@ class RangeOnlyLifter(StateLifter, ABC):
             )
         ax.set_aspect("equal")
         return fig, ax, im
+
+    def plot_cost(
+        self,
+        y: np.ndarray | None = None,
+        xlims: tuple[float, float] | None = None,
+        ylims: tuple[float, float] | None = None,
+        grid_size: int = 120,
+    ) -> tuple[Any, Any, Any]:
+        """Plot a 2D heatmap of the cost by varying the first position only."""
+        if self.d != 2:
+            raise ValueError("plot_cost is implemented only for d=2.")
+
+        from matplotlib.colors import LogNorm
+
+        if y is None:
+            if self.y_ is None:
+                self.y_ = self.simulate_y(noise=0.0)
+            y = self.y_
+
+        theta_ref = self.theta.reshape(self.n_positions, self.d).copy()
+        anchors = self.landmarks
+        ref_xy = theta_ref[0]
+
+        if xlims is None:
+            xmin = min(np.min(anchors[:, 0]), ref_xy[0]) - 0.3
+            xmax = max(np.max(anchors[:, 0]), ref_xy[0]) + 0.3
+            xlims = (xmin, xmax)
+        if ylims is None:
+            ymin = min(np.min(anchors[:, 1]), ref_xy[1]) - 0.3
+            ymax = max(np.max(anchors[:, 1]), ref_xy[1]) + 0.3
+            ylims = (ymin, ymax)
+
+        xs = np.linspace(xlims[0], xlims[1], grid_size)
+        ys = np.linspace(ylims[0], ylims[1], grid_size)
+        xx, yy = np.meshgrid(xs, ys)
+
+        zz = np.empty_like(xx)
+        for i in range(xx.shape[0]):
+            for j in range(xx.shape[1]):
+                theta_test = theta_ref.copy()
+                theta_test[0, :] = np.array([xx[i, j], yy[i, j]])
+                zz[i, j] = self.get_cost(theta=theta_test, y=y)
+
+        fig, ax = plt.subplots()
+        im = ax.pcolormesh(
+            xx,
+            yy,
+            zz + 1e-12,
+            shading="auto",
+            norm=LogNorm(vmin=max(1e-12, float(np.min(zz + 1e-12)))),
+            cmap="viridis",
+            alpha=0.85,
+        )
+        ax.scatter(*anchors[:, :2].T, color="k", marker="+", label="anchors")
+        ax.scatter(*theta_ref[:, :2].T, color="C0", marker="o", label="gt")
+        ax.set_aspect("equal")
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
+        ax.legend()
+        fig.colorbar(im, ax=ax, label="cost")
+        return fig, ax, im
+
+    def plot_setup(self, estimates: dict[str, np.ndarray] | None = None) -> tuple:
+        """Plot anchors and ground-truth positions, with optional estimates, in 2D or 3D."""
+        if estimates is None:
+            estimates = {}
+
+        theta_gt = self.theta
+        if np.ndim(theta_gt) < 2:
+            theta_gt = theta_gt.reshape((self.n_positions, self.d))
+
+        if self.d == 2:
+            fig, ax = plt.subplots()
+            ax.scatter(*self.landmarks[:, :2].T, color="k", marker="+", label="anchors")
+            ax.scatter(*theta_gt[:, :2].T, color="C0", marker="o", label="gt")
+            for label, theta_est in estimates.items():
+                if np.ndim(theta_est) < 2:
+                    theta_est = theta_est.reshape((self.n_positions, self.d))
+                ax.scatter(*theta_est[:, :2].T, marker="x", label=label)
+            ax.set_aspect("equal")
+            ax.set_xlabel("x")
+            ax.set_ylabel("y")
+            ax.legend()
+            return fig, ax
+        elif self.d == 3:
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection="3d")
+            ax.scatter(*self.landmarks.T, color="k", marker="+", label="anchors")
+            ax.scatter(*theta_gt.T, color="C0", marker="o", label="gt")
+            for label, theta_est in estimates.items():
+                if np.ndim(theta_est) < 2:
+                    theta_est = theta_est.reshape((self.n_positions, self.d))
+                ax.scatter(*theta_est.T, marker="x", label=label)
+            ax.set_xlabel("x")
+            ax.set_ylabel("y")
+            ax.set_zlabel("z")
+            ax.legend()
+            return fig, ax
+        else:
+            raise ValueError("plot_setup is implemented only for d=2 or d=3.")
 
     @property
     @abstractmethod

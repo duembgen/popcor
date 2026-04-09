@@ -14,10 +14,13 @@
 import os
 import sys
 
-import popcor
-
 # The module you're documenting (assumes you've added the project root dir to sys.path)
 sys.path.insert(0, os.path.abspath("../.."))
+
+try:
+    import popcor
+except (ImportError, ModuleNotFoundError):
+    popcor = None
 
 # -- Project information -----------------------------------------------------
 

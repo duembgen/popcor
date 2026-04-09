@@ -1,7 +1,5 @@
-What's new
+What's New
 ==========
 
-Below is a rendering of the CHANGELOG.md file. 
-
-.. include:: ../../CHANGELOG.md
-   :parser: myst_parser.sphinx_
+.. literalinclude:: ../../CHANGELOG.md
+   :language: markdown
