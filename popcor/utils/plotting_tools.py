@@ -170,7 +170,7 @@ def plot_frame(
         label=label,
         zorder=1,
         ls=ls,
-        color="k",
+        color="r",
         **kwargs,
     )
     return r_wc_w, C_cw
